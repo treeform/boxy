@@ -15,24 +15,23 @@ type
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture: Texture
-    maskTextureWrite: int       ## Index into max textures for writing.
-    maskTextureRead: int        ## Index into max textures for rendering.
+    maskTextureWrite: int       ## Index into mask textures for writing.
+    maskTextureRead: int        ## Index into mask textures for rendering.
     maskTextures: seq[Texture]  ## Masks array for pushing and popping.
     atlasSize: int              ## Size x size dimensions of the atlas
-    atlasMargin: int            ## Default margin between images
     quadCount: int              ## Number of quads drawn so far
     maxQuads: int               ## Max quads to draw before issuing an OpenGL call
-    mat*: Mat4                  ## Current matrix
+    mat: Mat4                   ## Current matrix
     mats: seq[Mat4]             ## Matrix stack
     entries*: Table[string, TileInfo] ## Mapping of image name to atlas UV position
     maxTiles: int
     tileRun: int
-    takenTiles: seq[bool]        ## Height map of the free space in the atlas
-    proj*: Mat4
+    takenTiles: seq[bool]       ## Height map of the free space in the atlas
+    proj: Mat4
     frameSize: Vec2             ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
-    pixelate*: bool             ## Makes texture look pixelated, like a pixel game.
+    pixelate: bool              ## Makes texture look pixelated, like a pixel game.
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -40,20 +39,29 @@ type
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
 
-proc tilesWidth(tileInfo: TileInfo ): int =
-  ## Number of tiles wide.
-  ceil(tileInfo.width / tileSize).int
-
-proc tilesHeight(tileInfo: TileInfo ): int =
-  ## Number of tiles high.
-  ceil(tileInfo.height / tileSize).int
-
 proc vec2(x, y: SomeNumber): Vec2 =
   ## Integer short cut for creating vectors.
   vec2(x.float32, y.float32)
 
+func `*`(m: Mat4, v: Vec2): Vec2 =
+  (m * vec3(v.x, v.y, 0.0)).xy
+
+proc `*`(a, b: Color): Color =
+  result.r = a.r * b.r
+  result.g = a.g * b.g
+  result.b = a.b * b.b
+  result.a = a.a * b.a
+
+proc tilesWidth(tileInfo: TileInfo): int =
+  ## Number of tiles wide.
+  ceil(tileInfo.width / tileSize).int
+
+proc tilesHeight(tileInfo: TileInfo): int =
+  ## Number of tiles high.
+  ceil(tileInfo.height / tileSize).int
+
 proc readAtlas*(boxy: Boxy): Image =
-  # read old atlas content
+  ## Read the current atlas content.
   result = newImage(boxy.atlasTexture.width, boxy.atlasTexture.height)
   glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
   when not defined(emscripten):
@@ -65,9 +73,6 @@ proc readAtlas*(boxy: Boxy): Image =
       result.data[0].addr
     )
 
-proc draw(boxy: Boxy)
-proc putImage*(boxy: Boxy, imagePath: string, image: Image)
-
 proc upload(boxy: Boxy) =
   ## When buffers change, uploads them to GPU.
   boxy.positions.buffer.count = boxy.quadCount * 4
@@ -77,6 +82,47 @@ proc upload(boxy: Boxy) =
   bindBufferData(boxy.positions.buffer, boxy.positions.data[0].addr)
   bindBufferData(boxy.colors.buffer, boxy.colors.data[0].addr)
   bindBufferData(boxy.uvs.buffer, boxy.uvs.data[0].addr)
+
+proc draw(boxy: Boxy) =
+  ## Flips - draws current buffer and starts a new one.
+  if boxy.quadCount == 0:
+    return
+
+  boxy.upload()
+
+  glUseProgram(boxy.activeShader.programId)
+  glBindVertexArray(boxy.vertexArrayId)
+
+  if boxy.activeShader.hasUniform("windowFrame"):
+    boxy.activeShader.setUniform("windowFrame", boxy.frameSize.x, boxy.frameSize.y)
+  boxy.activeShader.setUniform("proj", boxy.proj)
+
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
+  boxy.activeShader.setUniform("atlasTex", 0)
+
+  if boxy.activeShader.hasUniform("maskTex"):
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(
+      GL_TEXTURE_2D,
+      boxy.maskTextures[boxy.maskTextureRead].textureId
+    )
+    boxy.activeShader.setUniform("maskTex", 1)
+
+  boxy.activeShader.bindUniforms()
+
+  glBindBuffer(
+    GL_ELEMENT_ARRAY_BUFFER,
+    boxy.indices.buffer.bufferId
+  )
+  glDrawElements(
+    GL_TRIANGLES,
+    boxy.indices.buffer.count.GLint,
+    boxy.indices.buffer.componentType,
+    nil
+  )
+
+  boxy.quadCount = 0
 
 proc setUpMaskFramebuffer(boxy: Boxy) =
   glBindFramebuffer(GL_FRAMEBUFFER, boxy.maskFramebufferId)
@@ -90,8 +136,8 @@ proc setUpMaskFramebuffer(boxy: Boxy) =
 
 proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result = Texture()
-  result.width = size.GLint
-  result.height = size.GLint
+  result.width = size.int32
+  result.height = size.int32
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
@@ -176,12 +222,12 @@ proc newBoxy*(
     )
   else:
     result.atlasShader = newShaderStatic(
-      "glsl/atlas.vert",
-      "glsl/atlas.frag"
+      "glsl/410/atlas.vert",
+      "glsl/410/atlas.frag"
     )
     result.maskShader = newShaderStatic(
-      "glsl/atlas.vert",
-      "glsl/mask.frag"
+      "glsl/410/atlas.vert",
+      "glsl/410/mask.frag"
     )
 
   result.positions.buffer = Buffer()
@@ -263,12 +309,10 @@ proc grow(boxy: Boxy) =
 
   # read old atlas content
   let
-    oldAtlasImage = boxy.readAtlas()
+    oldAtlas = boxy.readAtlas()
     oldTileRun = boxy.tileRun
 
-  boxy.atlasSize = boxy.atlasSize * 2
-
-  echo "grow atlas: ", boxy.atlasSize
+  boxy.atlasSize *= 2
 
   boxy.tileRun = boxy.atlasSize div tileSize
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
@@ -280,7 +324,7 @@ proc grow(boxy: Boxy) =
   for y in 0 ..< oldTileRun:
     for x in 0 ..< oldTileRun:
       let
-        imageTile = oldAtlasImage.superImage(
+        imageTile = oldAtlas.superImage(
           x * tileSize,
           y * tileSize,
           tileSize,
@@ -349,154 +393,71 @@ proc putImage*(boxy: Boxy, imagePath: string, image: Image) =
 
   boxy.entries[imagePath] = tileInfo
 
-proc draw(boxy: Boxy) =
-  ## Flips - draws current buffer and starts a new one.
-  if boxy.quadCount == 0:
-    return
-
-  boxy.upload()
-
-  glUseProgram(boxy.activeShader.programId)
-  glBindVertexArray(boxy.vertexArrayId)
-
-  if boxy.activeShader.hasUniform("windowFrame"):
-    boxy.activeShader.setUniform("windowFrame", boxy.frameSize.x, boxy.frameSize.y)
-  boxy.activeShader.setUniform("proj", boxy.proj)
-
-  glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
-  boxy.activeShader.setUniform("atlasTex", 0)
-
-  if boxy.activeShader.hasUniform("maskTex"):
-    glActiveTexture(GL_TEXTURE1)
-    glBindTexture(
-      GL_TEXTURE_2D,
-      boxy.maskTextures[boxy.maskTextureRead].textureId
-    )
-    boxy.activeShader.setUniform("maskTex", 1)
-
-  boxy.activeShader.bindUniforms()
-
-  glBindBuffer(
-    GL_ELEMENT_ARRAY_BUFFER,
-    boxy.indices.buffer.bufferId
-  )
-  glDrawElements(
-    GL_TRIANGLES,
-    boxy.indices.buffer.count.GLint,
-    boxy.indices.buffer.componentType,
-    nil
-  )
-
-  boxy.quadCount = 0
-
 proc checkBatch(boxy: Boxy) =
   if boxy.quadCount == boxy.maxQuads:
-    # boxy is full dump the images in the boxy now and start a new batch
+    # ctx is full dump the images in the ctx now and start a new batch
     boxy.draw()
 
-proc setVert2(buf: var seq[float32], i: int, v: Vec2) =
+proc setVert(buf: var seq[float32], i: int, v: Vec2) =
   buf[i * 2 + 0] = v.x
   buf[i * 2 + 1] = v.y
 
-proc setVertColor(buf: var seq[uint8], i: int, color: ColorRGBA) =
-  buf[i * 4 + 0] = color.r
-  buf[i * 4 + 1] = color.g
-  buf[i * 4 + 2] = color.b
-  buf[i * 4 + 3] = color.a
-
-func `*`*(m: Mat4, v: Vec2): Vec2 =
-  (m * vec3(v.x, v.y, 0.0)).xy
+proc setVertColor(buf: var seq[uint8], i: int, rgbx: ColorRGBX) =
+  buf[i * 4 + 0] = rgbx.r
+  buf[i * 4 + 1] = rgbx.g
+  buf[i * 4 + 2] = rgbx.b
+  buf[i * 4 + 3] = rgbx.a
 
 proc drawQuad*(
   boxy: Boxy,
   verts: array[4, Vec2],
   uvs: array[4, Vec2],
-  colors: array[4, ColorRGBA],
+  colors: array[4, Color],
 ) =
   boxy.checkBatch()
 
   let offset = boxy.quadCount * 4
-  boxy.positions.data.setVert2(offset + 0, verts[0])
-  boxy.positions.data.setVert2(offset + 1, verts[1])
-  boxy.positions.data.setVert2(offset + 2, verts[2])
-  boxy.positions.data.setVert2(offset + 3, verts[3])
+  boxy.positions.data.setVert(offset + 0, verts[0])
+  boxy.positions.data.setVert(offset + 1, verts[1])
+  boxy.positions.data.setVert(offset + 2, verts[2])
+  boxy.positions.data.setVert(offset + 3, verts[3])
 
-  boxy.uvs.data.setVert2(offset + 0, uvs[0])
-  boxy.uvs.data.setVert2(offset + 1, uvs[1])
-  boxy.uvs.data.setVert2(offset + 2, uvs[2])
-  boxy.uvs.data.setVert2(offset + 3, uvs[3])
+  boxy.uvs.data.setVert(offset + 0, uvs[0])
+  boxy.uvs.data.setVert(offset + 1, uvs[1])
+  boxy.uvs.data.setVert(offset + 2, uvs[2])
+  boxy.uvs.data.setVert(offset + 3, uvs[3])
 
-  boxy.colors.data.setVertColor(offset + 0, colors[0])
-  boxy.colors.data.setVertColor(offset + 1, colors[1])
-  boxy.colors.data.setVertColor(offset + 2, colors[2])
-  boxy.colors.data.setVertColor(offset + 3, colors[3])
+  boxy.colors.data.setVertColor(offset + 0, colors[0].asRgbx())
+  boxy.colors.data.setVertColor(offset + 1, colors[1].asRgbx())
+  boxy.colors.data.setVertColor(offset + 2, colors[2].asRgbx())
+  boxy.colors.data.setVertColor(offset + 3, colors[3].asRgbx())
 
   inc boxy.quadCount
 
-proc drawUvRect(boxy: Boxy, at, to: Vec2, uvAt, uvTo: Vec2, color: Color) =
-  ## Adds an image rect with a path to an boxy
+proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
+  ## Adds an image rect with a path to an ctx
   boxy.checkBatch()
-
-  assert boxy.quadCount < boxy.maxQuads
 
   let
     at = boxy.mat * at
     to = boxy.mat * to
-
     posQuad = [
       vec2(at.x, to.y),
       vec2(to.x, to.y),
       vec2(to.x, at.y),
       vec2(at.x, at.y),
     ]
-
-    uvAt = (uvAt + vec2(0.0, 0.0)) / boxy.atlasSize.float32
-    uvTo = (uvTo + vec2(0.0, 0.0)) / boxy.atlasSize.float32
-
+    uvAt = uvAt / boxy.atlasSize.float32
+    uvTo = uvTo / boxy.atlasSize.float32
     uvQuad = [
       vec2(uvAt.x, uvTo.y),
       vec2(uvTo.x, uvTo.y),
       vec2(uvTo.x, uvAt.y),
       vec2(uvAt.x, uvAt.y),
     ]
+    colorQuad = [color, color, color, color]
 
-  let offset = boxy.quadCount * 4
-  boxy.positions.data.setVert2(offset + 0, posQuad[0])
-  boxy.positions.data.setVert2(offset + 1, posQuad[1])
-  boxy.positions.data.setVert2(offset + 2, posQuad[2])
-  boxy.positions.data.setVert2(offset + 3, posQuad[3])
-
-  boxy.uvs.data.setVert2(offset + 0, uvQuad[0])
-  boxy.uvs.data.setVert2(offset + 1, uvQuad[1])
-  boxy.uvs.data.setVert2(offset + 2, uvQuad[2])
-  boxy.uvs.data.setVert2(offset + 3, uvQuad[3])
-
-  let rgba = color.rgba()
-  boxy.colors.data.setVertColor(offset + 0, rgba)
-  boxy.colors.data.setVertColor(offset + 1, rgba)
-  boxy.colors.data.setVertColor(offset + 2, rgba)
-  boxy.colors.data.setVertColor(offset + 3, rgba)
-
-  inc boxy.quadCount
-
-proc `*`(a, b: Color): Color =
-  result.r = a.r * b.r
-  result.g = a.g * b.g
-  result.b = a.b * b.b
-  result.a = a.a * b.a
-
-proc `*`(c: Color, f: float32): Color =
-  result.r = c.r * f
-  result.g = c.g * f
-  result.b = c.b * f
-  result.a = c.a * f
-
-proc toPremultipliedAlpha(c: Color): Color =
-  result.r = c.r * c.a
-  result.g = c.g * c.a
-  result.b = c.b * c.a
-  result.a = c.a
+  boxy.drawQuad(posQuad, uvQuad, colorQuad)
 
 proc drawImage*(
   boxy: Boxy,
@@ -517,7 +478,7 @@ proc drawImage*(
         pos + vec2(tileInfo.width, tileInfo.height),
         vec2(2, 2),
         vec2(2, 2),
-        (tileInfo.oneColor * tintColor).toPremultipliedAlpha
+        (tileInfo.oneColor * tintColor)
       )
   else:
     var i = 0
@@ -536,7 +497,7 @@ proc drawImage*(
               posAt + vec2(tileSize, tileSize),
               vec2(2, 2),
               vec2(2, 2),
-              (tileInfo.oneColor * tintColor).toPremultipliedAlpha
+              (tileInfo.oneColor * tintColor)
             )
         else:
           let
@@ -549,7 +510,7 @@ proc drawImage*(
             posAt + vec2(tileSize, tileSize),
             uvAt,
             uvAt + vec2(tileSize, tileSize),
-            tintColor.toPremultipliedAlpha
+            tintColor
           )
         inc i
     assert i == tileInfo.tiles.len
@@ -598,7 +559,6 @@ proc endMask*(boxy: Boxy) =
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
   boxy.maskTextureRead = boxy.maskTextureWrite
-
   boxy.activeShader = boxy.atlasShader
 
 proc popMask*(boxy: Boxy) =
