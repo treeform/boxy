@@ -1,7 +1,7 @@
-# You can use this nim template to jump start your nim library or project.
+# Boxy
 
-This template includes:
-* MIT licence
-* src directory and a private common.nim
-* test directory
-* GitHub Actions to run the tests on GitHub
+`nimble install boxy`
+
+![Github Actions](https://github.com/treeform/boxy/workflows/Github%20Actions/badge.svg)
+
+[API reference](https://nimdocs.com/treeform/boxy)
