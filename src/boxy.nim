@@ -52,7 +52,7 @@ proc vec2(x, y: SomeNumber): Vec2 =
   ## Integer short cut for creating vectors.
   vec2(x.float32, y.float32)
 
-proc readAtlasImage(boxy: Boxy): Image =
+proc readAtlas*(boxy: Boxy): Image =
   # read old atlas content
   result = newImage(boxy.atlasTexture.width, boxy.atlasTexture.height)
   glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
@@ -64,11 +64,6 @@ proc readAtlasImage(boxy: Boxy): Image =
       GL_UNSIGNED_BYTE,
       result.data[0].addr
     )
-
-proc writeAtlas*(boxy: Boxy, filePath: string) =
-  ## Writes the current atlas to a file, used for debugging.
-  let atlas = boxy.readAtlasImage()
-  atlas.writeFile(filePath)
 
 proc draw(boxy: Boxy)
 proc putImage*(boxy: Boxy, imagePath: string, image: Image)
@@ -268,7 +263,7 @@ proc grow(boxy: Boxy) =
 
   # read old atlas content
   let
-    oldAtlasImage = boxy.readAtlasImage()
+    oldAtlasImage = boxy.readAtlas()
     oldTileRun = boxy.tileRun
 
   boxy.atlasSize = boxy.atlasSize * 2
