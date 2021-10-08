@@ -473,10 +473,10 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
 
   boxy.drawQuad(posQuad, uvQuad, colorQuad)
 
-proc drawColor*(
+proc drawRect*(
   boxy: Boxy,
-  color: Color,
-  rect: Rect
+  rect: Rect,
+  color: Color
 ) =
   if color != color(0, 0, 0, 0):
     boxy.drawUvRect(
@@ -496,9 +496,9 @@ proc drawImage*(
   ## Draws image at pos from top-left. The image should have already been added.
   let imageInfo = boxy.entries[key]
   if imageInfo.tiles.len == 0:
-    boxy.drawColor(
-      imageInfo.oneColor,
-      rect(pos, vec2(imageInfo.width, imageInfo.height))
+    boxy.drawRect(
+      rect(pos, vec2(imageInfo.width, imageInfo.height)),
+      imageInfo.oneColor
     )
   else:
     var i = 0

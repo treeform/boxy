@@ -23,7 +23,7 @@ var i: int
 
 proc display() =
   bxy.beginFrame(windowSize)
-  bxy.drawColor(color(1, 1, 1, 1), rect(vec2(), windowSize))
+  bxy.drawRect(rect(vec2(), windowSize), color(1, 1, 1, 1))
   bxy.drawImage("rhino", vec2((i mod windowSize.x.int).float32, 0))
   bxy.endFrame()
   window.swapBuffers()
