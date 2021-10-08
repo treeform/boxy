@@ -21,8 +21,8 @@ type
   ImageInfo = object
     width: int           ## Width of the image in pixels.
     height: int          ## Height of the image in pixels.
-    tiles: seq[TileInfo] ## Tile indexes to look for tiles.
-    color: Color         ## If tiles = [] then this is the tile color.
+    tiles: seq[TileInfo] ## The tile info for this image.
+    color: Color         ## If tiles = [] then this is the image's solid color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
