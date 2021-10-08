@@ -189,20 +189,20 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
 
 proc addWhiteTile(boxy: Boxy) =
   # Insert a solid white tile used for all one color draws.
-  let solidTile = newImage(boxy.tileSize, boxy.tileSize)
-  solidTile.fill(color(1, 1, 1, 1))
+  let whiteTile = newImage(boxy.tileSize, boxy.tileSize)
+  whiteTile.fill(color(1, 1, 1, 1))
   updateSubImage(
     boxy.atlasTexture,
     0,
     0,
-    solidTile
+    whiteTile
   )
   boxy.takenTiles[0] = true
 
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
   boxy.takenTiles.clear()
-  boxy.addSolidTile()
+  boxy.addWhiteTile()
 
 proc newBoxy*(
   atlasSize = 512,
