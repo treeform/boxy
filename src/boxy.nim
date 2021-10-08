@@ -1,5 +1,5 @@
-import boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes, opengl,
-    os, pixie, strformat, strutils, tables, vmath
+import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
+    opengl, os, pixie, strformat, strutils, tables, vmath
 
 export pixie
 
@@ -21,8 +21,8 @@ type
   ImageInfo = object
     width: int           ## Width of the image in pixels.
     height: int          ## Height of the image in pixels.
-    tiles: seq[TileInfo] ## Tile indexes to look for tiles.
-    color: Color         ## If tiles = [] then this is the tile color.
+    tiles: seq[TileInfo] ## The tile info for this image.
+    oneColor: Color      ## If tiles = [] then this is the image's color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
@@ -30,17 +30,17 @@ type
     maskTextureWrite: int      ## Index into mask textures for writing.
     maskTextureRead: int       ## Index into mask textures for rendering.
     maskTextures: seq[Texture] ## Masks array for pushing and popping.
-    atlasSize: int             ## Size x size dimensions of the atlas
-    quadCount: int             ## Number of quads drawn so far
-    maxQuads: int              ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4                  ## Current matrix
-    mats: seq[Mat4]            ## Matrix stack
+    atlasSize: int             ## Size x size dimensions of the atlas.
+    quadCount: int             ## Number of quads drawn so far in this batch.
+    maxQuads: int              ## Max quads in a batch before issuing an OpenGL call.
+    mat: Mat4                  ## The current matrix.
+    mats: seq[Mat4]            ## The matrix stack.
     entries*: Table[string, ImageInfo]
     maxTiles: int
     tileRun: int
-    takenTiles: seq[bool]      ## Height map of the free space in the atlas
+    takenTiles: BitArray       ## Flag for if the tile is taken or not.
     proj: Mat4
-    frameSize: Vec2            ## Dimensions of the window frame
+    frameSize: Vec2            ## Dimensions of the window frame.
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
     pixelate: bool             ## Makes texture look pixelated, like a pixel game.
@@ -197,8 +197,7 @@ proc addSolidTile(boxy: Boxy) =
 
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
-  for index in 0 ..< boxy.maxTiles:
-    boxy.takenTiles[index] = false
+  boxy.takenTiles.clear()
   boxy.addSolidTile()
 
 proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
@@ -215,7 +214,7 @@ proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
 
   result.tileRun = atlasSize div tileSize
   result.maxTiles = result.tileRun * result.tileRun
-  result.takenTiles = newSeq[bool](result.maxTiles)
+  result.takenTiles = newBitArray(result.maxTiles)
   result.atlasTexture = result.createAtlasTexture(atlasSize)
 
   result.addMaskTexture()
@@ -372,7 +371,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
   imageInfo.height = image.height
 
   if image.isOneColor():
-    imageInfo.color = image[0, 0].color
+    imageInfo.oneColor = image[0, 0].color
   else:
     # Split the image into tiles.
     for y in 0 ..< imageInfo.tileHeight:
@@ -471,15 +470,15 @@ proc drawImage*(
   ## Draws image at pos from top-left. The image should have already been added.
   let imageInfo = boxy.entries[key]
   if imageInfo.tiles.len == 0:
-    if imageInfo.color == color(0, 0, 0, 0):
+    if imageInfo.oneColor == color(0, 0, 0, 0):
       return # Don't draw anything if the image is transparent.
-    # Draw a single solid-color rect
+    # Draw the color rect
     boxy.drawUvRect(
       pos,
       pos + vec2(imageInfo.width, imageInfo.height),
       vec2(tileSize / 2, tileSize / 2),
       vec2(tileSize / 2, tileSize / 2),
-      (imageInfo.color * tintColor)
+      (imageInfo.oneColor * tintColor)
     )
   else:
     var i = 0
