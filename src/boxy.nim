@@ -187,7 +187,7 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
   bindTextureData(maskTexture, nil)
   boxy.maskTextures.add(maskTexture)
 
-proc addSolidTile(boxy: Boxy) =
+proc addWhiteTile(boxy: Boxy) =
   # Insert a solid white tile used for all one color draws.
   let solidTile = newImage(boxy.tileSize, boxy.tileSize)
   solidTile.fill(color(1, 1, 1, 1))
@@ -320,7 +320,7 @@ proc newBoxy*(
   glEnable(GL_BLEND)
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
-  result.addSolidTile()
+  result.addWhiteTile()
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
@@ -339,7 +339,7 @@ proc grow(boxy: Boxy) =
   boxy.takenTiles.setLen(boxy.maxTiles)
   boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
 
-  boxy.addSolidTile()
+  boxy.addWhiteTile()
 
   for y in 0 ..< oldTileRun:
     for x in 0 ..< oldTileRun:
