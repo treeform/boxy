@@ -35,7 +35,7 @@ type
     quadsPerBatch: int         ## Max quads in a batch before issuing an OpenGL call.
     mat: Mat4                  ## The current matrix.
     mats: seq[Mat4]            ## The matrix stack.
-    entries*: Table[string, ImageInfo]
+    entries: Table[string, ImageInfo]
     tileSize: int
     maxTiles: int
     tileRun: int
@@ -95,6 +95,9 @@ proc upload(boxy: Boxy) =
   bindBufferData(boxy.positions.buffer, boxy.positions.data[0].addr)
   bindBufferData(boxy.colors.buffer, boxy.colors.data[0].addr)
   bindBufferData(boxy.uvs.buffer, boxy.uvs.data[0].addr)
+
+proc contains*(boxy: Boxy, key: string): bool =
+  key in boxy.entries
 
 proc draw(boxy: Boxy) =
   ## Flips - draws current buffer and starts a new one.
