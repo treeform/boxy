@@ -3,11 +3,11 @@ import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
 
 export pixie
 
-const
-  quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileSize = 32
+const quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
 
 type
+  BoxyError* = object of ValueError
+
   TileKind = enum
     tkIndex, tkColor
 
@@ -36,6 +36,7 @@ type
     mat: Mat4                  ## The current matrix.
     mats: seq[Mat4]            ## The matrix stack.
     entries*: Table[string, ImageInfo]
+    tileSize: int
     maxTiles: int
     tileRun: int
     takenTiles: BitArray       ## Flag for if the tile is taken or not.
@@ -64,13 +65,13 @@ proc `*`(a, b: Color): Color =
   result.b = a.b * b.b
   result.a = a.a * b.a
 
-proc tileWidth(imageInfo: ImageInfo): int =
+proc tileWidth(boxy: Boxy, imageInfo: ImageInfo): int =
   ## Number of tiles wide.
-  ceil(imageInfo.width / tileSize).int
+  ceil(imageInfo.width / boxy.tileSize).int
 
-proc tileHeight(imageInfo: ImageInfo): int =
+proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int =
   ## Number of tiles high.
-  ceil(imageInfo.height / tileSize).int
+  ceil(imageInfo.height / boxy.tileSize).int
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -185,7 +186,7 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
 
 proc addSolidTile(boxy: Boxy) =
   # Insert solid color tile. (don't use addImage as its a solid color)
-  let solidTile = newImage(tileSize, tileSize)
+  let solidTile = newImage(boxy.tileSize, boxy.tileSize)
   solidTile.fill(color(1, 1, 1, 1))
   updateSubImage(
     boxy.atlasTexture,
@@ -200,13 +201,21 @@ proc clearAtlas*(boxy: Boxy) =
   boxy.takenTiles.clear()
   boxy.addSolidTile()
 
-proc newBoxy*(atlasSize = 512, quadsPerBatch = 1024, pixelate = false): Boxy =
+proc newBoxy*(
+  atlasSize = 512,
+  tileSize = 32,
+  quadsPerBatch = 1024,
+  pixelate = false
+): Boxy =
   ## Creates a new Boxy.
+  if atlasSize mod tileSize != 0:
+    raise newException(BoxyError, "Atlas size mod tile size must equal zero")
   if quadsPerBatch > quadLimit:
-    raise newException(ValueError, "Quads cannot exceed " & $quadLimit)
+    raise newException(BoxyError, "Quads cannot exceed " & $quadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
+  result.tileSize = tileSize
   result.quadsPerBatch = quadsPerBatch
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
@@ -322,7 +331,7 @@ proc grow(boxy: Boxy) =
 
   boxy.atlasSize *= 2
 
-  boxy.tileRun = boxy.atlasSize div tileSize
+  boxy.tileRun = boxy.atlasSize div boxy.tileSize
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
   boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
@@ -333,16 +342,16 @@ proc grow(boxy: Boxy) =
     for x in 0 ..< oldTileRun:
       let
         imageTile = oldAtlas.superImage(
-          x * tileSize,
-          y * tileSize,
-          tileSize,
-          tileSize
+          x * boxy.tileSize,
+          y * boxy.tileSize,
+          boxy.tileSize,
+          boxy.tileSize
         )
         index = x + y * oldTileRun
       updateSubImage(
         boxy.atlasTexture,
-        (index mod boxy.tileRun) * tileSize,
-        (index div boxy.tileRun) * tileSize,
+        (index mod boxy.tileRun) * boxy.tileSize,
+        (index div boxy.tileRun) * boxy.tileSize,
         imageTile
       )
 
@@ -374,10 +383,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
     imageInfo.oneColor = image[0, 0].color
   else:
     # Split the image into tiles.
-    for y in 0 ..< imageInfo.tileHeight:
-      for x in 0 ..< imageInfo.tileWidth:
+    for y in 0 ..< boxy.tileHeight(imageInfo):
+      for x in 0 ..< boxy.tileWidth(imageInfo):
         let tileImage = image.superImage(
-          x * tileSize, y * tileSize, tileSize, tileSize
+          x * boxy.tileSize, y * boxy.tileSize, boxy.tileSize, boxy.tileSize
         )
         if tileImage.isOneColor():
           let tileColor = tileImage[0, 0].color
@@ -387,8 +396,8 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
           imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
           updateSubImage(
             boxy.atlasTexture,
-            (index mod boxy.tileRun) * tileSize,
-            (index div boxy.tileRun) * tileSize,
+            (index mod boxy.tileRun) * boxy.tileSize,
+            (index div boxy.tileRun) * boxy.tileSize,
             tileImage
           )
           # Reminder: This does not set mipmaps (used for text, should it?)
@@ -476,42 +485,42 @@ proc drawImage*(
     boxy.drawUvRect(
       pos,
       pos + vec2(imageInfo.width, imageInfo.height),
-      vec2(tileSize / 2, tileSize / 2),
-      vec2(tileSize / 2, tileSize / 2),
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
       (imageInfo.oneColor * tintColor)
     )
   else:
     var i = 0
-    for y in 0 ..< imageInfo.tileHeight:
-      for x in 0 ..< imageInfo.tileWidth:
+    for y in 0 ..< boxy.tileHeight(imageInfo):
+      for x in 0 ..< boxy.tileWidth(imageInfo):
         let
           tile = imageInfo.tiles[i]
-          posAt = pos + vec2(x * tileSize, y * tileSize)
+          posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
         case tile.kind:
         of tkIndex:
           let
             uvAt = vec2(
-              (tile.index mod boxy.tileRun) * tileSize,
-              (tile.index div boxy.tileRun) * tileSize
+              (tile.index mod boxy.tileRun) * boxy.tileSize,
+              (tile.index div boxy.tileRun) * boxy.tileSize
             )
           boxy.drawUvRect(
             posAt,
-            posAt + vec2(tileSize, tileSize),
+            posAt + vec2(boxy.tileSize, boxy.tileSize),
             uvAt,
-            uvAt + vec2(tileSize, tileSize),
+            uvAt + vec2(boxy.tileSize, boxy.tileSize),
             tintColor
           )
         of tkColor:
           if tile.color != color(0, 0, 0, 0):
             var to = posAt
             # The image may not be a full tile wide
-            to.x += min(tileSize, imageInfo.width.float32)
-            to.y += min(tileSize, imageInfo.height.float32)
+            to.x += min(boxy.tileSize.float32, imageInfo.width.float32)
+            to.y += min(boxy.tileSize.float32, imageInfo.height.float32)
             boxy.drawUvRect(
               posAt,
               to,
-              vec2(tileSize / 2, tileSize / 2),
-              vec2(tileSize / 2, tileSize / 2),
+              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
               (tile.color * tintColor)
             )
         inc i
