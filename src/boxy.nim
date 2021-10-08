@@ -32,7 +32,7 @@ type
     maskTextures: seq[Texture] ## Masks array for pushing and popping.
     atlasSize: int             ## Size x size dimensions of the atlas.
     quadCount: int             ## Number of quads drawn so far in this batch.
-    maxQuads: int              ## Max quads in a batch before issuing an OpenGL call.
+    quadsPerBatch: int         ## Max quads in a batch before issuing an OpenGL call.
     mat: Mat4                  ## The current matrix.
     mats: seq[Mat4]            ## The matrix stack.
     entries*: Table[string, ImageInfo]
@@ -200,14 +200,14 @@ proc clearAtlas*(boxy: Boxy) =
   boxy.takenTiles.clear()
   boxy.addSolidTile()
 
-proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
+proc newBoxy*(atlasSize = 512, quadsPerBatch = 1024, pixelate = false): Boxy =
   ## Creates a new Boxy.
-  if maxQuads > quadLimit:
+  if quadsPerBatch > quadLimit:
     raise newException(ValueError, "Quads cannot exceed " & $quadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
-  result.maxQuads = maxQuads
+  result.quadsPerBatch = quadsPerBatch
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
   result.pixelate = pixelate
@@ -243,7 +243,7 @@ proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
   result.positions.buffer.kind = bkVEC2
   result.positions.buffer.target = GL_ARRAY_BUFFER
   result.positions.data = newSeq[float32](
-    result.positions.buffer.kind.componentCount() * maxQuads * 4
+    result.positions.buffer.kind.componentCount() * quadsPerBatch * 4
   )
 
   result.colors.buffer = Buffer()
@@ -252,7 +252,7 @@ proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
   result.colors.buffer.target = GL_ARRAY_BUFFER
   result.colors.buffer.normalized = true
   result.colors.data = newSeq[uint8](
-    result.colors.buffer.kind.componentCount() * maxQuads * 4
+    result.colors.buffer.kind.componentCount() * quadsPerBatch * 4
   )
 
   result.uvs.buffer = Buffer()
@@ -260,16 +260,16 @@ proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
   result.uvs.buffer.kind = bkVEC2
   result.uvs.buffer.target = GL_ARRAY_BUFFER
   result.uvs.data = newSeq[float32](
-    result.uvs.buffer.kind.componentCount() * maxQuads * 4
+    result.uvs.buffer.kind.componentCount() * quadsPerBatch * 4
   )
 
   result.indices.buffer = Buffer()
   result.indices.buffer.componentType = GL_UNSIGNED_SHORT
   result.indices.buffer.kind = bkSCALAR
   result.indices.buffer.target = GL_ELEMENT_ARRAY_BUFFER
-  result.indices.buffer.count = maxQuads * 6
+  result.indices.buffer.count = quadsPerBatch * 6
 
-  for i in 0 ..< maxQuads:
+  for i in 0 ..< quadsPerBatch:
     let offset = i * 4
     result.indices.data.add([
       (offset + 3).uint16,
@@ -396,7 +396,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
   boxy.entries[key] = imageInfo
 
 proc checkBatch(boxy: Boxy) =
-  if boxy.quadCount == boxy.maxQuads:
+  if boxy.quadCount == boxy.quadsPerBatch:
     # This batch is full, draw and start a new batch.
     boxy.draw()
 
