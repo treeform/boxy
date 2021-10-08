@@ -327,16 +327,14 @@ proc newBoxy*(
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
-
   boxy.draw()
 
-  # read old atlas content
+  # Read old atlas content
   let
     oldAtlas = boxy.readAtlas()
     oldTileRun = boxy.tileRun
 
   boxy.atlasSize *= 2
-
   boxy.tileRun = boxy.atlasSize div boxy.tileSize
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
