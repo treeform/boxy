@@ -1,5 +1,5 @@
 import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
-    opengl, os, pixie, strformat, strutils, tables, vmath
+    opengl, os, pixie, strutils, tables, vmath
 
 export pixie
 
@@ -187,22 +187,22 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
   bindTextureData(maskTexture, nil)
   boxy.maskTextures.add(maskTexture)
 
-proc addSolidTile(boxy: Boxy) =
+proc addWhiteTile(boxy: Boxy) =
   # Insert a solid white tile used for all one color draws.
-  let solidTile = newImage(boxy.tileSize, boxy.tileSize)
-  solidTile.fill(color(1, 1, 1, 1))
+  let whiteTile = newImage(boxy.tileSize, boxy.tileSize)
+  whiteTile.fill(color(1, 1, 1, 1))
   updateSubImage(
     boxy.atlasTexture,
     0,
     0,
-    solidTile
+    whiteTile
   )
   boxy.takenTiles[0] = true
 
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
   boxy.takenTiles.clear()
-  boxy.addSolidTile()
+  boxy.addWhiteTile()
 
 proc newBoxy*(
   atlasSize = 512,
@@ -312,7 +312,10 @@ proc newBoxy*(
 
   let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
   if status != GL_FRAMEBUFFER_COMPLETE:
-    quit(&"Something wrong with mask framebuffer: {toHex(status.int32, 4)}")
+    raise newException(
+      BoxyError,
+      "Something wrong with mask framebuffer: " & $toHex(status.int32, 4)
+    )
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -320,26 +323,24 @@ proc newBoxy*(
   glEnable(GL_BLEND)
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
-  result.addSolidTile()
+  result.addWhiteTile()
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
-
   boxy.draw()
 
-  # read old atlas content
+  # Read old atlas content
   let
     oldAtlas = boxy.readAtlas()
     oldTileRun = boxy.tileRun
 
   boxy.atlasSize *= 2
-
   boxy.tileRun = boxy.atlasSize div boxy.tileSize
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
   boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
 
-  boxy.addSolidTile()
+  boxy.addWhiteTile()
 
   for y in 0 ..< oldTileRun:
     for x in 0 ..< oldTileRun:
@@ -472,25 +473,32 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
 
   boxy.drawQuad(posQuad, uvQuad, colorQuad)
 
+proc drawRect*(
+  boxy: Boxy,
+  rect: Rect,
+  color: Color
+) =
+  if color != color(0, 0, 0, 0):
+    boxy.drawUvRect(
+      rect.xy,
+      rect.xy + rect.wh,
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      color
+    )
+
 proc drawImage*(
   boxy: Boxy,
   key: string,
   pos: Vec2,
-  tintColor = color(1, 1, 1, 1),
-  scale = 1.0
+  tintColor = color(1, 1, 1, 1)
 ) =
   ## Draws image at pos from top-left. The image should have already been added.
   let imageInfo = boxy.entries[key]
   if imageInfo.tiles.len == 0:
-    if imageInfo.oneColor == color(0, 0, 0, 0):
-      return # Don't draw anything if the image is transparent.
-    # Draw the color rect
-    boxy.drawUvRect(
-      pos,
-      pos + vec2(imageInfo.width, imageInfo.height),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      (imageInfo.oneColor * tintColor)
+    boxy.drawRect(
+      rect(pos, vec2(imageInfo.width, imageInfo.height)),
+      imageInfo.oneColor
     )
   else:
     var i = 0
@@ -519,19 +527,17 @@ proc drawImage*(
             # The image may not be a full tile wide
             to.x += min(boxy.tileSize.float32, imageInfo.width.float32)
             to.y += min(boxy.tileSize.float32, imageInfo.height.float32)
-            boxy.drawUvRect(
-              posAt,
-              to,
-              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-              (tile.color * tintColor)
+            boxy.drawRect(
+              rect(posAt, to),
+              tile.color * tintColor
             )
         inc i
     assert i == imageInfo.tiles.len
 
 proc clearMask*(boxy: Boxy) =
   ## Sets mask off (actually fills the mask with white).
-  assert boxy.frameBegun == true, "boxy.beginFrame has not been called."
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
 
   boxy.draw()
 
@@ -544,8 +550,11 @@ proc clearMask*(boxy: Boxy) =
 
 proc beginMask*(boxy: Boxy) =
   ## Starts drawing into a mask.
-  assert boxy.frameBegun == true, "boxy.beginFrame has not been called."
-  assert boxy.maskBegun == false, "boxy.beginMask has already been called."
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
+  if boxy.maskBegun:
+    raise newException(BoxyError, "beginMask has already been called")
+
   boxy.maskBegun = true
 
   boxy.draw()
@@ -565,7 +574,9 @@ proc beginMask*(boxy: Boxy) =
 
 proc endMask*(boxy: Boxy) =
   ## Stops drawing into the mask.
-  assert boxy.maskBegun == true, "boxy.maskBegun has not been called."
+  if boxy.maskBegun:
+    raise newException(BoxyError, "beginMask has already been called")
+
   boxy.maskBegun = false
 
   boxy.draw()
@@ -583,9 +594,10 @@ proc popMask*(boxy: Boxy) =
 
 proc beginFrame*(boxy: Boxy, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
-  assert boxy.frameBegun == false, "boxy.beginFrame has already been called."
-  boxy.frameBegun = true
+  if boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has already been called")
 
+  boxy.frameBegun = true
   boxy.proj = proj
 
   if boxy.maskTextures[0].width != frameSize.x.int32 or
@@ -615,11 +627,14 @@ proc beginFrame*(boxy: Boxy, frameSize: Vec2) {.inline.} =
 
 proc endFrame*(boxy: Boxy) =
   ## Ends a frame.
-  assert boxy.frameBegun == true, "boxy.beginFrame was not called first."
-  assert boxy.maskTextureRead == 0, "Not all masks have been popped."
-  assert boxy.maskTextureWrite == 0, "Not all masks have been popped."
-  boxy.frameBegun = false
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
+  if boxy.maskTextureRead != 0:
+    raise newException(BoxyError, "Not all masks have been popped")
+  if boxy.maskTextureWrite != 0:
+    raise newException(BoxyError, "Not all masks have been popped")
 
+  boxy.frameBegun = false
   boxy.draw()
 
 proc translate*(boxy: Boxy, v: Vec2) =
