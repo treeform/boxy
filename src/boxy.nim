@@ -52,24 +52,24 @@ type
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
 
-proc vec2(x, y: SomeNumber): Vec2 =
+proc vec2(x, y: SomeNumber): Vec2 {.inline.} =
   ## Integer short cut for creating vectors.
   vec2(x.float32, y.float32)
 
 func `*`(m: Mat4, v: Vec2): Vec2 =
   (m * vec3(v.x, v.y, 0.0)).xy
 
-proc `*`(a, b: Color): Color =
+proc `*`(a, b: Color): Color {.inline.} =
   result.r = a.r * b.r
   result.g = a.g * b.g
   result.b = a.b * b.b
   result.a = a.a * b.a
 
-proc tileWidth(boxy: Boxy, imageInfo: ImageInfo): int =
+proc tileWidth(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
   ## Number of tiles wide.
   ceil(imageInfo.width / boxy.tileSize).int
 
-proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int =
+proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
   ## Number of tiles high.
   ceil(imageInfo.height / boxy.tileSize).int
 
@@ -96,7 +96,7 @@ proc upload(boxy: Boxy) =
   bindBufferData(boxy.colors.buffer, boxy.colors.data[0].addr)
   bindBufferData(boxy.uvs.buffer, boxy.uvs.data[0].addr)
 
-proc contains*(boxy: Boxy, key: string): bool =
+proc contains*(boxy: Boxy, key: string): bool {.inline.} =
   key in boxy.entries
 
 proc draw(boxy: Boxy) =
@@ -188,7 +188,7 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
   boxy.maskTextures.add(maskTexture)
 
 proc addSolidTile(boxy: Boxy) =
-  # Insert solid color tile. (don't use addImage as its a solid color)
+  # Insert a solid white tile used for all one color draws.
   let solidTile = newImage(boxy.tileSize, boxy.tileSize)
   solidTile.fill(color(1, 1, 1, 1))
   updateSubImage(
@@ -212,7 +212,7 @@ proc newBoxy*(
 ): Boxy =
   ## Creates a new Boxy.
   if atlasSize mod tileSize != 0:
-    raise newException(BoxyError, "Atlas size mod tile size must equal zero")
+    raise newException(BoxyError, "Atlas size must be a multiple of tile size")
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads cannot exceed " & $quadLimit)
 
@@ -358,14 +358,14 @@ proc grow(boxy: Boxy) =
         imageTile
       )
 
-proc findFreeTile(boxy: Boxy): int =
+proc takeFreeTile(boxy: Boxy): int =
   for index in 0 ..< boxy.maxTiles:
     if not boxy.takenTiles[index]:
       boxy.takenTiles[index] = true
       return index
 
   boxy.grow()
-  boxy.findFreeTile()
+  boxy.takeFreeTile()
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
@@ -395,7 +395,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
           let tileColor = tileImage[0, 0].color
           imageInfo.tiles.add(TileInfo(kind: tkColor, color: tileColor))
         else:
-          let index = boxy.findFreeTile()
+          let index = boxy.takeFreeTile()
           imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
           updateSubImage(
             boxy.atlasTexture,
@@ -407,7 +407,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
 
   boxy.entries[key] = imageInfo
 
-proc checkBatch(boxy: Boxy) =
+proc checkBatch(boxy: Boxy) {.inline.} =
   if boxy.quadCount == boxy.quadsPerBatch:
     # This batch is full, draw and start a new batch.
     boxy.draw()
@@ -606,7 +606,7 @@ proc beginFrame*(boxy: Boxy, frameSize: Vec2, proj: Mat4) =
 
   boxy.clearMask()
 
-proc beginFrame*(boxy: Boxy, frameSize: Vec2) =
+proc beginFrame*(boxy: Boxy, frameSize: Vec2) {.inline.} =
   beginFrame(
     boxy,
     frameSize,
