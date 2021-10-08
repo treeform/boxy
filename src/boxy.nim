@@ -479,8 +479,7 @@ proc drawImage*(
   boxy: Boxy,
   key: string,
   pos: Vec2,
-  tintColor = color(1, 1, 1, 1),
-  scale = 1.0
+  tintColor = color(1, 1, 1, 1)
 ) =
   ## Draws image at pos from top-left. The image should have already been added.
   let imageInfo = boxy.entries[key]
