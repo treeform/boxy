@@ -4,15 +4,25 @@ import boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes, opengl,
 export pixie
 
 const
-  quadLimit = 10_921
+  quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
   tileSize = 32
 
 type
+  TileKind = enum
+    tkIndex, tkColor
+
+  TileInfo = object
+    case kind: TileKind
+    of tkIndex:
+      index: int
+    of tkColor:
+      color: Color
+
   ImageInfo = object
-    width: int      ## Width of the image in pixels.
-    height: int     ## Height of the image in pixels.
-    tiles: seq[int] ## Tile indexes to look for tiles.
-    color: Color    ## If tiles = [] then this is the tile color.
+    width: int           ## Width of the image in pixels.
+    height: int          ## Height of the image in pixels.
+    tiles: seq[TileInfo] ## Tile indexes to look for tiles.
+    color: Color         ## If tiles = [] then this is the tile color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
@@ -54,13 +64,13 @@ proc `*`(a, b: Color): Color =
   result.b = a.b * b.b
   result.a = a.a * b.a
 
-proc tileWidth(tileInfo: ImageInfo): int =
+proc tileWidth(imageInfo: ImageInfo): int =
   ## Number of tiles wide.
-  ceil(tileInfo.width / tileSize).int
+  ceil(imageInfo.width / tileSize).int
 
-proc tileHeight(tileInfo: ImageInfo): int =
+proc tileHeight(imageInfo: ImageInfo): int =
   ## Number of tiles high.
-  ceil(tileInfo.height / tileSize).int
+  ceil(imageInfo.height / tileSize).int
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -188,8 +198,7 @@ proc addSolidTile(boxy: Boxy) =
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
   for index in 0 ..< boxy.maxTiles:
-    if index != -1:
-      boxy.takenTiles[index] = false
+    boxy.takenTiles[index] = false
   boxy.addSolidTile()
 
 proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
@@ -350,9 +359,9 @@ proc findFreeTile(boxy: Boxy): int =
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
   if key in boxy.entries:
-    for index in boxy.entries[key].tiles:
-      if index != -1:
-        boxy.takenTiles[index] = false
+    for tile in boxy.entries[key].tiles:
+      if tile.kind == tkIndex:
+        boxy.takenTiles[tile.index] = false
     boxy.entries.del(key)
 
 proc addImage*(boxy: Boxy, key: string, image: Image) =
@@ -362,13 +371,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
   imageInfo.width = image.width
   imageInfo.height = image.height
 
-  if image.isTransparent():
-    imageInfo.color = color(0, 0, 0, 0)
-  elif image.isOneColor():
+  if image.isOneColor():
     imageInfo.color = image[0, 0].color
   else:
     # Split the image into tiles.
-    var firstSolid = true
     for y in 0 ..< imageInfo.tileHeight:
       for x in 0 ..< imageInfo.tileWidth:
         let tileImage = image.superImage(
@@ -376,22 +382,17 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
         )
         if tileImage.isOneColor():
           let tileColor = tileImage[0, 0].color
-          if firstSolid:
-            firstSolid = false
-            imageInfo.color = tileColor
-          if tileColor == imageInfo.color:
-            imageInfo.tiles.add(-1)
-            continue
-
-        let index = boxy.findFreeTile()
-        imageInfo.tiles.add(index)
-        updateSubImage(
-          boxy.atlasTexture,
-          (index mod boxy.tileRun) * tileSize,
-          (index div boxy.tileRun) * tileSize,
-          tileImage
-        )
-        # Reminder: This does not set mipmaps (used for text, should it?)
+          imageInfo.tiles.add(TileInfo(kind: tkColor, color: tileColor))
+        else:
+          let index = boxy.findFreeTile()
+          imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
+          updateSubImage(
+            boxy.atlasTexture,
+            (index mod boxy.tileRun) * tileSize,
+            (index div boxy.tileRun) * tileSize,
+            tileImage
+          )
+          # Reminder: This does not set mipmaps (used for text, should it?)
 
   boxy.entries[key] = imageInfo
 
@@ -438,6 +439,7 @@ proc drawQuad(
 
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
+  ## at, to, uvAt, uvTo are all in pixels
   let
     at = boxy.mat * at
     to = boxy.mat * to
@@ -467,42 +469,31 @@ proc drawImage*(
   scale = 1.0
 ) =
   ## Draws image at pos from top-left. The image should have already been added.
-  let tileInfo = boxy.entries[key]
-  if tileInfo.tiles.len == 0:
-    if tileInfo.color == color(0, 0, 0, 0):
+  let imageInfo = boxy.entries[key]
+  if imageInfo.tiles.len == 0:
+    if imageInfo.color == color(0, 0, 0, 0):
       return # Don't draw anything if the image is transparent.
     # Draw a single solid-color rect
     boxy.drawUvRect(
       pos,
-      pos + vec2(tileInfo.width, tileInfo.height),
-      vec2(2, 2),
-      vec2(2, 2),
-      (tileInfo.color * tintColor)
+      pos + vec2(imageInfo.width, imageInfo.height),
+      vec2(tileSize / 2, tileSize / 2),
+      vec2(tileSize / 2, tileSize / 2),
+      (imageInfo.color * tintColor)
     )
   else:
     var i = 0
-    for y in 0 ..< tileInfo.tileHeight:
-      for x in 0 ..< tileInfo.tileWidth:
+    for y in 0 ..< imageInfo.tileHeight:
+      for x in 0 ..< imageInfo.tileWidth:
         let
-          index = tileInfo.tiles[i]
+          tile = imageInfo.tiles[i]
           posAt = pos + vec2(x * tileSize, y * tileSize)
-        if index == -1:
-          if tileInfo.color == color(0, 0, 0, 0):
-            discard # Don't draw transparent tiles.
-          else:
-            # Draw solid color tile
-            boxy.drawUvRect(
-              posAt,
-              posAt + vec2(tileSize, tileSize),
-              vec2(2, 2),
-              vec2(2, 2),
-              (tileInfo.color * tintColor)
-            )
-        else:
+        case tile.kind:
+        of tkIndex:
           let
             uvAt = vec2(
-              (index mod boxy.tileRun) * tileSize,
-              (index div boxy.tileRun) * tileSize
+              (tile.index mod boxy.tileRun) * tileSize,
+              (tile.index div boxy.tileRun) * tileSize
             )
           boxy.drawUvRect(
             posAt,
@@ -511,8 +502,21 @@ proc drawImage*(
             uvAt + vec2(tileSize, tileSize),
             tintColor
           )
+        of tkColor:
+          if tile.color != color(0, 0, 0, 0):
+            var to = posAt
+            # The image may not be a full tile wide
+            to.x += min(tileSize, imageInfo.width.float32)
+            to.y += min(tileSize, imageInfo.height.float32)
+            boxy.drawUvRect(
+              posAt,
+              to,
+              vec2(tileSize / 2, tileSize / 2),
+              vec2(tileSize / 2, tileSize / 2),
+              (tile.color * tintColor)
+            )
         inc i
-    assert i == tileInfo.tiles.len
+    assert i == imageInfo.tiles.len
 
 proc clearMask*(boxy: Boxy) =
   ## Sets mask off (actually fills the mask with white).
