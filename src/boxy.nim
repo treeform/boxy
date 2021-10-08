@@ -11,7 +11,7 @@ type
   TileKind = enum
     tkIndex, tkColor
 
-  Tile = object
+  TileInfo = object
     case kind: TileKind
     of tkIndex:
       index: int
@@ -19,10 +19,10 @@ type
       color: Color
 
   ImageInfo = object
-    width: int      ## Width of the image in pixels.
-    height: int     ## Height of the image in pixels.
-    tiles: seq[Tile] ## Tile indexes to look for tiles.
-    color: Color    ## If tiles = [] then this is the tile color.
+    width: int           ## Width of the image in pixels.
+    height: int          ## Height of the image in pixels.
+    tiles: seq[TileInfo] ## Tile indexes to look for tiles.
+    color: Color         ## If tiles = [] then this is the tile color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
@@ -382,10 +382,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
         )
         if tileImage.isOneColor():
           let tileColor = tileImage[0, 0].color
-          imageInfo.tiles.add(Tile(kind: tkColor, color: tileColor))
+          imageInfo.tiles.add(TileInfo(kind: tkColor, color: tileColor))
         else:
           let index = boxy.findFreeTile()
-          imageInfo.tiles.add(Tile(kind: tkIndex, index: index))
+          imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
           updateSubImage(
             boxy.atlasTexture,
             (index mod boxy.tileRun) * tileSize,
