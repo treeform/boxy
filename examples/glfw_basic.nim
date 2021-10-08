@@ -21,11 +21,17 @@ bxy.addImage("rhino", rhino)
 
 var i: int
 
+# Called when it is time to draw a new frame.
 proc display() =
+  # Clear the screen and begin a new frame.
   bxy.beginFrame(windowSize)
+  # Draw the white background.
   bxy.drawRect(rect(vec2(), windowSize), color(1, 1, 1, 1))
+  # Draw the rhino.
   bxy.drawImage("rhino", vec2((i mod windowSize.x.int).float32, 0))
+  # End this frame, flushing the draw commands.
   bxy.endFrame()
+  # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc i
 
