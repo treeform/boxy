@@ -509,11 +509,10 @@ proc drawImage*(
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
         case tile.kind:
         of tkIndex:
-          let
-            uvAt = vec2(
-              (tile.index mod boxy.tileRun) * boxy.tileSize,
-              (tile.index div boxy.tileRun) * boxy.tileSize
-            )
+          let uvAt = vec2(
+            (tile.index mod boxy.tileRun) * boxy.tileSize,
+            (tile.index div boxy.tileRun) * boxy.tileSize
+          )
           boxy.drawUvRect(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
@@ -523,12 +522,13 @@ proc drawImage*(
           )
         of tkColor:
           if tile.color != color(0, 0, 0, 0):
-            var to = posAt
             # The image may not be a full tile wide
-            to.x += min(boxy.tileSize.float32, imageInfo.width.float32)
-            to.y += min(boxy.tileSize.float32, imageInfo.height.float32)
+            let wh = vec2(
+              min(boxy.tileSize.float32, imageInfo.width.float32),
+              min(boxy.tileSize.float32, imageInfo.height.float32)
+            )
             boxy.drawRect(
-              rect(posAt, to),
+              rect(posAt, wh),
               tile.color * tintColor
             )
         inc i
