@@ -473,6 +473,20 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
 
   boxy.drawQuad(posQuad, uvQuad, colorQuad)
 
+proc drawColor*(
+  boxy: Boxy,
+  color: Color,
+  rect: Rect
+) =
+  if color != color(0, 0, 0, 0):
+    boxy.drawUvRect(
+      rect.xy,
+      rect.xy + rect.wh,
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      color
+    )
+
 proc drawImage*(
   boxy: Boxy,
   key: string,
@@ -482,15 +496,9 @@ proc drawImage*(
   ## Draws image at pos from top-left. The image should have already been added.
   let imageInfo = boxy.entries[key]
   if imageInfo.tiles.len == 0:
-    if imageInfo.oneColor == color(0, 0, 0, 0):
-      return # Don't draw anything if the image is transparent.
-    # Draw the color rect
-    boxy.drawUvRect(
-      pos,
-      pos + vec2(imageInfo.width, imageInfo.height),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      (imageInfo.oneColor * tintColor)
+    boxy.drawColor(
+      imageInfo.oneColor,
+      rect(pos, vec2(imageInfo.width, imageInfo.height))
     )
   else:
     var i = 0
