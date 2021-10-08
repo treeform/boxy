@@ -214,7 +214,7 @@ proc newBoxy*(
   if atlasSize mod tileSize != 0:
     raise newException(BoxyError, "Atlas size must be a multiple of tile size")
   if quadsPerBatch > quadLimit:
-    raise newException(BoxyError, "Quads cannot exceed " & $quadLimit)
+    raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
