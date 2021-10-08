@@ -1,5 +1,5 @@
 import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
-    opengl, os, pixie, strformat, strutils, tables, vmath
+    opengl, os, pixie, strutils, tables, vmath
 
 export pixie
 
@@ -312,7 +312,10 @@ proc newBoxy*(
 
   let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
   if status != GL_FRAMEBUFFER_COMPLETE:
-    quit(&"Something wrong with mask framebuffer: {toHex(status.int32, 4)}")
+    raise newException(
+      BoxyError,
+      "Something wrong with mask framebuffer: " & $toHex(status.int32, 4)
+    )
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -531,7 +534,8 @@ proc drawImage*(
 
 proc clearMask*(boxy: Boxy) =
   ## Sets mask off (actually fills the mask with white).
-  assert boxy.frameBegun == true, "boxy.beginFrame has not been called."
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
 
   boxy.draw()
 
@@ -544,8 +548,11 @@ proc clearMask*(boxy: Boxy) =
 
 proc beginMask*(boxy: Boxy) =
   ## Starts drawing into a mask.
-  assert boxy.frameBegun == true, "boxy.beginFrame has not been called."
-  assert boxy.maskBegun == false, "boxy.beginMask has already been called."
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
+  if boxy.maskBegun:
+    raise newException(BoxyError, "beginMask has already been called")
+
   boxy.maskBegun = true
 
   boxy.draw()
@@ -565,7 +572,9 @@ proc beginMask*(boxy: Boxy) =
 
 proc endMask*(boxy: Boxy) =
   ## Stops drawing into the mask.
-  assert boxy.maskBegun == true, "boxy.maskBegun has not been called."
+  if boxy.maskBegun:
+    raise newException(BoxyError, "beginMask has already been called")
+
   boxy.maskBegun = false
 
   boxy.draw()
@@ -583,9 +592,10 @@ proc popMask*(boxy: Boxy) =
 
 proc beginFrame*(boxy: Boxy, frameSize: Vec2, proj: Mat4) =
   ## Starts a new frame.
-  assert boxy.frameBegun == false, "boxy.beginFrame has already been called."
-  boxy.frameBegun = true
+  if boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has already been called")
 
+  boxy.frameBegun = true
   boxy.proj = proj
 
   if boxy.maskTextures[0].width != frameSize.x.int32 or
@@ -615,11 +625,14 @@ proc beginFrame*(boxy: Boxy, frameSize: Vec2) {.inline.} =
 
 proc endFrame*(boxy: Boxy) =
   ## Ends a frame.
-  assert boxy.frameBegun == true, "boxy.beginFrame was not called first."
-  assert boxy.maskTextureRead == 0, "Not all masks have been popped."
-  assert boxy.maskTextureWrite == 0, "Not all masks have been popped."
-  boxy.frameBegun = false
+  if not boxy.frameBegun:
+    raise newException(BoxyError, "beginFrame has not been called")
+  if boxy.maskTextureRead != 0:
+    raise newException(BoxyError, "Not all masks have been popped")
+  if boxy.maskTextureWrite != 0:
+    raise newException(BoxyError, "Not all masks have been popped")
 
+  boxy.frameBegun = false
   boxy.draw()
 
 proc translate*(boxy: Boxy, v: Vec2) =
