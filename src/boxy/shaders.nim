@@ -1,4 +1,4 @@
-import buffers, opengl, os, strformat, strutils, vmath, macros
+import buffers, macros, opengl, os, strformat, strutils, vmath
 
 type
   ShaderAttrib = object
