@@ -6,7 +6,6 @@
 
 [API reference](https://nimdocs.com/treeform/boxy)
 
-
 ## About
 
 Boxy is an easy to use 2D GPU rendering API built on top of [Pixie](https://github.com/treeform/pixie).
@@ -60,3 +59,5 @@ while windowShouldClose(window) != 1:
   pollEvents()
   display()
 ```
+
+[Check out more examples here.](https://github.com/treeform/boxy/tree/master/examples)
