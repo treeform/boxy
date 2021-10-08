@@ -527,12 +527,9 @@ proc drawImage*(
             # The image may not be a full tile wide
             to.x += min(boxy.tileSize.float32, imageInfo.width.float32)
             to.y += min(boxy.tileSize.float32, imageInfo.height.float32)
-            boxy.drawUvRect(
-              posAt,
-              to,
-              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-              vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-              (tile.color * tintColor)
+            boxy.drawRect(
+              rect(posAt, to),
+              tile.color * tintColor
             )
         inc i
     assert i == imageInfo.tiles.len
