@@ -1,37 +1,39 @@
-import boxy/buffers, chroma, pixie, hashes, opengl, os, boxy/shaders, strformat,
-    strutils, tables, boxy/textures, vmath, bumpy
+import boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes, opengl,
+    os, pixie, strformat, strutils, tables, vmath
+
+export pixie
 
 const
   quadLimit = 10_921
   tileSize = 32
 
 type
-  TileInfo = object
-    width: int                  ## Width of the image in pixels.
-    height: int                 ## Height of the image in pixels.
-    tiles: seq[int]             ## Tile indexes to look for tiles.
-    oneColor: Color             ## If tiles = [] then its one color.
+  ImageInfo = object
+    width: int      ## Width of the image in pixels.
+    height: int     ## Height of the image in pixels.
+    tiles: seq[int] ## Tile indexes to look for tiles.
+    color: Color    ## If tiles = [] then this is the tile color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
     atlasTexture: Texture
-    maskTextureWrite: int       ## Index into mask textures for writing.
-    maskTextureRead: int        ## Index into mask textures for rendering.
-    maskTextures: seq[Texture]  ## Masks array for pushing and popping.
-    atlasSize: int              ## Size x size dimensions of the atlas
-    quadCount: int              ## Number of quads drawn so far
-    maxQuads: int               ## Max quads to draw before issuing an OpenGL call
-    mat: Mat4                   ## Current matrix
-    mats: seq[Mat4]             ## Matrix stack
-    entries*: Table[string, TileInfo] ## Mapping of image name to atlas UV position
+    maskTextureWrite: int      ## Index into mask textures for writing.
+    maskTextureRead: int       ## Index into mask textures for rendering.
+    maskTextures: seq[Texture] ## Masks array for pushing and popping.
+    atlasSize: int             ## Size x size dimensions of the atlas
+    quadCount: int             ## Number of quads drawn so far
+    maxQuads: int              ## Max quads to draw before issuing an OpenGL call
+    mat: Mat4                  ## Current matrix
+    mats: seq[Mat4]            ## Matrix stack
+    entries*: Table[string, ImageInfo]
     maxTiles: int
     tileRun: int
-    takenTiles: seq[bool]       ## Height map of the free space in the atlas
+    takenTiles: seq[bool]      ## Height map of the free space in the atlas
     proj: Mat4
-    frameSize: Vec2             ## Dimensions of the window frame
+    frameSize: Vec2            ## Dimensions of the window frame
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
-    pixelate: bool              ## Makes texture look pixelated, like a pixel game.
+    pixelate: bool             ## Makes texture look pixelated, like a pixel game.
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -52,11 +54,11 @@ proc `*`(a, b: Color): Color =
   result.b = a.b * b.b
   result.a = a.a * b.a
 
-proc tilesWidth(tileInfo: TileInfo): int =
+proc tileWidth(tileInfo: ImageInfo): int =
   ## Number of tiles wide.
   ceil(tileInfo.width / tileSize).int
 
-proc tilesHeight(tileInfo: TileInfo): int =
+proc tileHeight(tileInfo: ImageInfo): int =
   ## Number of tiles high.
   ceil(tileInfo.height / tileSize).int
 
@@ -94,7 +96,9 @@ proc draw(boxy: Boxy) =
   glBindVertexArray(boxy.vertexArrayId)
 
   if boxy.activeShader.hasUniform("windowFrame"):
-    boxy.activeShader.setUniform("windowFrame", boxy.frameSize.x, boxy.frameSize.y)
+    boxy.activeShader.setUniform(
+      "windowFrame", boxy.frameSize.x, boxy.frameSize.y
+    )
   boxy.activeShader.setUniform("proj", boxy.proj)
 
   glActiveTexture(GL_TEXTURE0)
@@ -170,7 +174,7 @@ proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
   boxy.maskTextures.add(maskTexture)
 
 proc addSolidTile(boxy: Boxy) =
-  # Insert solid color tile. (don't use putImage as its a solid color)
+  # Insert solid color tile. (don't use addImage as its a solid color)
   let solidTile = newImage(tileSize, tileSize)
   solidTile.fill(color(1, 1, 1, 1))
   updateSubImage(
@@ -188,14 +192,10 @@ proc clearAtlas*(boxy: Boxy) =
       boxy.takenTiles[index] = false
   boxy.addSolidTile()
 
-proc newBoxy*(
-  atlasSize = 512,
-  maxQuads = 1024,
-  pixelate = false
-): Boxy =
+proc newBoxy*(atlasSize = 512, maxQuads = 1024, pixelate = false): Boxy =
   ## Creates a new Boxy.
   if maxQuads > quadLimit:
-    raise newException(ValueError, &"Quads cannot exceed {quadLimit}")
+    raise newException(ValueError, "Quads cannot exceed " & $quadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
@@ -338,64 +338,66 @@ proc grow(boxy: Boxy) =
         imageTile
       )
 
-proc getFreeTile(boxy: Boxy): int =
+proc findFreeTile(boxy: Boxy): int =
   for index in 0 ..< boxy.maxTiles:
-    if boxy.takenTiles[index] == false:
+    if not boxy.takenTiles[index]:
       boxy.takenTiles[index] = true
       return index
-  boxy.grow()
-  return boxy.getFreeTile()
 
-proc removeImage*(boxy: Boxy, imagePath: string) =
-  ## Removes an image, does nothing if image never added.
-  if imagePath in boxy.entries:
-    for index in boxy.entries[imagePath].tiles:
+  boxy.grow()
+  boxy.findFreeTile()
+
+proc removeImage*(boxy: Boxy, key: string) =
+  ## Removes an image, does nothing if the image has not been added.
+  if key in boxy.entries:
+    for index in boxy.entries[key].tiles:
       if index != -1:
         boxy.takenTiles[index] = false
-    boxy.entries.del(imagePath)
+    boxy.entries.del(key)
 
-proc putImage*(boxy: Boxy, imagePath: string, image: Image) =
-  # Reminder: This does not set mipmaps (used for text, should it?)
-  boxy.removeImage(imagePath)
+proc addImage*(boxy: Boxy, key: string, image: Image) =
+  boxy.removeImage(key)
 
-  var tileInfo = TileInfo()
-  tileInfo.width = image.width
-  tileInfo.height = image.height
+  var imageInfo: ImageInfo
+  imageInfo.width = image.width
+  imageInfo.height = image.height
 
   if image.isTransparent():
-    tileInfo.oneColor = color(0, 0, 0, 0)
+    imageInfo.color = color(0, 0, 0, 0)
   elif image.isOneColor():
-    tileInfo.oneColor = image[0, 0].color
+    imageInfo.color = image[0, 0].color
   else:
+    # Split the image into tiles.
     var firstSolid = true
-    for y in 0 ..< tileInfo.tilesHeight:
-      for x in 0 ..< tileInfo.tilesWidth:
-        let
-          imageTile = image.superImage(x * tileSize, y * tileSize, tileSize, tileSize)
-
-        if imageTile.isOneColor():
-          let tileColor = imageTile[0, 0].color
+    for y in 0 ..< imageInfo.tileHeight:
+      for x in 0 ..< imageInfo.tileWidth:
+        let tileImage = image.superImage(
+          x * tileSize, y * tileSize, tileSize, tileSize
+        )
+        if tileImage.isOneColor():
+          let tileColor = tileImage[0, 0].color
           if firstSolid:
             firstSolid = false
-            tileInfo.oneColor = tileColor
-          if tileColor == tileInfo.oneColor:
-            tileInfo.tiles.add(-1)
+            imageInfo.color = tileColor
+          if tileColor == imageInfo.color:
+            imageInfo.tiles.add(-1)
             continue
 
-        let index = boxy.getFreeTile()
-        tileInfo.tiles.add(index)
+        let index = boxy.findFreeTile()
+        imageInfo.tiles.add(index)
         updateSubImage(
           boxy.atlasTexture,
           (index mod boxy.tileRun) * tileSize,
           (index div boxy.tileRun) * tileSize,
-          imageTile
+          tileImage
         )
+        # Reminder: This does not set mipmaps (used for text, should it?)
 
-  boxy.entries[imagePath] = tileInfo
+  boxy.entries[key] = imageInfo
 
 proc checkBatch(boxy: Boxy) =
   if boxy.quadCount == boxy.maxQuads:
-    # ctx is full dump the images in the ctx now and start a new batch
+    # This batch is full, draw and start a new batch.
     boxy.draw()
 
 proc setVert(buf: var seq[float32], i: int, v: Vec2) =
@@ -408,11 +410,11 @@ proc setVertColor(buf: var seq[uint8], i: int, rgbx: ColorRGBX) =
   buf[i * 4 + 2] = rgbx.b
   buf[i * 4 + 3] = rgbx.a
 
-proc drawQuad*(
+proc drawQuad(
   boxy: Boxy,
   verts: array[4, Vec2],
   uvs: array[4, Vec2],
-  colors: array[4, Color],
+  colors: array[4, Color]
 ) =
   boxy.checkBatch()
 
@@ -436,8 +438,6 @@ proc drawQuad*(
 
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
-  boxy.checkBatch()
-
   let
     at = boxy.mat * at
     to = boxy.mat * to
@@ -461,34 +461,33 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
 
 proc drawImage*(
   boxy: Boxy,
-  imagePath: string,
-  pos: Vec2 = vec2(0, 0),
+  key: string,
+  pos: Vec2,
   tintColor = color(1, 1, 1, 1),
   scale = 1.0
 ) =
-  ## Draws image the UI way - pos at top-left.
-  let tileInfo = boxy.entries[imagePath]
+  ## Draws image at pos from top-left. The image should have already been added.
+  let tileInfo = boxy.entries[key]
   if tileInfo.tiles.len == 0:
-    if tileInfo.oneColor == color(0, 0, 0, 0):
-      return # Don't draw anything if its transparent.
-    else:
-      # Draw a single 1 color rect
-      boxy.drawUvRect(
-        pos,
-        pos + vec2(tileInfo.width, tileInfo.height),
-        vec2(2, 2),
-        vec2(2, 2),
-        (tileInfo.oneColor * tintColor)
-      )
+    if tileInfo.color == color(0, 0, 0, 0):
+      return # Don't draw anything if the image is transparent.
+    # Draw a single solid-color rect
+    boxy.drawUvRect(
+      pos,
+      pos + vec2(tileInfo.width, tileInfo.height),
+      vec2(2, 2),
+      vec2(2, 2),
+      (tileInfo.color * tintColor)
+    )
   else:
     var i = 0
-    for y in 0 ..< tileInfo.tilesHeight:
-      for x in 0 ..< tileInfo.tilesWidth:
+    for y in 0 ..< tileInfo.tileHeight:
+      for x in 0 ..< tileInfo.tileWidth:
         let
           index = tileInfo.tiles[i]
           posAt = pos + vec2(x * tileSize, y * tileSize)
         if index == -1:
-          if tileInfo.oneColor == color(0, 0, 0, 0):
+          if tileInfo.color == color(0, 0, 0, 0):
             discard # Don't draw transparent tiles.
           else:
             # Draw solid color tile
@@ -497,7 +496,7 @@ proc drawImage*(
               posAt + vec2(tileSize, tileSize),
               vec2(2, 2),
               vec2(2, 2),
-              (tileInfo.oneColor * tintColor)
+              (tileInfo.color * tintColor)
             )
         else:
           let
