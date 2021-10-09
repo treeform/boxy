@@ -3,7 +3,9 @@ import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
 
 export pixie
 
-const quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
+const
+  quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
+  tileMargin = 2 # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
@@ -206,13 +208,13 @@ proc clearAtlas*(boxy: Boxy) =
 
 proc newBoxy*(
   atlasSize = 512,
-  tileSize = 32,
+  tileSize = 30,
   quadsPerBatch = 1024,
   pixelate = false
 ): Boxy =
   ## Creates a new Boxy.
-  if atlasSize mod tileSize != 0:
-    raise newException(BoxyError, "Atlas size must be a multiple of tile size")
+  if atlasSize mod (tileSize + tileMargin) != 0:
+    raise newException(BoxyError, "Atlas size must be a multiple of (tile size + 2)")
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
@@ -224,7 +226,7 @@ proc newBoxy*(
   result.mats = newSeq[Mat4]()
   result.pixelate = pixelate
 
-  result.tileRun = atlasSize div tileSize
+  result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
   result.maxTiles = result.tileRun * result.tileRun
   result.takenTiles = newBitArray(result.maxTiles)
   result.atlasTexture = result.createAtlasTexture(atlasSize)
@@ -335,7 +337,7 @@ proc grow(boxy: Boxy) =
     oldTileRun = boxy.tileRun
 
   boxy.atlasSize *= 2
-  boxy.tileRun = boxy.atlasSize div boxy.tileSize
+  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
   boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
@@ -346,16 +348,16 @@ proc grow(boxy: Boxy) =
     for x in 0 ..< oldTileRun:
       let
         imageTile = oldAtlas.superImage(
-          x * boxy.tileSize,
-          y * boxy.tileSize,
-          boxy.tileSize,
-          boxy.tileSize
+          x * (boxy.tileSize + tileMargin),
+          y * (boxy.tileSize + tileMargin),
+          boxy.tileSize + tileMargin,
+          boxy.tileSize + tileMargin
         )
         index = x + y * oldTileRun
       updateSubImage(
         boxy.atlasTexture,
-        (index mod boxy.tileRun) * boxy.tileSize,
-        (index div boxy.tileRun) * boxy.tileSize,
+        (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
+        (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
         imageTile
       )
 
@@ -390,8 +392,12 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
     for y in 0 ..< boxy.tileHeight(imageInfo):
       for x in 0 ..< boxy.tileWidth(imageInfo):
         let tileImage = image.superImage(
-          x * boxy.tileSize, y * boxy.tileSize, boxy.tileSize, boxy.tileSize
+          x * boxy.tileSize - tileMargin div 2,
+          y * boxy.tileSize - tileMargin div 2,
+          boxy.tileSize + tileMargin,
+          boxy.tileSize + tileMargin
         )
+
         if tileImage.isOneColor():
           let tileColor = tileImage[0, 0].color
           imageInfo.tiles.add(TileInfo(kind: tkColor, color: tileColor))
@@ -400,11 +406,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
           imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
           updateSubImage(
             boxy.atlasTexture,
-            (index mod boxy.tileRun) * boxy.tileSize,
-            (index div boxy.tileRun) * boxy.tileSize,
+            (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
+            (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
             tileImage
           )
-          # Reminder: This does not set mipmaps (used for text, should it?)
 
   boxy.entries[key] = imageInfo
 
@@ -453,13 +458,11 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
   ## at, to, uvAt, uvTo are all in pixels
   let
-    at = boxy.mat * at
-    to = boxy.mat * to
     posQuad = [
-      vec2(at.x, to.y),
-      vec2(to.x, to.y),
-      vec2(to.x, at.y),
-      vec2(at.x, at.y),
+      boxy.mat * vec2(at.x, to.y),
+      boxy.mat * vec2(to.x, to.y),
+      boxy.mat * vec2(to.x, at.y),
+      boxy.mat * vec2(at.x, at.y),
     ]
     uvAt = uvAt / boxy.atlasSize.float32
     uvTo = uvTo / boxy.atlasSize.float32
@@ -486,53 +489,6 @@ proc drawRect*(
       vec2(boxy.tileSize / 2, boxy.tileSize / 2),
       color
     )
-
-proc drawImage*(
-  boxy: Boxy,
-  key: string,
-  pos: Vec2,
-  tintColor = color(1, 1, 1, 1)
-) =
-  ## Draws image at pos from top-left. The image should have already been added.
-  let imageInfo = boxy.entries[key]
-  if imageInfo.tiles.len == 0:
-    boxy.drawRect(
-      rect(pos, vec2(imageInfo.width, imageInfo.height)),
-      imageInfo.oneColor
-    )
-  else:
-    var i = 0
-    for y in 0 ..< boxy.tileHeight(imageInfo):
-      for x in 0 ..< boxy.tileWidth(imageInfo):
-        let
-          tile = imageInfo.tiles[i]
-          posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
-        case tile.kind:
-        of tkIndex:
-          let uvAt = vec2(
-            (tile.index mod boxy.tileRun) * boxy.tileSize,
-            (tile.index div boxy.tileRun) * boxy.tileSize
-          )
-          boxy.drawUvRect(
-            posAt,
-            posAt + vec2(boxy.tileSize, boxy.tileSize),
-            uvAt,
-            uvAt + vec2(boxy.tileSize, boxy.tileSize),
-            tintColor
-          )
-        of tkColor:
-          if tile.color != color(0, 0, 0, 0):
-            # The image may not be a full tile wide
-            let wh = vec2(
-              min(boxy.tileSize.float32, imageInfo.width.float32),
-              min(boxy.tileSize.float32, imageInfo.height.float32)
-            )
-            boxy.drawRect(
-              rect(posAt, wh),
-              tile.color * tintColor
-            )
-        inc i
-    assert i == imageInfo.tiles.len
 
 proc clearMask*(boxy: Boxy) =
   ## Sets mask off (actually fills the mask with white).
@@ -674,3 +630,91 @@ proc toScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
   ## Takes a point from current transform and translates it to screen.
   result = (boxy.mat * vec3(v.x, v.y, 1)).xy
   result.y = -result.y + windowFrame.y
+
+proc drawImage*(
+  boxy: Boxy,
+  key: string,
+  pos: Vec2,
+  tintColor = color(1, 1, 1, 1)
+) =
+  ## Draws image at pos from top-left.
+  ## The image should have already been added.
+  let imageInfo = boxy.entries[key]
+  if imageInfo.tiles.len == 0:
+    boxy.drawRect(
+      rect(pos, vec2(imageInfo.width, imageInfo.height)),
+      imageInfo.oneColor
+    )
+  else:
+    var i = 0
+    for y in 0 ..< boxy.tileHeight(imageInfo):
+      for x in 0 ..< boxy.tileWidth(imageInfo):
+        let
+          tile = imageInfo.tiles[i]
+          posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
+        case tile.kind:
+        of tkIndex:
+          let uvAt = vec2(
+            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2,
+            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2
+          )
+          boxy.drawUvRect(
+            posAt,
+            posAt + vec2(boxy.tileSize, boxy.tileSize),
+            uvAt,
+            uvAt + vec2(boxy.tileSize, boxy.tileSize),
+            tintColor
+          )
+        of tkColor:
+          if tile.color != color(0, 0, 0, 0):
+            # The image may not be a full tile wide
+            let wh = vec2(
+              min(boxy.tileSize.float32, imageInfo.width.float32),
+              min(boxy.tileSize.float32, imageInfo.height.float32)
+            )
+            boxy.drawRect(
+              rect(posAt, wh),
+              tile.color * tintColor
+            )
+        inc i
+    assert i == imageInfo.tiles.len
+
+proc drawImage*(
+  boxy: Boxy,
+  key: string,
+  rect: Rect,
+  tintColor = color(1, 1, 1, 1)
+) =
+  ## Draws image at filling the ract.
+  ## The image should have already been added.
+  let imageInfo = boxy.entries[key]
+  boxy.saveTransform()
+  let
+    scale = vec2(
+      rect.w / imageInfo.width.float32,
+      rect.h / imageInfo.height.float32
+    )
+    pos = vec2(
+      rect.x / scale.x,
+      rect.y / scale.y
+    )
+  boxy.scale(scale)
+  boxy.drawImage(key, pos, tintColor)
+  boxy.restoreTransform()
+
+proc drawImage*(
+  boxy: Boxy,
+  key: string,
+  center: Vec2,
+  angle: float32,
+  tintColor = color(1, 1, 1, 1)
+) =
+  ## Draws image at center and rotated by angle.
+  ## The image should have already been added.
+  let imageInfo = boxy.entries[key]
+  boxy.saveTransform()
+  boxy.translate(center)
+  boxy.rotate(angle)
+  boxy.translate(-vec2(imageInfo.width.float32, imageInfo.height.float32)/2)
+  boxy.drawImage(key, pos=vec2(0, 0), tintColor)
+  boxy.restoreTransform()

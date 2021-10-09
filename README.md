@@ -39,7 +39,7 @@ loadExtensions()
 
 let bxy = newBoxy()
 
-let rhino = readImage("examples/rhino.png")
+let rhino = readImage("examples/data/rhino.png")
 bxy.addImage("rhino", rhino) # Add this image to Boxy once.
 
 # Called when it is time to draw a new frame.
