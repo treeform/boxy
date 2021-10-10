@@ -27,7 +27,14 @@ type
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
-    genMipmap*: bool
+    textureId*: GLuint
+
+  TextureArray* = ref object
+    width*, height*, len*: int32
+    componentType*, format*, internalFormat*: GLenum
+    minFilter*: MinFilter
+    magFilter*: MagFilter
+    wrapS*, wrapT*: Wrap
     textureId*: GLuint
 
 proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
@@ -43,7 +50,7 @@ proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
     texture.internalFormat,
     buffer.bufferId
   )
-
+import times
 proc bindTextureData*(texture: Texture, data: pointer) =
   ## Binds the data to a texture.
   if texture.textureId == 0:
@@ -75,8 +82,7 @@ proc bindTextureData*(texture: Texture, data: pointer) =
   if texture.wrapT != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
 
-  if texture.genMipmap:
-    glGenerateMipmap(GL_TEXTURE_2D)
+  glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
   ## Gets the format of the image.
@@ -90,7 +96,6 @@ proc newTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
-  result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
   bindTextureData(result, image.data[0].addr)
@@ -134,6 +139,88 @@ proc readImage*(texture: Texture): Image =
     glBindTexture(GL_TEXTURE_2D, texture.textureId)
     glGetTexImage(
       GL_TEXTURE_2D,
+      0,
+      GL_RGBA,
+      GL_UNSIGNED_BYTE,
+      result.data[0].addr
+    )
+
+proc bindTextureData*(texture: TextureArray, data: pointer) =
+  ## Binds the data to a texture.
+  if texture.textureId == 0:
+    glGenTextures(1, texture.textureId.addr)
+
+  glBindTexture(GL_TEXTURE_2D_ARRAY, texture.textureId)
+  glTexImage3D(
+    target = GL_TEXTURE_2D_ARRAY,
+    level = 0,
+    internalFormat = texture.internalFormat.GLint,
+    width = texture.width,
+    height = texture.height,
+    depth = texture.len,
+    border = 0,
+    format = texture.format,
+    `type` = texture.componentType,
+    pixels = data
+  )
+
+  if texture.magFilter != magDefault:
+    glTexParameteri(
+      GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, texture.magFilter.GLint
+    )
+  if texture.minFilter != minDefault:
+    glTexParameteri(
+      GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, texture.minFilter.GLint
+    )
+  if texture.wrapS != wDefault:
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, texture.wrapS.GLint)
+  if texture.wrapT != wDefault:
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
+
+  glGenerateMipmap(GL_TEXTURE_2D_ARRAY)
+
+proc updateSubImage*(texture: TextureArray, x, y, n: int, image: Image, level: int) =
+  ## Update a small part of a texture image.
+  glBindTexture(GL_TEXTURE_2D_ARRAY, texture.textureId)
+
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY,
+    level = level.GLint,
+    xoffset = x.GLint,
+    yoffset = y.GLint,
+    zoffset = n.GLint,
+    width = image.width.GLint,
+    height = image.height.GLint,
+    depth = 1.GLint,
+    format = image.getFormat(),
+    `type` = GL_UNSIGNED_BYTE,
+    pixels = image.data[0].addr
+  )
+
+proc updateSubImage*(texture: TextureArray, x, y, n: int, image: Image) =
+  ## Update a small part of texture with a new image.
+  var
+    x = x
+    y = y
+    image = image
+    level = 0
+  while true:
+    texture.updateSubImage(x, y, n, image, level)
+    if image.width <= 1 or image.height <= 1:
+      break
+    image = image.minifyBy2()
+    x = x div 2
+    y = y div 2
+    inc level
+
+proc readImage*(texture: TextureArray): Image =
+  ## Reads the data of the texture back.
+  ## Note: Can be quite slow, used mostly for debugging.
+  when not defined(emscripten):
+    result = newImage(texture.width, texture.height * texture.len)
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture.textureId)
+    glGetTexImage(
+      GL_TEXTURE_2D_ARRAY,
       0,
       GL_RGBA,
       GL_UNSIGNED_BYTE,

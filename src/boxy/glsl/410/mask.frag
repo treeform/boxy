@@ -1,11 +1,11 @@
-#version 410
+#version 410 // both win and mac support
 
 in vec2 pos;
-in vec2 uv;
+in vec3 uv;
 in vec4 color;
 
 uniform vec2 windowFrame;
-uniform sampler2D atlasTex;
+uniform sampler2DArray atlasTex;
 uniform sampler2D maskTex;
 
 out vec4 fragColor;
