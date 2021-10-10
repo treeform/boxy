@@ -1,13 +1,13 @@
 #version 410
 
 in vec2 vertexPos;
-in vec2 vertexUv;
+in vec3 vertexUv;
 in vec4 vertexColor;
 
 uniform mat4 proj;
 
 out vec2 pos;
-out vec2 uv;
+out vec3 uv;
 out vec4 color;
 
 void main() {

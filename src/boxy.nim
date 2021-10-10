@@ -5,7 +5,6 @@ export pixie
 
 const
   quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileMargin = 2 # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
@@ -28,11 +27,10 @@ type
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
-    atlasTexture: Texture
+    atlasTexture: TextureArray
     maskTextureWrite: int      ## Index into mask textures for writing.
     maskTextureRead: int       ## Index into mask textures for rendering.
     maskTextures: seq[Texture] ## Masks array for pushing and popping.
-    atlasSize: int             ## Size x size dimensions of the atlas.
     quadCount: int             ## Number of quads drawn so far in this batch.
     quadsPerBatch: int         ## Max quads in a batch before issuing an OpenGL call.
     mat: Mat4                  ## The current matrix.
@@ -109,7 +107,7 @@ proc draw(boxy: Boxy) =
   boxy.activeShader.setUniform("proj", boxy.proj)
 
   glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
+  glBindTexture(GL_TEXTURE_2D_ARRAY, boxy.atlasTexture.textureId)
   boxy.activeShader.setUniform("atlasTex", 0)
 
   if boxy.activeShader.hasUniform("maskTex"):
@@ -145,10 +143,11 @@ proc setUpMaskFramebuffer(boxy: Boxy) =
     0
   )
 
-proc createAtlasTexture(boxy: Boxy, size: int): Texture =
-  result = Texture()
-  result.width = size.int32
-  result.height = size.int32
+proc createAtlasTexture(boxy: Boxy, len: int): TextureArray =
+  result = TextureArray()
+  result.width = boxy.tileSize.int32
+  result.height = boxy.tileSize.int32
+  result.len = len.int32
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
@@ -158,6 +157,8 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
     result.magFilter = magNearest
   else:
     result.magFilter = magLinear
+  result.wrapS = wClampToEdge
+  result.wrapT = wClampToEdge
   bindTextureData(result, nil)
 
 proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
@@ -188,6 +189,7 @@ proc addWhiteTile(boxy: Boxy) =
     boxy.atlasTexture,
     0,
     0,
+    0,
     whiteTile
   )
   boxy.takenTiles[0] = true
@@ -198,29 +200,25 @@ proc clearAtlas*(boxy: Boxy) =
   boxy.addWhiteTile()
 
 proc newBoxy*(
-  atlasSize = 512,
-  tileSize = 32 - tileMargin,
+  maxTiles = 1024,
+  tileSize = 32,
   quadsPerBatch = 1024,
   pixelate = false
 ): Boxy =
   ## Creates a new Boxy.
-  if atlasSize mod (tileSize + tileMargin) != 0:
-    raise newException(BoxyError, "Atlas size must be a multiple of (tile size + 2)")
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
   result = Boxy()
-  result.atlasSize = atlasSize
+  result.maxTiles = maxTiles
   result.tileSize = tileSize
   result.quadsPerBatch = quadsPerBatch
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
   result.pixelate = pixelate
 
-  result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
-  result.maxTiles = result.tileRun * result.tileRun
   result.takenTiles = newBitArray(result.maxTiles)
-  result.atlasTexture = result.createAtlasTexture(atlasSize)
+  result.atlasTexture = result.createAtlasTexture(result.maxTiles)
 
   result.addMaskTexture()
 
@@ -262,7 +260,7 @@ proc newBoxy*(
 
   result.uvs.buffer = Buffer()
   result.uvs.buffer.componentType = cGL_FLOAT
-  result.uvs.buffer.kind = bkVEC2
+  result.uvs.buffer.kind = bkVEC3
   result.uvs.buffer.target = GL_ARRAY_BUFFER
   result.uvs.data = newSeq[float32](
     result.uvs.buffer.kind.componentCount() * quadsPerBatch * 4
@@ -325,32 +323,30 @@ proc grow(boxy: Boxy) =
   # Read old atlas content
   let
     oldAtlas = boxy.readAtlas()
-    oldTileRun = boxy.tileRun
+    oldMaxTiles = boxy.maxTiles
 
-  boxy.atlasSize *= 2
-  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
-  boxy.maxTiles = boxy.tileRun * boxy.tileRun
+  boxy.maxTiles *= 2
+
   boxy.takenTiles.setLen(boxy.maxTiles)
-  boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
+  boxy.atlasTexture = boxy.createAtlasTexture(boxy.maxTiles)
 
   boxy.addWhiteTile()
 
-  for y in 0 ..< oldTileRun:
-    for x in 0 ..< oldTileRun:
-      let
-        imageTile = oldAtlas.superImage(
-          x * (boxy.tileSize + tileMargin),
-          y * (boxy.tileSize + tileMargin),
-          boxy.tileSize + tileMargin,
-          boxy.tileSize + tileMargin
-        )
-        index = x + y * oldTileRun
-      updateSubImage(
-        boxy.atlasTexture,
-        (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-        (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
-        imageTile
+  for index in 0 ..< oldMaxTiles:
+    let
+      imageTile = oldAtlas.superImage(
+        0,
+        index * boxy.tileSize,
+        boxy.tileSize,
+        boxy.tileSize
       )
+    updateSubImage(
+      boxy.atlasTexture,
+      0,
+      0,
+      index,
+      imageTile
+    )
 
 proc takeFreeTile(boxy: Boxy): int =
   for index in 0 ..< boxy.maxTiles:
@@ -383,10 +379,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
     for y in 0 ..< boxy.tileHeight(imageInfo):
       for x in 0 ..< boxy.tileWidth(imageInfo):
         let tileImage = image.superImage(
-          x * boxy.tileSize - tileMargin div 2,
-          y * boxy.tileSize - tileMargin div 2,
-          boxy.tileSize + tileMargin,
-          boxy.tileSize + tileMargin
+          x * boxy.tileSize,
+          y * boxy.tileSize,
+          boxy.tileSize,
+          boxy.tileSize
         )
 
         if tileImage.isOneColor():
@@ -397,8 +393,9 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
           imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
           updateSubImage(
             boxy.atlasTexture,
-            (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-            (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
+            0,
+            0,
+            index,
             tileImage
           )
 
@@ -413,6 +410,11 @@ proc setVert(buf: var seq[float32], i: int, v: Vec2) =
   buf[i * 2 + 0] = v.x
   buf[i * 2 + 1] = v.y
 
+proc setVert(buf: var seq[float32], i: int, v: Vec3) =
+  buf[i * 3 + 0] = v.x
+  buf[i * 3 + 1] = v.y
+  buf[i * 3 + 2] = v.z
+
 proc setVertColor(buf: var seq[uint8], i: int, rgbx: ColorRGBX) =
   buf[i * 4 + 0] = rgbx.r
   buf[i * 4 + 1] = rgbx.g
@@ -422,7 +424,7 @@ proc setVertColor(buf: var seq[uint8], i: int, rgbx: ColorRGBX) =
 proc drawQuad(
   boxy: Boxy,
   verts: array[4, Vec2],
-  uvs: array[4, Vec2],
+  uvs: array[4, Vec3],
   colors: array[4, Color]
 ) =
   boxy.checkBatch()
@@ -445,7 +447,7 @@ proc drawQuad(
 
   inc boxy.quadCount
 
-proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
+proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, index: int, color: Color) =
   ## Adds an image rect with a path to an ctx
   ## at, to, uvAt, uvTo are all in pixels
   let
@@ -455,13 +457,13 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
       boxy.mat * vec2(to.x, at.y),
       boxy.mat * vec2(at.x, at.y),
     ]
-    uvAt = uvAt / boxy.atlasSize.float32
-    uvTo = uvTo / boxy.atlasSize.float32
+    uvAt = uvAt / boxy.tileSize.float32
+    uvTo = uvTo / boxy.tileSize.float32
     uvQuad = [
-      vec2(uvAt.x, uvTo.y),
-      vec2(uvTo.x, uvTo.y),
-      vec2(uvTo.x, uvAt.y),
-      vec2(uvAt.x, uvAt.y),
+      vec3(uvAt.x, uvTo.y, index.float32),
+      vec3(uvTo.x, uvTo.y, index.float32),
+      vec3(uvTo.x, uvAt.y, index.float32),
+      vec3(uvAt.x, uvAt.y, index.float32),
     ]
     colorQuad = [color, color, color, color]
 
@@ -478,6 +480,7 @@ proc drawRect*(
       rect.xy + rect.wh,
       vec2(boxy.tileSize / 2, boxy.tileSize / 2),
       vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      0,
       color
     )
 
@@ -646,14 +649,15 @@ proc drawImage*(
         case tile.kind:
         of tkIndex:
           let uvAt = vec2(
-            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2,
-            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2
+            0,
+            0,
           )
           boxy.drawUvRect(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
             uvAt,
             uvAt + vec2(boxy.tileSize, boxy.tileSize),
+            tile.index,
             tintColor
           )
         of tkColor:
