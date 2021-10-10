@@ -1,4 +1,4 @@
-#version 410
+#version 410 // both win and mac support
 
 in vec2 vertexPos;
 in vec3 vertexUv;

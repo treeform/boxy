@@ -1,4 +1,4 @@
-#version 100
+#version 100 // used for emscripten
 #extension GL_EXT_texture_array : enable
 
 precision highp float;
