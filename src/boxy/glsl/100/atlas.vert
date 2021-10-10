@@ -3,13 +3,13 @@
 precision highp float;
 
 attribute vec2 vertexPos;
-attribute vec2 vertexUv;
+attribute vec3 vertexUv;
 attribute vec4 vertexColor;
 
 uniform mat4 proj;
 
 varying vec2 pos;
-varying vec2 uv;
+varying vec3 uv;
 varying vec4 color;
 
 void main() {
