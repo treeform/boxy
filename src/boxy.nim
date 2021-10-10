@@ -647,10 +647,7 @@ proc drawImage*(
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
         case tile.kind:
         of tkIndex:
-          let uvAt = vec2(
-            0,
-            0,
-          )
+          let uvAt = vec2(0, 0)
           boxy.drawUvRect(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
