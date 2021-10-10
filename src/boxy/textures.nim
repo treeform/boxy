@@ -1,4 +1,4 @@
-import buffers, opengl, pixie, print
+import buffers, opengl, pixie
 
 type
   MinFilter* = enum
