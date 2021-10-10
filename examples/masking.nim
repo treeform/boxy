@@ -20,8 +20,6 @@ let bxy = newBoxy()
 bxy.addImage("mask", readImage("examples/data/mask.png"))
 bxy.addImage("greece", readImage("examples/data/greece.png"))
 
-bxy.readAtlas().writeFile("atlas.png")
-
 var frame: int
 
 # Called when it is time to draw a new frame.
