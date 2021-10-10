@@ -11,7 +11,7 @@ uniform sampler2D maskTex;
 out vec4 fragColor;
 
 void main() {
-  fragColor = vec4((texture(atlasTex, uv, 0).rgba * color).a);
+  fragColor = vec4((texture(atlasTex, uv).rgba * color).a);
   vec2 normalizedPos = vec2(pos.x / windowFrame.x, 1 - pos.y / windowFrame.y);
   fragColor.a *= texture(maskTex, normalizedPos).r;
 }
