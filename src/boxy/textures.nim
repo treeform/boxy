@@ -188,8 +188,6 @@ proc updateSubImage*(texture: TextureArray, x, y, n: int, image: Image, level: i
   ## Update a small part of a texture image.
   glBindTexture(GL_TEXTURE_2D_ARRAY, texture.textureId)
 
-  #print texture
-
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY,
     level = level.GLint,
