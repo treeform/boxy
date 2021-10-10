@@ -151,7 +151,6 @@ proc createAtlasTexture(boxy: Boxy, len: int): TextureArray =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
-  result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
   if boxy.pixelate:
     result.magFilter = magNearest

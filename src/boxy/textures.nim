@@ -27,7 +27,6 @@ type
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
-    genMipmap*: bool
     textureId*: GLuint
 
   TextureArray* = ref object
@@ -36,7 +35,6 @@ type
     minFilter*: MinFilter
     magFilter*: MagFilter
     wrapS*, wrapT*: Wrap
-    genMipmap*: bool
     textureId*: GLuint
 
 proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
@@ -52,7 +50,7 @@ proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
     texture.internalFormat,
     buffer.bufferId
   )
-
+import times
 proc bindTextureData*(texture: Texture, data: pointer) =
   ## Binds the data to a texture.
   if texture.textureId == 0:
@@ -84,8 +82,7 @@ proc bindTextureData*(texture: Texture, data: pointer) =
   if texture.wrapT != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
 
-  if texture.genMipmap:
-    glGenerateMipmap(GL_TEXTURE_2D)
+  glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
   ## Gets the format of the image.
@@ -99,7 +96,6 @@ proc newTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
-  result.genMipmap = true
   result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
   bindTextureData(result, image.data[0].addr)
@@ -181,8 +177,7 @@ proc bindTextureData*(texture: TextureArray, data: pointer) =
   if texture.wrapT != wDefault:
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
 
-  if texture.genMipmap:
-    glGenerateMipmap(GL_TEXTURE_2D_ARRAY)
+  glGenerateMipmap(GL_TEXTURE_2D_ARRAY)
 
 proc updateSubImage*(texture: TextureArray, x, y, n: int, image: Image, level: int) =
   ## Update a small part of a texture image.
