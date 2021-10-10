@@ -77,16 +77,7 @@ proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
-  result = newImage(boxy.atlasTexture.width, boxy.atlasTexture.height)
-  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
-  when not defined(emscripten):
-    glGetTexImage(
-      GL_TEXTURE_2D,
-      0,
-      GL_RGBA,
-      GL_UNSIGNED_BYTE,
-      result.data[0].addr
-    )
+  return boxy.atlasTexture.readImage()
 
 proc upload(boxy: Boxy) =
   ## When buffers change, uploads them to GPU.
@@ -208,7 +199,7 @@ proc clearAtlas*(boxy: Boxy) =
 
 proc newBoxy*(
   atlasSize = 512,
-  tileSize = 30,
+  tileSize = 32 - tileMargin,
   quadsPerBatch = 1024,
   pixelate = false
 ): Boxy =
@@ -530,12 +521,12 @@ proc beginMask*(boxy: Boxy) =
 
 proc endMask*(boxy: Boxy) =
   ## Stops drawing into the mask.
-  if boxy.maskBegun:
-    raise newException(BoxyError, "beginMask has already been called")
-
-  boxy.maskBegun = false
+  if not boxy.maskBegun:
+    raise newException(BoxyError, "beginMask has not been called")
 
   boxy.draw()
+
+  boxy.maskBegun = false
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 

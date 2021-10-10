@@ -125,3 +125,17 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     x = x div 2
     y = y div 2
     inc level
+
+proc readImage*(texture: Texture): Image =
+  ## Reads the data of the texture back.
+  ## Note: Can be quite slow, used mostly for debugging.
+  result = newImage(texture.width, texture.height)
+  when not defined(emscripten):
+    glBindTexture(GL_TEXTURE_2D, texture.textureId)
+    glGetTexImage(
+      GL_TEXTURE_2D,
+      0,
+      GL_RGBA,
+      GL_UNSIGNED_BYTE,
+      result.data[0].addr
+    )
