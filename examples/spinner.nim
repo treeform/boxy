@@ -14,7 +14,7 @@ let window = createWindow(
 makeContextCurrent(window)
 loadExtensions()
 
-let bxy = newBoxy(maxTiles=16)
+let bxy = newBoxy(atlasSize=16)
 
 # Load the images.
 bxy.addImage("bg", readImage("examples/data/bg.png"))

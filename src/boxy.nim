@@ -36,9 +36,8 @@ type
     mat: Mat4                  ## The current matrix.
     mats: seq[Mat4]            ## The matrix stack.
     entries: Table[string, ImageInfo]
-    tileSize: int
-    maxTiles: int
-    tileRun: int
+    tileSize: int              ## Width and hight of a tile.
+    atlasSize: int             ## Max number of tiles in the atlas.
     takenTiles: BitArray       ## Flag for if the tile is taken or not.
     proj: Mat4
     frameSize: Vec2            ## Dimensions of the window frame.
@@ -199,9 +198,9 @@ proc clearAtlas*(boxy: Boxy) =
   boxy.addWhiteTile()
 
 proc newBoxy*(
-  maxTiles = 1024,
-  tileSize = 32,
-  quadsPerBatch = 1024,
+  atlasSize = 256,        # Initial Number of tiles.
+  tileSize = 32,          # Width and height of each tile.
+  quadsPerBatch = 1024,   # Number of tiles to draw in a batch.
   pixelate = false
 ): Boxy =
   ## Creates a new Boxy.
@@ -209,15 +208,15 @@ proc newBoxy*(
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
   result = Boxy()
-  result.maxTiles = maxTiles
+  result.atlasSize = atlasSize
   result.tileSize = tileSize
   result.quadsPerBatch = quadsPerBatch
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
   result.pixelate = pixelate
 
-  result.takenTiles = newBitArray(result.maxTiles)
-  result.atlasTexture = result.createAtlasTexture(result.maxTiles)
+  result.takenTiles = newBitArray(result.atlasSize)
+  result.atlasTexture = result.createAtlasTexture(result.atlasSize)
 
   result.addMaskTexture()
 
@@ -322,16 +321,16 @@ proc grow(boxy: Boxy) =
   # Read old atlas content
   let
     oldAtlas = boxy.readAtlas()
-    oldMaxTiles = boxy.maxTiles
+    oldatlasSize = boxy.atlasSize
 
-  boxy.maxTiles *= 2
+  boxy.atlasSize *= 2
 
-  boxy.takenTiles.setLen(boxy.maxTiles)
-  boxy.atlasTexture = boxy.createAtlasTexture(boxy.maxTiles)
+  boxy.takenTiles.setLen(boxy.atlasSize)
+  boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
 
   boxy.addWhiteTile()
 
-  for index in 0 ..< oldMaxTiles:
+  for index in 0 ..< oldatlasSize:
     let
       imageTile = oldAtlas.superImage(
         0,
@@ -348,7 +347,7 @@ proc grow(boxy: Boxy) =
     )
 
 proc takeFreeTile(boxy: Boxy): int =
-  for index in 0 ..< boxy.maxTiles:
+  for index in 0 ..< boxy.atlasSize:
     if not boxy.takenTiles[index]:
       boxy.takenTiles[index] = true
       return index
