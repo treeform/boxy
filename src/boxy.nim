@@ -405,11 +405,11 @@ proc checkBatch(boxy: Boxy) {.inline.} =
     # This batch is full, draw and start a new batch.
     boxy.draw()
 
-proc setVert(buf: var seq[float32], i: int, v: Vec2) =
+proc setVertPos(buf: var seq[float32], i: int, v: Vec2) =
   buf[i * 2 + 0] = v.x
   buf[i * 2 + 1] = v.y
 
-proc setVert(buf: var seq[float32], i: int, v: Vec3) =
+proc setVertUv(buf: var seq[float32], i: int, v: Vec3) =
   buf[i * 3 + 0] = v.x
   buf[i * 3 + 1] = v.y
   buf[i * 3 + 2] = v.z
@@ -429,15 +429,15 @@ proc drawQuad(
   boxy.checkBatch()
 
   let offset = boxy.quadCount * 4
-  boxy.positions.data.setVert(offset + 0, verts[0])
-  boxy.positions.data.setVert(offset + 1, verts[1])
-  boxy.positions.data.setVert(offset + 2, verts[2])
-  boxy.positions.data.setVert(offset + 3, verts[3])
+  boxy.positions.data.setVertPos(offset + 0, verts[0])
+  boxy.positions.data.setVertPos(offset + 1, verts[1])
+  boxy.positions.data.setVertPos(offset + 2, verts[2])
+  boxy.positions.data.setVertPos(offset + 3, verts[3])
 
-  boxy.uvs.data.setVert(offset + 0, uvs[0])
-  boxy.uvs.data.setVert(offset + 1, uvs[1])
-  boxy.uvs.data.setVert(offset + 2, uvs[2])
-  boxy.uvs.data.setVert(offset + 3, uvs[3])
+  boxy.uvs.data.setVertUv(offset + 0, uvs[0])
+  boxy.uvs.data.setVertUv(offset + 1, uvs[1])
+  boxy.uvs.data.setVertUv(offset + 2, uvs[2])
+  boxy.uvs.data.setVertUv(offset + 3, uvs[3])
 
   boxy.colors.data.setVertColor(offset + 0, colors[0].asRgbx())
   boxy.colors.data.setVertColor(offset + 1, colors[1].asRgbx())
