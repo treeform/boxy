@@ -226,12 +226,12 @@ proc newBoxy*(
 
   when defined(emscripten):
     result.atlasShader = newShaderStatic(
-      "glsl/emscripten/atlas.vert",
-      "glsl/emscripten/atlas.frag"
+      "glsl/100/atlas.vert",
+      "glsl/100/atlas.frag"
     )
     result.maskShader = newShaderStatic(
-      "glsl/emscripten/atlas.vert",
-      "glsl/emscripten/mask.frag"
+      "glsl/100/atlas.vert",
+      "glsl/100/mask.frag"
     )
   else:
     result.atlasShader = newShaderStatic(

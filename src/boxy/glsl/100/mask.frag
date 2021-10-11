@@ -1,4 +1,4 @@
-#version 100
+#version 100 // Used for emscripten.
 
 precision highp float;
 
@@ -13,5 +13,5 @@ uniform sampler2D maskTex;
 void main() {
   gl_FragColor  = vec4((texture2D(atlasTex, uv).rgba * color).a);
   vec2 normalizedPos = vec2(pos.x / windowFrame.x, 1.0 - pos.y / windowFrame.y);
-  gl_FragColor .a *= texture2D(maskTex, normalizedPos).r;
+  gl_FragColor *= texture2D(maskTex, normalizedPos).r;
 }

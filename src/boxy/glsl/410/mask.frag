@@ -1,4 +1,4 @@
-#version 410
+#version 410 // Highest version on Mac.
 
 in vec2 pos;
 in vec2 uv;
@@ -13,5 +13,5 @@ out vec4 fragColor;
 void main() {
   fragColor = vec4((texture(atlasTex, uv).rgba * color).a);
   vec2 normalizedPos = vec2(pos.x / windowFrame.x, 1 - pos.y / windowFrame.y);
-  fragColor.a *= texture(maskTex, normalizedPos).r;
+  fragColor *= texture(maskTex, normalizedPos).r;
 }
