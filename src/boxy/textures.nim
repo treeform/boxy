@@ -121,6 +121,8 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     texture.updateSubImage(x, y, image, level)
     if image.width <= 1 or image.height <= 1:
       break
+    if not texture.genMipmap:
+      break
     image = image.minifyBy2()
     x = x div 2
     y = y div 2
