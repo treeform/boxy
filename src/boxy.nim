@@ -43,7 +43,7 @@ type
     tileRun: int
     takenTiles: BitArray       ## Flag for if the tile is taken or not.
     proj: Mat4
-    frameSize: Vec2            ## Dimensions of the window frame.
+    frameSize: Ivec2           ## Dimensions of the window frame.
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
     pixelate: bool             ## Makes texture look pixelated, like a pixel game.
@@ -160,7 +160,7 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
     result.magFilter = magLinear
   bindTextureData(result, nil)
 
-proc addMaskTexture(boxy: Boxy, frameSize = vec2(1, 1)) =
+proc addMaskTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   # Must be >0 for framebuffer creation below
   # Set to real value in beginFrame
   let maskTexture = Texture()
@@ -539,7 +539,7 @@ proc popMask*(boxy: Boxy) =
   dec boxy.maskTextureWrite
   boxy.maskTextureRead = boxy.maskTextureWrite
 
-proc beginFrame*(boxy: Boxy, frameSize: Vec2, proj: Mat4) =
+proc beginFrame*(boxy: Boxy, frameSize: Ivec2, proj: Mat4) =
   ## Starts a new frame.
   if boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has already been called")
@@ -547,29 +547,29 @@ proc beginFrame*(boxy: Boxy, frameSize: Vec2, proj: Mat4) =
   boxy.frameBegun = true
   boxy.proj = proj
 
-  if boxy.maskTextures[0].width != frameSize.x.int32 or
-    boxy.maskTextures[0].height != frameSize.y.int32:
+  if boxy.maskTextures[0].width != frameSize.x or
+    boxy.maskTextures[0].height != frameSize.y:
     # Resize all of the masks.
     boxy.frameSize = frameSize
     for i in 0 ..< boxy.maskTextures.len:
-      boxy.maskTextures[i].width = frameSize.x.int32
-      boxy.maskTextures[i].height = frameSize.y.int32
+      boxy.maskTextures[i].width = frameSize.x
+      boxy.maskTextures[i].height = frameSize.y
       if i > 0:
         # Never resize the 0th mask because its just white.
         bindTextureData(boxy.maskTextures[i], nil)
 
-  glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
+  glViewport(0, 0, boxy.frameSize.x, boxy.frameSize.y)
 
   glClearColor(0, 0, 0, 0)
   glClear(GL_COLOR_BUFFER_BIT)
 
   boxy.clearMask()
 
-proc beginFrame*(boxy: Boxy, frameSize: Vec2) {.inline.} =
+proc beginFrame*(boxy: Boxy, frameSize: Ivec2) {.inline.} =
   beginFrame(
     boxy,
     frameSize,
-    ortho(0.float32, frameSize.x, frameSize.y, 0, -1000, 1000)
+    ortho(0.float32, frameSize.x.float32, frameSize.y.float32, 0, -1000, 1000)
   )
 
 proc endFrame*(boxy: Boxy) =

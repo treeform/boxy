@@ -1,15 +1,13 @@
 import boxy, opengl, staticglfw
 
-let windowSize = vec2(1280, 800)
+let windowSize = ivec2(1280, 800)
 
 if init() == 0:
   quit("Failed to Initialize GLFW.")
 
 windowHint(RESIZABLE, false.cint)
 
-let window = createWindow(
-  windowSize.x.cint, windowSize.y.cint, "GLFW + Boxy", nil, nil
-)
+let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
 
 makeContextCurrent(window)
 loadExtensions()
@@ -30,12 +28,13 @@ proc display() =
   bxy.beginFrame(windowSize)
 
   # Draw the bg.
-  bxy.drawImage("bg", rect=rect(vec2(0, 0), windowSize))
+  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
 
   # Draw the rings.
-  bxy.drawImage("ring1", center=windowSize/2, angle = frame.float / 100)
-  bxy.drawImage("ring2", center=windowSize/2, angle = -frame.float / 190)
-  bxy.drawImage("ring3", center=windowSize/2, angle = frame.float / 170)
+  let center = windowSize.vec2 / 2
+  bxy.drawImage("ring1", center, angle = frame.float / 100)
+  bxy.drawImage("ring2", center, angle = -frame.float / 190)
+  bxy.drawImage("ring3", center, angle = frame.float / 170)
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()

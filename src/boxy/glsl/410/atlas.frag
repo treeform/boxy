@@ -4,7 +4,7 @@ in vec2 pos;
 in vec2 uv;
 in vec4 color;
 
-uniform vec2 windowFrame;
+uniform ivec2 windowFrame;
 uniform sampler2D atlasTex;
 uniform sampler2D maskTex;
 

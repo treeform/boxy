@@ -1,15 +1,13 @@
 import boxy, opengl, staticglfw
 
-let windowSize = vec2(1280, 800)
+let windowSize = ivec2(1280, 800)
 
 if init() == 0:
   quit("Failed to Initialize GLFW.")
 
 windowHint(RESIZABLE, false.cint)
 
-let window = createWindow(
-  windowSize.x.cint, windowSize.y.cint, "GLFW + Boxy", nil, nil
-)
+let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
 
 makeContextCurrent(window)
 loadExtensions()
@@ -28,16 +26,16 @@ proc display() =
   bxy.beginFrame(windowSize)
 
   # Draw the bg.
-  bxy.drawRect(rect(vec2(0, 0), windowSize), color(0, 0, 0, 1))
+  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
 
   # Draw the mask.
   bxy.beginMask()
-  bxy.drawImage("mask", center=windowSize/2, angle = 0)
+  bxy.drawImage("mask", center=windowSize.vec2 / 2, angle = 0)
   bxy.endMask()
 
   # Use the mask.
   bxy.saveTransform()
-  bxy.translate(windowSize/2)
+  bxy.translate(windowSize.vec2 / 2)
   bxy.scale(1.2 + 0.2 * sin(frame.float32/100))
   bxy.drawImage("greece", center=vec2(0, 0), angle = 0)
   bxy.restoreTransform()
