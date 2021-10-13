@@ -43,7 +43,7 @@ type
     tileRun: int
     takenTiles: BitArray       ## Flag for if the tile is taken or not.
     proj: Mat4
-    frameSize: Ivec2           ## Dimensions of the window frame.
+    frameSize: IVec2           ## Dimensions of the window frame.
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
     pixelate: bool             ## Makes texture look pixelated, like a pixel game.
@@ -539,7 +539,7 @@ proc popMask*(boxy: Boxy) =
   dec boxy.maskTextureWrite
   boxy.maskTextureRead = boxy.maskTextureWrite
 
-proc beginFrame*(boxy: Boxy, frameSize: Ivec2, proj: Mat4) =
+proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4) =
   ## Starts a new frame.
   if boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has already been called")
@@ -565,7 +565,7 @@ proc beginFrame*(boxy: Boxy, frameSize: Ivec2, proj: Mat4) =
 
   boxy.clearMask()
 
-proc beginFrame*(boxy: Boxy, frameSize: Ivec2) {.inline.} =
+proc beginFrame*(boxy: Boxy, frameSize: IVec2) {.inline.} =
   beginFrame(
     boxy,
     frameSize,
