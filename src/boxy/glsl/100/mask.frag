@@ -6,7 +6,7 @@ varying vec2 pos;
 varying vec2 uv;
 varying vec4 color;
 
-uniform vec2 windowFrame;
+uniform ivec2 windowFrame;
 uniform sampler2D atlasTex;
 uniform sampler2D maskTex;
 
