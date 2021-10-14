@@ -585,11 +585,11 @@ proc endFrame*(boxy: Boxy) =
   boxy.draw()
 
 proc applyTransform*(boxy: Boxy, m: Mat4) =
-  ## Translate the internal transform.
+  ## Applies transform to the internal transform.
   boxy.mat = boxy.mat * m
 
 proc setTransform*(boxy: Boxy, m: Mat4) =
-  ## Translate the internal transform.
+  ## Sets the internal transform.
   boxy.mat = m
 
 proc translate*(boxy: Boxy, v: Vec2) =

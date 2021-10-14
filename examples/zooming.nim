@@ -1,6 +1,6 @@
 import boxy, opengl, staticglfw
 
-let windowSize = vec2(1280, 800)
+let windowSize = ivec2(1280, 800)
 
 if init() == 0:
   quit("Failed to Initialize GLFW.")
@@ -30,10 +30,10 @@ proc display() =
   bxy.beginFrame(windowSize)
 
   # Draw the bg.
-  bxy.drawRect(rect(vec2(0, 0), windowSize), color(0, 0, 0, 1))
+  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
 
   bxy.saveTransform()
-  bxy.translate(windowSize/2)
+  bxy.translate(windowSize.vec2/2)
   bxy.scale(scale)
   scale *= 0.999
   bxy.drawImage("greece", center=vec2(0, 0), angle = 0)
