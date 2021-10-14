@@ -20,6 +20,8 @@ bxy.addImage("ring1", readImage("examples/data/ring1.png"))
 bxy.addImage("ring2", readImage("examples/data/ring2.png"))
 bxy.addImage("ring3", readImage("examples/data/ring3.png"))
 
+# bxy.readAtlas().writeFile("atlas.png")
+
 var frame: int
 
 # Called when it is time to draw a new frame.

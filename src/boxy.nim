@@ -23,7 +23,7 @@ type
   ImageInfo = object
     width: int           ## Width of the image in pixels.
     height: int          ## Height of the image in pixels.
-    tiles: seq[TileInfo] ## The tile info for this image.
+    tiles: seq[seq[TileInfo]] ## The tile info for this image.
     oneColor: Color      ## If tiles = [] then this is the image's color.
 
   Boxy* = ref object
@@ -46,7 +46,6 @@ type
     frameSize: IVec2           ## Dimensions of the window frame.
     vertexArrayId, maskFramebufferId: GLuint
     frameBegun, maskBegun: bool
-    pixelate: bool             ## Makes texture look pixelated, like a pixel game.
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -152,12 +151,8 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
-  result.genMipmap = true
-  result.minFilter = minLinearMipmapLinear
-  if boxy.pixelate:
-    result.magFilter = magNearest
-  else:
-    result.magFilter = magLinear
+  result.minFilter = minLinear
+  result.magFilter = magLinear
   bindTextureData(result, nil)
 
 proc addMaskTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
@@ -173,10 +168,7 @@ proc addMaskTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   else:
     maskTexture.internalFormat = GL_R8
   maskTexture.minFilter = minLinear
-  if boxy.pixelate:
-    maskTexture.magFilter = magNearest
-  else:
-    maskTexture.magFilter = magLinear
+  maskTexture.magFilter = magLinear
   bindTextureData(maskTexture, nil)
   boxy.maskTextures.add(maskTexture)
 
@@ -200,8 +192,7 @@ proc clearAtlas*(boxy: Boxy) =
 proc newBoxy*(
   atlasSize = 512,
   tileSize = 32 - tileMargin,
-  quadsPerBatch = 1024,
-  pixelate = false
+  quadsPerBatch = 1024
 ): Boxy =
   ## Creates a new Boxy.
   if atlasSize mod (tileSize + tileMargin) != 0:
@@ -215,7 +206,6 @@ proc newBoxy*(
   result.quadsPerBatch = quadsPerBatch
   result.mat = mat4()
   result.mats = newSeq[Mat4]()
-  result.pixelate = pixelate
 
   result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
   result.maxTiles = result.tileRun * result.tileRun
@@ -364,14 +354,15 @@ proc takeFreeTile(boxy: Boxy): int =
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
   if key in boxy.entries:
-    for tile in boxy.entries[key].tiles:
-      if tile.kind == tkIndex:
-        boxy.takenTiles[tile.index] = false
+    for tileLevel in boxy.entries[key].tiles:
+      for tile in tileLevel:
+        if tile.kind == tkIndex:
+          boxy.takenTiles[tile.index] = false
     boxy.entries.del(key)
 
 proc addImage*(boxy: Boxy, key: string, image: Image) =
   boxy.removeImage(key)
-
+  var image = image
   var imageInfo: ImageInfo
   imageInfo.width = image.width
   imageInfo.height = image.height
@@ -379,28 +370,37 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
   if image.isOneColor():
     imageInfo.oneColor = image[0, 0].color
   else:
-    # Split the image into tiles.
-    for y in 0 ..< boxy.tileHeight(imageInfo):
-      for x in 0 ..< boxy.tileWidth(imageInfo):
-        let tileImage = image.superImage(
-          x * boxy.tileSize - tileMargin div 2,
-          y * boxy.tileSize - tileMargin div 2,
-          boxy.tileSize + tileMargin,
-          boxy.tileSize + tileMargin
-        )
+    var level = 0
+    while true:
+      imageInfo.tiles.add(@[])
 
-        if tileImage.isOneColor():
-          let tileColor = tileImage[0, 0].color
-          imageInfo.tiles.add(TileInfo(kind: tkColor, color: tileColor))
-        else:
-          let index = boxy.takeFreeTile()
-          imageInfo.tiles.add(TileInfo(kind: tkIndex, index: index))
-          updateSubImage(
-            boxy.atlasTexture,
-            (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-            (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
-            tileImage
+      # Split the image into tiles.
+      for y in 0 ..< boxy.tileHeight(imageInfo):
+        for x in 0 ..< boxy.tileWidth(imageInfo):
+          let tileImage = image.superImage(
+            x * boxy.tileSize - tileMargin div 2,
+            y * boxy.tileSize - tileMargin div 2,
+            boxy.tileSize + tileMargin,
+            boxy.tileSize + tileMargin
           )
+          if tileImage.isOneColor():
+            let tileColor = tileImage[0, 0].color
+            imageInfo.tiles[level].add(TileInfo(kind: tkColor, color: tileColor))
+          else:
+            let index = boxy.takeFreeTile()
+            imageInfo.tiles[level].add(TileInfo(kind: tkIndex, index: index))
+            updateSubImage(
+              boxy.atlasTexture,
+              (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
+              (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
+              tileImage
+            )
+
+      if image.width <= 1 or image.height <= 1:
+        break
+
+      image = image.minifyBy2()
+      inc level
 
   boxy.entries[key] = imageInfo
 
@@ -584,6 +584,14 @@ proc endFrame*(boxy: Boxy) =
   boxy.frameBegun = false
   boxy.draw()
 
+proc applyTransform*(boxy: Boxy, m: Mat4) =
+  ## Translate the internal transform.
+  boxy.mat = boxy.mat * m
+
+proc setTransform*(boxy: Boxy, m: Mat4) =
+  ## Translate the internal transform.
+  boxy.mat = m
+
 proc translate*(boxy: Boxy, v: Vec2) =
   ## Translate the internal transform.
   boxy.mat = boxy.mat * translate(vec3(v))
@@ -638,10 +646,21 @@ proc drawImage*(
     )
   else:
     var i = 0
+    let
+      xVec = vec2(boxy.mat[0, 0], boxy.mat[0, 1])
+      yVec = vec2(boxy.mat[0, 1], boxy.mat[1, 1])
+      vecMag = max(xVec.length, yVec.length)
+      wantLevel = int((-log2(vecMag) + 0.5).floor)
+      level = clamp(wantLevel, 0, imageInfo.tiles.len - 1)
+      levelPow2 = 2 ^ level
+
+    boxy.saveTransform()
+    boxy.scale(vec2(levelPow2, levelPow2))
+
     for y in 0 ..< boxy.tileHeight(imageInfo):
       for x in 0 ..< boxy.tileWidth(imageInfo):
         let
-          tile = imageInfo.tiles[i]
+          tile = imageInfo.tiles[level][i]
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
         case tile.kind:
         of tkIndex:
@@ -668,7 +687,9 @@ proc drawImage*(
               tile.color * tintColor
             )
         inc i
-    assert i == imageInfo.tiles.len
+
+    boxy.restoreTransform()
+    assert i == imageInfo.tiles[level].len
 
 proc drawImage*(
   boxy: Boxy,
