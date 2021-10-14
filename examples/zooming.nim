@@ -7,22 +7,22 @@ if init() == 0:
 
 windowHint(RESIZABLE, false.cint)
 
-let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
+let window = createWindow(
+  windowSize.x.cint, windowSize.y.cint, "GLFW + Boxy", nil, nil
+)
 
 makeContextCurrent(window)
 loadExtensions()
 
 let bxy = newBoxy()
 
-# Load the images.
-bxy.addImage("bg", readImage("examples/data/bg.png"))
-bxy.addImage("ring1", readImage("examples/data/ring1.png"))
-bxy.addImage("ring2", readImage("examples/data/ring2.png"))
-bxy.addImage("ring3", readImage("examples/data/ring3.png"))
+# Load the image.
+bxy.addImage("greece", readImage("examples/data/greece.png"))
 
 # bxy.readAtlas().writeFile("atlas.png")
 
 var frame: int
+var scale: float32 = 0.7
 
 # Called when it is time to draw a new frame.
 proc display() =
@@ -30,13 +30,14 @@ proc display() =
   bxy.beginFrame(windowSize)
 
   # Draw the bg.
-  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
+  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
 
-  # Draw the rings.
-  let center = windowSize.vec2 / 2
-  bxy.drawImage("ring1", center, angle = frame.float / 100)
-  bxy.drawImage("ring2", center, angle = -frame.float / 190)
-  bxy.drawImage("ring3", center, angle = frame.float / 170)
+  bxy.saveTransform()
+  bxy.translate(windowSize.vec2/2)
+  bxy.scale(scale)
+  scale *= 0.999
+  bxy.drawImage("greece", center=vec2(0, 0), angle = 0)
+  bxy.restoreTransform()
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()
