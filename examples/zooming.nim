@@ -19,7 +19,7 @@ let bxy = newBoxy()
 # Load the image.
 bxy.addImage("greece", readImage("examples/data/greece.png"))
 
-# bxy.readAtlas().writeFile("atlas.png")
+bxy.readAtlas().writeFile("atlas.png")
 
 var frame: int
 var scale: float32 = 0.7

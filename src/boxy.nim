@@ -5,7 +5,7 @@ export pixie
 
 const
   quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileMargin = 2 # 1 pixel on both sides of the tile.
+  tileMargin = 0 # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
@@ -105,6 +105,14 @@ proc draw(boxy: Boxy) =
     boxy.activeShader.setUniform(
       "windowFrame", boxy.frameSize.x, boxy.frameSize.y
     )
+
+  if boxy.activeShader.hasUniform("atlasConfig"):
+    boxy.activeShader.setUniform(
+      "atlasConfig",
+      boxy.atlasTexture.width.int32,
+      boxy.tileSize.int32
+    )
+
   boxy.activeShader.setUniform("proj", boxy.proj)
 
   glActiveTexture(GL_TEXTURE0)
@@ -445,18 +453,20 @@ proc drawQuad(
 
   inc boxy.quadCount
 
-proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
+proc drawUvRect(boxy: Boxy, at, to, uvAt, uvSize: Vec2, color: Color) =
   ## Adds an image rect with a path to an ctx
   ## at, to, uvAt, uvTo are all in pixels
   let
+    at = at - vec2(1, 1)
+    to = to + vec2(2, 2)
     posQuad = [
       boxy.mat * vec2(at.x, to.y),
       boxy.mat * vec2(to.x, to.y),
       boxy.mat * vec2(to.x, at.y),
       boxy.mat * vec2(at.x, at.y),
     ]
-    uvAt = uvAt / boxy.atlasSize.float32
-    uvTo = uvTo / boxy.atlasSize.float32
+    uvAt = (uvAt - vec2(1, 1)) * 2
+    uvTo = uvAt + uvSize + vec2(2, 2)
     uvQuad = [
       vec2(uvAt.x, uvTo.y),
       vec2(uvTo.x, uvTo.y),
@@ -476,8 +486,10 @@ proc drawRect*(
     boxy.drawUvRect(
       rect.xy,
       rect.xy + rect.wh,
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      # vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      # vec2(1, 1),
+      vec2(0, 0),
+      vec2(boxy.tileSize, boxy.tileSize),
       color
     )
 
@@ -672,7 +684,7 @@ proc drawImage*(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
             uvAt,
-            uvAt + vec2(boxy.tileSize, boxy.tileSize),
+            vec2(boxy.tileSize, boxy.tileSize),
             tintColor
           )
         of tkColor:
@@ -687,9 +699,11 @@ proc drawImage*(
               tile.color * tintColor
             )
         inc i
+        break
+      break
 
     boxy.restoreTransform()
-    assert i == imageInfo.tiles[level].len
+    #assert i == imageInfo.tiles[level].len
 
 proc drawImage*(
   boxy: Boxy,
