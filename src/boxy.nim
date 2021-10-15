@@ -360,7 +360,7 @@ proc removeImage*(boxy: Boxy, key: string) =
           boxy.takenTiles[tile.index] = false
     boxy.entries.del(key)
 
-proc addImage*(boxy: Boxy, key: string, image: Image) =
+proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   boxy.removeImage(key)
   var image = image
   var imageInfo: ImageInfo
@@ -397,6 +397,9 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
             )
 
       if image.width <= 1 or image.height <= 1:
+        break
+
+      if not genMipmaps:
         break
 
       image = image.minifyBy2()
