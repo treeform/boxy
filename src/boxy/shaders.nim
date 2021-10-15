@@ -36,7 +36,11 @@ proc getErrorLog*(
     if log.startsWith("Compute info"):
       log = log[25..^1]
     let
-      clickable = &"{path}({log[2..log.find(')')]}"
+      clickable =
+        if ')' in log:
+          &"{path}({log[2..log.find(')')]}"
+        else:
+          path
     result = &"{clickable}: {log}"
 
 proc compileComputeShader*(compute: (string, string)): GLuint =
@@ -216,7 +220,7 @@ template newShaderStatic*(computePath: string): Shader =
   ## so it is compiled into the binary.
   const
     computeCode = staticRead(computePath)
-    dir = getProjectPath()
+    dir = currentSourcePath().parentDir
     computePathFull = dir / computePath
   newShader((computePathFull, computeCode))
 
@@ -241,7 +245,7 @@ template newShaderStatic*(vertPath, fragPath: string): Shader =
   const
     vertCode = staticRead(vertPath)
     fragCode = staticRead(fragPath)
-    dir = getProjectPath()
+    dir = currentSourcePath().parentDir
     vertPathFull = dir / vertPath
     fragPathFull = dir / fragPath
   newShader((vertPathFull, vertCode), (fragPathFull, fragCode))
