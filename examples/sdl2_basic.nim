@@ -9,7 +9,7 @@ discard glSetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
 discard glSetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1)
 
 let window = createWindow(
-  "GLFW + Boxy",
+  "SDL2 + Boxy",
   100,
   100,
   windowSize.x,
