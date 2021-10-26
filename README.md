@@ -1,3 +1,5 @@
+<img src="docs/boxyBanner.png">
+
 # Boxy - 2D GPU rendering with a tiling atlas.
 
 `nimble install boxy`
@@ -57,5 +59,15 @@ while windowShouldClose(window) != 1:
   pollEvents()
   display()
 ```
+
+## Examples
+
+<img src="docs/spinner.png">
+
+[Spinner](https://github.com/treeform/boxy/blob/master/examples/spinner.nim)
+
+<img src="docs/masking.png">
+
+[Masking](https://github.com/treeform/boxy/blob/master/examples/masking.nim)
 
 [Check out more examples here.](https://github.com/treeform/boxy/tree/master/examples)
