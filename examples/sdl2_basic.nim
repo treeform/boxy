@@ -14,9 +14,10 @@ let window = createWindow(
   100,
   windowSize.x,
   windowSize.y,
-  SDL_WINDOW_OPENGL or SDL_WINDOW_RESIZABLE
+  SDL_WINDOW_OPENGL
 )
-var context = window.glCreateContext()
+
+discard window.glCreateContext()
 
 loadExtensions()
 
