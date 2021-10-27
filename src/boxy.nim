@@ -21,8 +21,7 @@ type
       color: Color
 
   ImageInfo = object
-    width: int           ## Width of the image in pixels.
-    height: int          ## Height of the image in pixels.
+    size: IVec2          ## Size of the image in pixels.
     tiles: seq[seq[TileInfo]] ## The tile info for this image.
     oneColor: Color      ## If tiles = [] then this is the image's color.
 
@@ -68,11 +67,11 @@ proc `*`(a, b: Color): Color {.inline.} =
 
 proc tileWidth(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
   ## Number of tiles wide.
-  ceil(imageInfo.width / boxy.tileSize).int
+  ceil(imageInfo.size.x / boxy.tileSize).int
 
 proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
   ## Number of tiles high.
-  ceil(imageInfo.height / boxy.tileSize).int
+  ceil(imageInfo.size.y / boxy.tileSize).int
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -362,15 +361,16 @@ proc removeImage*(boxy: Boxy, key: string) =
 
 proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   boxy.removeImage(key)
-  var image = image
+
   var imageInfo: ImageInfo
-  imageInfo.width = image.width
-  imageInfo.height = image.height
+  imageInfo.size = ivec2(image.width.int32, image.height.int32)
 
   if image.isOneColor():
     imageInfo.oneColor = image[0, 0].color
   else:
-    var level = 0
+    var
+      image = image
+      level = 0
     while true:
       imageInfo.tiles.add(@[])
 
@@ -409,7 +409,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
 
 proc getImageSize*(boxy: Boxy, key: string): IVec2 =
   ## Return the size of an inserted image.
-  ivec2(boxy.entries[key].width.int32, boxy.entries[key].height.int32)
+  boxy.entries[key].size
 
 proc checkBatch(boxy: Boxy) {.inline.} =
   if boxy.quadCount == boxy.quadsPerBatch:
@@ -648,7 +648,7 @@ proc drawImage*(
   let imageInfo = boxy.entries[key]
   if imageInfo.tiles.len == 0:
     boxy.drawRect(
-      rect(pos, vec2(imageInfo.width, imageInfo.height)),
+      rect(pos, imageInfo.size.vec2),
       imageInfo.oneColor
     )
   else:
@@ -686,8 +686,8 @@ proc drawImage*(
           if tile.color != color(0, 0, 0, 0):
             # The image may not be a full tile wide
             let wh = vec2(
-              min(boxy.tileSize.float32, imageInfo.width.float32),
-              min(boxy.tileSize.float32, imageInfo.height.float32)
+              min(boxy.tileSize.float32, imageInfo.size.x.float32),
+              min(boxy.tileSize.float32, imageInfo.size.y.float32)
             )
             boxy.drawRect(
               rect(posAt, wh),
@@ -709,10 +709,7 @@ proc drawImage*(
   let imageInfo = boxy.entries[key]
   boxy.saveTransform()
   let
-    scale = vec2(
-      rect.w / imageInfo.width.float32,
-      rect.h / imageInfo.height.float32
-    )
+    scale = rect.wh / imageInfo.size.vec2
     pos = vec2(
       rect.x / scale.x,
       rect.y / scale.y
@@ -734,6 +731,6 @@ proc drawImage*(
   boxy.saveTransform()
   boxy.translate(center)
   boxy.rotate(angle)
-  boxy.translate(-vec2(imageInfo.width.float32, imageInfo.height.float32)/2)
+  boxy.translate(-imageInfo.size.vec2 / 2)
   boxy.drawImage(key, pos=vec2(0, 0), tintColor)
   boxy.restoreTransform()
