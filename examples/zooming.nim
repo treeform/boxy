@@ -38,7 +38,7 @@ proc display() =
   bxy.translate(windowSize.vec2/2)
   bxy.scale(scale)
   scale *= 0.999
-  bxy.drawImage("greece", center=vec2(0, 0), angle = 0)
+  bxy.drawImage("greece", center = vec2(0, 0), angle = 0)
   bxy.restoreTransform()
 
   # End this frame, flushing the draw commands.
