@@ -407,8 +407,9 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
 
   boxy.entries[key] = imageInfo
 
-proc getImageSize*(boxy: Boxy, key: string): Vec2 =
-  vec2(boxy.entries[key].width.float32, boxy.entries[key].height.float32)
+proc getImageSize*(boxy: Boxy, key: string): IVec2 =
+  ## Return the size of an inserted image.
+  ivec2(boxy.entries[key].width.int32, boxy.entries[key].height.int32)
 
 proc checkBatch(boxy: Boxy) {.inline.} =
   if boxy.quadCount == boxy.quadsPerBatch:
