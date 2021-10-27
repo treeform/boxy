@@ -1,4 +1,4 @@
-import boxy, opengl, staticglfw, random
+import boxy, opengl, random, staticglfw
 
 let windowSize = ivec2(1280, 800)
 

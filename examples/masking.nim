@@ -32,14 +32,14 @@ proc display() =
 
   # Draw the mask.
   bxy.beginMask()
-  bxy.drawImage("mask", center=windowSize.vec2 / 2, angle = 0)
+  bxy.drawImage("mask", center = windowSize.vec2 / 2, angle = 0)
   bxy.endMask()
 
   # Use the mask.
   bxy.saveTransform()
   bxy.translate(windowSize.vec2 / 2)
   bxy.scale(1.2 + 0.2 * sin(frame.float32/100))
-  bxy.drawImage("greece", center=vec2(0, 0), angle = 0)
+  bxy.drawImage("greece", center = vec2(0, 0), angle = 0)
   bxy.restoreTransform()
 
   bxy.popMask()

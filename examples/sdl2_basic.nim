@@ -1,4 +1,4 @@
-import sdl2, boxy, chroma, opengl
+import boxy, chroma, opengl, sdl2
 
 let windowSize = ivec2(1280, 800)
 

@@ -5,7 +5,7 @@ export pixie
 
 const
   quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileMargin = 2 # 1 pixel on both sides of the tile.
+  tileMargin = 2     # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
@@ -21,9 +21,9 @@ type
       color: Color
 
   ImageInfo = object
-    size: IVec2          ## Size of the image in pixels.
+    size: IVec2               ## Size of the image in pixels.
     tiles: seq[seq[TileInfo]] ## The tile info for this image.
-    oneColor: Color      ## If tiles = [] then this is the image's color.
+    oneColor: Color           ## If tiles = [] then this is the image's color.
 
   Boxy* = ref object
     atlasShader, maskShader, activeShader: Shader
@@ -385,7 +385,9 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
           )
           if tileImage.isOneColor():
             let tileColor = tileImage[0, 0].color
-            imageInfo.tiles[level].add(TileInfo(kind: tkColor, color: tileColor))
+            imageInfo.tiles[level].add(
+              TileInfo(kind: tkColor, color: tileColor)
+            )
           else:
             let index = boxy.takeFreeTile()
             imageInfo.tiles[level].add(TileInfo(kind: tkIndex, index: index))
@@ -671,10 +673,11 @@ proc drawImage*(
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
         case tile.kind:
         of tkIndex:
-          let uvAt = vec2(
-            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2,
-            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin) + tileMargin div 2
+          var uvAt = vec2(
+            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
+            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin)
           )
+          uvAt += tileMargin div 2
           boxy.drawUvRect(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
@@ -732,5 +735,5 @@ proc drawImage*(
   boxy.translate(center)
   boxy.rotate(angle)
   boxy.translate(-imageInfo.size.vec2 / 2)
-  boxy.drawImage(key, pos=vec2(0, 0), tintColor)
+  boxy.drawImage(key, pos = vec2(0, 0), tintColor)
   boxy.restoreTransform()
