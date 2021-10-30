@@ -1,16 +1,10 @@
-import boxy, opengl, staticglfw
+import boxy, opengl, windy
 
 let windowSize = ivec2(1280, 800)
 
-if init() == 0:
-  quit("Failed to Initialize GLFW.")
+init()
 
-windowHint(RESIZABLE, false.cint)
-windowHint(CONTEXT_VERSION_MAJOR, 4)
-windowHint(CONTEXT_VERSION_MINOR, 1)
-
-let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
-
+let window = newWindow("Windy + Boxy", windowSize)
 makeContextCurrent(window)
 loadExtensions()
 
@@ -50,6 +44,6 @@ proc display() =
   window.swapBuffers()
   inc frame
 
-while windowShouldClose(window) != 1:
-  pollEvents()
+while not window.closeRequested:
   display()
+  pollEvents()
