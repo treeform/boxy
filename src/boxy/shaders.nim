@@ -1,4 +1,4 @@
-import buffers, macros, opengl, os, strformat, strutils, vmath
+import buffers, opengl, os, strformat, strutils, vmath
 
 type
   ShaderAttrib = object
@@ -29,7 +29,7 @@ proc getErrorLog*(
   var length: GLint = 0
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)
-  strProc(id, length, nil, log)
+  strProc(id, length, nil, log.cstring)
   when defined(emscripten):
     result = log
   else:
@@ -167,7 +167,7 @@ proc readAttribsAndUniforms(shader: Shader) =
       )
       buf.setLen(length)
 
-      let location = glGetAttribLocation(shader.programId, buf)
+      let location = glGetAttribLocation(shader.programId, buf.cstring)
       shader.attribs.add(ShaderAttrib(name: move(buf), location: location))
 
   block uniforms:
@@ -198,7 +198,7 @@ proc readAttribsAndUniforms(shader: Shader) =
         # Skip arrays, these are part of UBOs and done a different way
         continue
 
-      let location = glGetUniformLocation(shader.programId, buf)
+      let location = glGetUniformLocation(shader.programId, buf.cstring)
       shader.uniforms.add(Uniform(name: move(buf), location: location))
 
 proc newShader*(compute: (string, string)): Shader =
