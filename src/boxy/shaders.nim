@@ -91,11 +91,6 @@ proc compileShaderFiles*(vert, frag: (string, string)): GLuint =
   block shaders:
     var vertShaderArray = allocCStringArray([vert[1]])
     var fragShaderArray = allocCStringArray([frag[1]])
-
-    defer:
-      dealloc(vertShaderArray)
-      dealloc(fragShaderArray)
-
     var isCompiled: GLint
 
     vertShader = glCreateShader(GL_VERTEX_SHADER)
@@ -121,6 +116,9 @@ proc compileShaderFiles*(vert, frag: (string, string)): GLuint =
         fragShader, frag[0], glGetShaderiv, glGetShaderInfoLog
       )
       quit()
+
+    deallocCStringArray(vertShaderArray)
+    deallocCStringArray(fragShaderArray)
 
   # Attach shaders to a GL program
   result = glCreateProgram()
