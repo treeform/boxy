@@ -49,7 +49,6 @@ proc compileComputeShader*(compute: (string, string)): GLuint =
 
   block:
     var computeShaderArray = allocCStringArray([compute[1]])
-    defer: dealloc(computeShaderArray)
 
     var isCompiled: GLint
 
@@ -64,6 +63,8 @@ proc compileComputeShader*(compute: (string, string)): GLuint =
         computeShader, compute[0], glGetShaderiv, glGetShaderInfoLog
       )
       quit()
+
+    deallocCStringArray(computeShaderArray)
 
   result = glCreateProgram()
   glAttachShader(result, computeShader)
