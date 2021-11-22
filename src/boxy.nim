@@ -65,13 +65,13 @@ proc `*`(a, b: Color): Color {.inline.} =
   result.b = a.b * b.b
   result.a = a.a * b.a
 
-proc tileWidth(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
+proc tileWidth(boxy: Boxy, width: int): int {.inline.} =
   ## Number of tiles wide.
-  ceil(imageInfo.size.x / boxy.tileSize).int
+  ceil(width / boxy.tileSize).int
 
-proc tileHeight(boxy: Boxy, imageInfo: ImageInfo): int {.inline.} =
+proc tileHeight(boxy: Boxy, height: int): int {.inline.} =
   ## Number of tiles high.
-  ceil(imageInfo.size.y / boxy.tileSize).int
+  ceil(height / boxy.tileSize).int
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -342,10 +342,10 @@ proc grow(boxy: Boxy) =
       )
 
 proc takeFreeTile(boxy: Boxy): int =
-  for index in 0 ..< boxy.maxTiles:
-    if not boxy.takenTiles[index]:
-      boxy.takenTiles[index] = true
-      return index
+  let (found, index) = boxy.takenTiles.firstFalse
+  if found:
+    boxy.takenTiles.unsafeSetTrue(index)
+    return index
 
   boxy.grow()
   boxy.takeFreeTile()
@@ -356,7 +356,7 @@ proc removeImage*(boxy: Boxy, key: string) =
     for tileLevel in boxy.entries[key].tiles:
       for tile in tileLevel:
         if tile.kind == tkIndex:
-          boxy.takenTiles[tile.index] = false
+          boxy.takenTiles.unsafeSetFalse(tile.index)
     boxy.entries.del(key)
 
 proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
@@ -375,8 +375,8 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
       imageInfo.tiles.add(@[])
 
       # Split the image into tiles.
-      for y in 0 ..< boxy.tileHeight(imageInfo):
-        for x in 0 ..< boxy.tileWidth(imageInfo):
+      for y in 0 ..< boxy.tileHeight(image.height):
+        for x in 0 ..< boxy.tileWidth(image.width):
           let tileImage = image.superImage(
             x * boxy.tileSize - tileMargin div 2,
             y * boxy.tileSize - tileMargin div 2,
@@ -666,8 +666,21 @@ proc drawImage*(
     boxy.saveTransform()
     boxy.scale(vec2(levelPow2, levelPow2))
 
-    for y in 0 ..< boxy.tileHeight(imageInfo):
-      for x in 0 ..< boxy.tileWidth(imageInfo):
+    var
+      width = imageInfo.size.x
+      height = imageInfo.size.y
+    for _ in 0 ..< level:
+      if width mod 2 != 0:
+        width = width div 2 + 1
+      else:
+        width = width div 2
+      if height mod 2 != 0:
+        height = height div 2 + 1
+      else:
+        height = height div 2
+
+    for y in 0 ..< boxy.tileHeight(width):
+      for x in 0 ..< boxy.tileWidth(height):
         let
           tile = imageInfo.tiles[level][i]
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
