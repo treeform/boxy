@@ -679,8 +679,8 @@ proc drawImage*(
       else:
         height = height div 2
 
-    for y in 0 ..< boxy.tileHeight(width):
-      for x in 0 ..< boxy.tileWidth(height):
+    for y in 0 ..< boxy.tileHeight(height):
+      for x in 0 ..< boxy.tileWidth(width):
         let
           tile = imageInfo.tiles[level][i]
           posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
