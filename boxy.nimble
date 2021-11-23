@@ -1,4 +1,4 @@
-version     = "0.3.1"
+version     = "0.3.2"
 author      = "Andre von Houck and Ryan Oldenburg"
 description = "2D GPU rendering with a tiling atlas."
 license     = "MIT"
