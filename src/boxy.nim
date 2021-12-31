@@ -651,7 +651,7 @@ proc drawImage*(
   if imageInfo.tiles.len == 0:
     boxy.drawRect(
       rect(pos, imageInfo.size.vec2),
-      imageInfo.oneColor
+      imageInfo.oneColor * tintColor
     )
   else:
     var i = 0
