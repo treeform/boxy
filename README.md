@@ -23,24 +23,20 @@ The basic model for using Boxy goes something like this:
 ## Basic Example
 
 ```nim
-import boxy, opengl, staticglfw
+import boxy, opengl, windy
 
 let windowSize = ivec2(1280, 800)
 
-if init() == 0:
-  quit("Failed to Initialize GLFW.")
-
-windowHint(RESIZABLE, false.cint)
-
-let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
-
+let window = newWindow("Windy + Boxy", windowSize)
 makeContextCurrent(window)
 loadExtensions()
 
 let bxy = newBoxy()
 
 let rhino = readImage("examples/data/rhino.png")
-bxy.addImage("rhino", rhino) # Add this image to Boxy once.
+bxy.addImage("rhino", rhino)
+
+var i: int
 
 # Called when it is time to draw a new frame.
 proc display() =
@@ -49,13 +45,14 @@ proc display() =
   # Draw the white background.
   bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(1, 1, 1, 1))
   # Draw the rhino.
-  bxy.drawImage("rhino", vec2(100, 100))
+  bxy.drawImage("rhino", vec2((i mod windowSize.x).float32, 0))
   # End this frame, flushing the draw commands.
   bxy.endFrame()
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
+  inc i
 
-while windowShouldClose(window) != 1:
+while not window.closeRequested:
   pollEvents()
   display()
 ```
