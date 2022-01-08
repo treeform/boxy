@@ -34,7 +34,7 @@ proc display() =
     id = $(frame mod 30)
     image = newImage(w, w)
   image.fill(color(1, 1, 1, 0.1))
-  image.fillpath(
+  image.fillPath(
     path,
     color(1, 0, 0, 1),
     scale(vec2(2, 2)) *
