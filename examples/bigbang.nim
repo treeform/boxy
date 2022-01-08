@@ -2,8 +2,6 @@ import boxy, opengl, random, windy
 
 let windowSize = ivec2(1280, 800)
 
-init()
-
 let window = newWindow("Windy + Boxy", windowSize)
 makeContextCurrent(window)
 loadExtensions()
