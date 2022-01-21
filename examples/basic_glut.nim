@@ -1,9 +1,14 @@
-import boxy, opengl, windy
+import boxy, opengl, opengl/glut
 
 let windowSize = ivec2(1280, 800)
 
-let window = newWindow("Windy + Boxy", windowSize)
-makeContextCurrent(window)
+proc display() {.cdecl.} # Forward declaration
+
+glutInit()
+glutInitDisplayMode(GLUT_DOUBLE)
+glutInitWindowSize(windowSize.x, windowSize.y)
+discard glutCreateWindow("GLUT + Boxy")
+glutDisplayFunc(display)
 loadExtensions()
 
 let bxy = newBoxy()
@@ -14,12 +19,10 @@ bxy.addImage("ring1", readImage("examples/data/ring1.png"))
 bxy.addImage("ring2", readImage("examples/data/ring2.png"))
 bxy.addImage("ring3", readImage("examples/data/ring3.png"))
 
-# bxy.readAtlas().writeFile("atlas.png")
-
 var frame: int
 
 # Called when it is time to draw a new frame.
-proc display() =
+proc display() {.cdecl.} =
   # Clear the screen and begin a new frame.
   bxy.beginFrame(windowSize)
 
@@ -35,9 +38,10 @@ proc display() =
   # End this frame, flushing the draw commands.
   bxy.endFrame()
   # Swap buffers displaying the new Boxy frame.
-  window.swapBuffers()
+  glutSwapBuffers()
   inc frame
 
-while not window.closeRequested:
-  display()
-  pollEvents()
+  # Ask glut to draw next frame
+  glutPostRedisplay()
+
+glutMainLoop()
