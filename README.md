@@ -29,32 +29,42 @@ let windowSize = ivec2(1280, 800)
 
 let window = newWindow("Windy + Boxy", windowSize)
 makeContextCurrent(window)
+
 loadExtensions()
 
 let bxy = newBoxy()
 
-let rhino = readImage("examples/data/rhino.png")
-bxy.addImage("rhino", rhino)
+# Load the images.
+bxy.addImage("bg", readImage("examples/data/bg.png"))
+bxy.addImage("ring1", readImage("examples/data/ring1.png"))
+bxy.addImage("ring2", readImage("examples/data/ring2.png"))
+bxy.addImage("ring3", readImage("examples/data/ring3.png"))
 
-var i: int
+var frame: int
 
 # Called when it is time to draw a new frame.
 proc display() =
   # Clear the screen and begin a new frame.
   bxy.beginFrame(windowSize)
-  # Draw the white background.
-  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(1, 1, 1, 1))
-  # Draw the rhino.
-  bxy.drawImage("rhino", vec2((i mod windowSize.x).float32, 0))
+
+  # Draw the bg.
+  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
+
+  # Draw the rings.
+  let center = windowSize.vec2 / 2
+  bxy.drawImage("ring1", center, angle = frame.float / 100)
+  bxy.drawImage("ring2", center, angle = -frame.float / 190)
+  bxy.drawImage("ring3", center, angle = frame.float / 170)
+
   # End this frame, flushing the draw commands.
   bxy.endFrame()
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
-  inc i
+  inc frame
 
 while not window.closeRequested:
-  pollEvents()
   display()
+  pollEvents()
 ```
 
 ## Examples
