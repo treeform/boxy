@@ -71,7 +71,7 @@ while not window.closeRequested:
 
 <img src="docs/spinner.png">
 
-[Spinner](https://github.com/treeform/boxy/blob/master/examples/spinner.nim)
+[Spinner](https://github.com/treeform/boxy/blob/master/examples/basic_windy.nim)
 
 <img src="docs/masking.png">
 
