@@ -575,11 +575,12 @@ proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
 
   boxy.clearMask()
 
-proc beginFrame*(boxy: Boxy, frameSize: IVec2) {.inline.} =
+proc beginFrame*(boxy: Boxy, frameSize: IVec2, clearFrame = true) {.inline.} =
   beginFrame(
     boxy,
     frameSize,
-    ortho(0.float32, frameSize.x.float32, frameSize.y.float32, 0, -1000, 1000)
+    ortho(0.float32, frameSize.x.float32, frameSize.y.float32, 0, -1000, 1000),
+    clearFrame
   )
 
 proc endFrame*(boxy: Boxy) =
