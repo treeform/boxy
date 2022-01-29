@@ -548,7 +548,7 @@ proc popMask*(boxy: Boxy) =
   dec boxy.maskTextureWrite
   boxy.maskTextureRead = boxy.maskTextureWrite
 
-proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4) =
+proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
   if boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has already been called")
@@ -569,8 +569,9 @@ proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4) =
 
   glViewport(0, 0, boxy.frameSize.x, boxy.frameSize.y)
 
-  glClearColor(0, 0, 0, 0)
-  glClear(GL_COLOR_BUFFER_BIT)
+  if clearFrame:
+    glClearColor(0, 0, 0, 0)
+    glClear(GL_COLOR_BUFFER_BIT)
 
   boxy.clearMask()
 
