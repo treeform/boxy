@@ -1,0 +1,65 @@
+import boxy, opengl, windy
+
+let windowSize = ivec2(1280, 800)
+
+let window = newWindow("Windy + Boxy", windowSize)
+makeContextCurrent(window)
+
+loadExtensions()
+
+let bxy = newBoxy()
+
+# Load the images.
+bxy.addImage("bg", readImage("examples/data/bg.png"))
+
+var frame: int
+
+let typeface1 = readTypeface("examples/data/PinyonScript.ttf")
+var font1 = newFont(typeface1)
+font1.size = 40
+font1.paint = "#FFFFFF"
+
+var poem = """
+Once upon a midnight dreary, while I pondered, weak and weary,
+Over many a quaint and curious volume of forgotten lore—
+    While I nodded, nearly napping, suddenly there came a tapping,
+As of some one gently rapping, rapping at my chamber door.
+“’Tis some visitor,” I muttered, “tapping at my chamber door—
+            Only this and nothing more.”
+
+    Ah, distinctly I remember it was in the bleak December;
+And each separate dying ember wrought its ghost upon the floor.
+    Eagerly I wished the morrow;—vainly I had sought to borrow
+    From my books surcease of sorrow—sorrow for the lost Lenore—
+For the rare and radiant maiden whom the angels name Lenore—
+            Nameless here for evermore.
+"""
+let spans = @[newSpan(poem, font1)]
+let arrangement = typeset(spans, bounds = vec2(1280, 800))
+let snappedBounds = arrangement.computeBounds().snapToPixels()
+let textImage = newImage(snappedBounds.w.int, snappedBounds.h.int)
+
+textImage.fillText(arrangement, translate(-snappedBounds.xy))
+
+bxy.addImage("text", textImage)
+
+# Called when it is time to draw a new frame.
+proc display() =
+  # Clear the screen and begin a new frame.
+  bxy.beginFrame(windowSize)
+
+  # Draw the bg.
+  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
+
+  # Draw big static text:
+  bxy.drawImage("text", snappedBounds.xy + vec2(100, 100))
+
+  # End this frame, flushing the draw commands.
+  bxy.endFrame()
+  # Swap buffers displaying the new Boxy frame.
+  window.swapBuffers()
+  inc frame
+
+while not window.closeRequested:
+  display()
+  pollEvents()
