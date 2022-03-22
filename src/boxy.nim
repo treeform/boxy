@@ -1,5 +1,5 @@
 import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
-    opengl, os, pixie, strutils, tables, vmath
+    opengl, os, pixie, strutils, tables, vmath, sets
 
 export pixie
 
@@ -37,6 +37,7 @@ type
     mat: Mat4                  ## The current matrix.
     mats: seq[Mat4]            ## The matrix stack.
     entries: Table[string, ImageInfo]
+    entriesBuffered: HashSet[string] ## Entires used by not flushed yet.
     tileSize: int
     maxTiles: int
     tileRun: int
@@ -94,7 +95,7 @@ proc draw(boxy: Boxy) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
-
+  boxy.entriesBuffered.clear()
   boxy.upload()
 
   glUseProgram(boxy.activeShader.programId)
@@ -352,6 +353,13 @@ proc takeFreeTile(boxy: Boxy): int =
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
+
+  if key in boxy.entriesBuffered:
+    raise newException(
+      BoxyError,
+      "Attempting to remove an image that is set to be drawn"
+    )
+
   if key in boxy.entries:
     for tileLevel in boxy.entries[key].tiles:
       for tile in tileLevel:
@@ -360,7 +368,16 @@ proc removeImage*(boxy: Boxy, key: string) =
     boxy.entries.del(key)
 
 proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
+
+  if key in boxy.entriesBuffered:
+    raise newException(
+      BoxyError,
+      "Attempting to modify an image that is already set to be drawn " &
+      "(try using a unique key?)"
+    )
   boxy.removeImage(key)
+
+  boxy.entriesBuffered.incl(key)
 
   var imageInfo: ImageInfo
   imageInfo.size = ivec2(image.width.int32, image.height.int32)
