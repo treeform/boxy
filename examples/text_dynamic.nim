@@ -16,17 +16,25 @@ var frame: int
 
 let typeface = readTypeface("examples/data/IBMPlexMono-Bold.ttf")
 
-proc drawText(bxy: Boxy, pos: Vec2, typeface: Typeface, text: string, size: float32, color: Color) =
+var spot = 0
+proc drawText(bxy: Boxy, globalSpace: Mat3, typeface: Typeface, text: string, size: float32, color: Color) =
+
   var font = newFont(typeface)
   font.size = size
   font.paint = color
   let spans = @[newSpan(text, font)]
   let arrangement = typeset(spans, bounds = vec2(1280, 800))
-  let snappedBounds = arrangement.computeBounds().snapToPixels()
-  let textImage = newImage(snappedBounds.w.int, snappedBounds.h.int)
-  textImage.fillText(arrangement, translate(-snappedBounds.xy))
-  bxy.addImage("text", textImage)
-  bxy.drawImage("text", snappedBounds.xy + pos)
+
+  let globalBounds = arrangement.computeBounds(globalSpace).snapToPixels()
+
+  let textImage = newImage(globalBounds.w.int, globalBounds.h.int)
+  let imageSpace = translate(-globalBounds.xy) * globalSpace
+  textImage.fillText(arrangement, imageSpace)
+
+  #textImage.writeFile("text.png")
+  bxy.addImage("text" & $spot, textImage)
+  bxy.drawImage("text" & $spot, globalBounds.xy)
+  inc spot
 
 # Called when it is time to draw a new frame.
 proc display() =
@@ -36,7 +44,9 @@ proc display() =
   # Draw the bg.
   bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
 
-  bxy.drawText(vec2(100, 100), typeface, now().format("hh:mm:ss"), 80, color(1, 1, 1, 1))
+  spot = 0
+
+  bxy.drawText(translate(vec2(100, 100)), typeface, now().format("hh:mm:ss"), 80, color(1, 1, 1, 1))
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()
