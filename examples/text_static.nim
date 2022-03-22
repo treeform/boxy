@@ -14,12 +14,13 @@ bxy.addImage("bg", readImage("examples/data/bg.png"))
 
 var frame: int
 
-let typeface1 = readTypeface("examples/data/PinyonScript.ttf")
-var font1 = newFont(typeface1)
+let
+  typeface1 = readTypeface("examples/data/PinyonScript.ttf")
+  font1 = newFont(typeface1)
 font1.size = 40
 font1.paint = "#FFFFFF"
 
-var poem = """
+let poem = """
 Once upon a midnight dreary, while I pondered, weak and weary,
 Over many a quaint and curious volume of forgotten lore—
     While I nodded, nearly napping, suddenly there came a tapping,
@@ -34,10 +35,11 @@ And each separate dying ember wrought its ghost upon the floor.
 For the rare and radiant maiden whom the angels name Lenore—
             Nameless here for evermore.
 """
-let spans = @[newSpan(poem, font1)]
-let arrangement = typeset(spans, bounds = vec2(1280, 800))
-let snappedBounds = arrangement.computeBounds().snapToPixels()
-let textImage = newImage(snappedBounds.w.int, snappedBounds.h.int)
+
+let
+  arrangement = typeset(@[newSpan(poem, font1)], bounds = vec2(1280, 800))
+  snappedBounds = arrangement.computeBounds().snapToPixels()
+  textImage = newImage(snappedBounds.w.int, snappedBounds.h.int)
 
 textImage.fillText(arrangement, translate(-snappedBounds.xy))
 
