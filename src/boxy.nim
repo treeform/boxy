@@ -53,6 +53,11 @@ type
     uvs: tuple[buffer: Buffer, data: seq[float32]]
     indices: tuple[buffer: Buffer, data: seq[uint16]]
 
+  Layer* = ref object
+    ## Kind of a GPU accelerated image.
+    texture: Texture
+    width, height: int
+
 proc vec2(x, y: SomeNumber): Vec2 {.inline.} =
   ## Integer short cut for creating vectors.
   vec2(x.float32, y.float32)
@@ -163,10 +168,10 @@ proc addMaskTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   maskTexture.height = frameSize.y.int32
   maskTexture.componentType = GL_UNSIGNED_BYTE
   maskTexture.format = GL_RGBA
-  when defined(emscripten):
-    maskTexture.internalFormat = GL_RGBA8
-  else:
-    maskTexture.internalFormat = GL_R8
+  #when defined(emscripten):
+  maskTexture.internalFormat = GL_RGBA8
+  # else:
+  #   maskTexture.internalFormat = GL_R8
   maskTexture.minFilter = minLinear
   maskTexture.magFilter = magLinear
   bindTextureData(maskTexture, nil)
@@ -560,10 +565,25 @@ proc endMask*(boxy: Boxy) =
   boxy.activeShader = boxy.atlasShader
 
 proc popMask*(boxy: Boxy) =
+  ## Stops using the mask.
   boxy.draw()
 
   dec boxy.maskTextureWrite
   boxy.maskTextureRead = boxy.maskTextureWrite
+
+proc beginLayer*(boxy: Boxy) =
+  ## Starts drawing into a mask.
+  boxy.beginMask()
+
+proc endLayer*(boxy: Boxy, opacity = 1.0) =
+  boxy.endMask()
+
+  boxy.drawRect(
+    rect(0, 0, boxy.frameSize.x.float32, boxy.frameSize.y.float32),
+    color(1, 1, 1, opacity)
+  )
+
+  boxy.popMask()
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
@@ -769,3 +789,22 @@ proc drawImage*(
   boxy.translate(-imageInfo.size.vec2 / 2)
   boxy.drawImage(key, pos = vec2(0, 0), tintColor)
   boxy.restoreTransform()
+
+proc newLayer(width, height: int): Layer =
+  result = Layer()
+  result.width = width
+  result.height = height
+
+proc width*(layer: Layer): int =
+  layer.width
+
+proc height*(layer: Layer): int =
+  layer.height
+
+proc beginDraw(layer: Layer) =
+  ## Starts drawing into a layer.
+  discard
+
+proc endDraw(layer: Layer) =
+  ## Stops drawing into a layer.
+  discard
