@@ -3,13 +3,8 @@ import boxy, opengl, random, windy, vmath
 let windowSize = ivec2(1280, 800)
 
 let window = newWindow("Windy + Boxy", windowSize)
-
 makeContextCurrent(window)
 loadExtensions()
-
-# window.style = Undecorated
-window.fullscreen = true
-window.transparent = true
 
 let bxy = newBoxy()
 
@@ -30,7 +25,7 @@ proc display() =
   bxy.beginFrame(windowSize)
 
   # Draw the bg.
-  # bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 0))
+  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
 
   bxy.saveTransform()
 
