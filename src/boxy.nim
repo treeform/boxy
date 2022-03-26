@@ -26,11 +26,12 @@ type
     oneColor: Color           ## If tiles = [] then this is the image's color.
 
   Boxy* = ref object
-    atlasShader, maskShader, activeShader: Shader
+    atlasShader, activeShader: Shader
     atlasTexture: Texture
-    maskTextureWrite: int      ## Index into mask textures for writing.
-    maskTextureRead: int       ## Index into mask textures for rendering.
-    maskTextures: seq[Texture] ## Masks array for pushing and popping.
+
+    fullMask: Texture            ## 1x1 pure white image
+    maskTexture: Texture
+
     atlasSize: int             ## Size x size dimensions of the atlas.
     quadCount: int             ## Number of quads drawn so far in this batch.
     quadsPerBatch: int         ## Max quads in a batch before issuing an OpenGL call.
@@ -44,7 +45,7 @@ type
     takenTiles: BitArray       ## Flag for if the tile is taken or not.
     proj: Mat4
     frameSize: IVec2           ## Dimensions of the window frame.
-    vertexArrayId, maskFramebufferId: GLuint
+    vertexArrayId, extraFramebufferId: GLuint
     frameBegun, maskBegun: bool
 
     # Buffer data for OpenGL
@@ -55,6 +56,7 @@ type
 
   Layer* = ref object
     ## Kind of a GPU accelerated image.
+    boxy: Boxy
     texture: Texture
     width, height: int
 
@@ -100,6 +102,9 @@ proc draw(boxy: Boxy) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
+
+  # echo "draw ", boxy.quadCount, " quads with mask texture ", boxy.maskTexture.textureId
+
   boxy.entriesBuffered.clear()
   boxy.upload()
 
@@ -117,10 +122,11 @@ proc draw(boxy: Boxy) =
   boxy.activeShader.setUniform("atlasTex", 0)
 
   if boxy.activeShader.hasUniform("maskTex"):
+
     glActiveTexture(GL_TEXTURE1)
     glBindTexture(
       GL_TEXTURE_2D,
-      boxy.maskTextures[boxy.maskTextureRead].textureId
+      boxy.maskTexture.textureId
     )
     boxy.activeShader.setUniform("maskTex", 1)
 
@@ -139,16 +145,6 @@ proc draw(boxy: Boxy) =
 
   boxy.quadCount = 0
 
-proc setUpMaskFramebuffer(boxy: Boxy) =
-  glBindFramebuffer(GL_FRAMEBUFFER, boxy.maskFramebufferId)
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER,
-    GL_COLOR_ATTACHMENT0,
-    GL_TEXTURE_2D,
-    boxy.maskTextures[boxy.maskTextureWrite].textureId,
-    0
-  )
-
 proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result = Texture()
   result.width = size.int32
@@ -159,23 +155,6 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.minFilter = minLinear
   result.magFilter = magLinear
   bindTextureData(result, nil)
-
-proc addMaskTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
-  # Must be >0 for framebuffer creation below
-  # Set to real value in beginFrame
-  let maskTexture = Texture()
-  maskTexture.width = frameSize.x.int32
-  maskTexture.height = frameSize.y.int32
-  maskTexture.componentType = GL_UNSIGNED_BYTE
-  maskTexture.format = GL_RGBA
-  #when defined(emscripten):
-  maskTexture.internalFormat = GL_RGBA8
-  # else:
-  #   maskTexture.internalFormat = GL_R8
-  maskTexture.minFilter = minLinear
-  maskTexture.magFilter = magLinear
-  bindTextureData(maskTexture, nil)
-  boxy.maskTextures.add(maskTexture)
 
 proc addWhiteTile(boxy: Boxy) =
   # Insert a solid white tile used for all one color draws.
@@ -217,25 +196,21 @@ proc newBoxy*(
   result.takenTiles = newBitArray(result.maxTiles)
   result.atlasTexture = result.createAtlasTexture(atlasSize)
 
-  result.addMaskTexture()
+  # result.addMaskTexture()
+  let fullImage = newImage(1, 1)
+  fullImage.fill(color(1, 1, 1, 1))
+  result.fullMask = newTexture(fullImage)
+  result.maskTexture = result.fullMask
 
   when defined(emscripten):
     result.atlasShader = newShaderStatic(
       "glsl/100/atlas.vert",
       "glsl/100/atlas.frag"
     )
-    result.maskShader = newShaderStatic(
-      "glsl/100/atlas.vert",
-      "glsl/100/mask.frag"
-    )
   else:
     result.atlasShader = newShaderStatic(
       "glsl/410/atlas.vert",
       "glsl/410/atlas.frag"
-    )
-    result.maskShader = newShaderStatic(
-      "glsl/410/atlas.vert",
-      "glsl/410/mask.frag"
     )
 
   result.positions.buffer = Buffer()
@@ -293,19 +268,6 @@ proc newBoxy*(
   result.activeShader.bindAttrib("vertexPos", result.positions.buffer)
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
-
-  # Create mask framebuffer
-  glGenFramebuffers(1, result.maskFramebufferId.addr)
-  result.setUpMaskFramebuffer()
-
-  let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-  if status != GL_FRAMEBUFFER_COMPLETE:
-    raise newException(
-      BoxyError,
-      "Something wrong with mask framebuffer: " & $toHex(status.int32, 4)
-    )
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
   # Enable premultiplied alpha blending
   glEnable(GL_BLEND)
@@ -512,79 +474,6 @@ proc drawRect*(
       color
     )
 
-proc clearMask*(boxy: Boxy) =
-  ## Sets mask off (actually fills the mask with white).
-  if not boxy.frameBegun:
-    raise newException(BoxyError, "beginFrame has not been called")
-
-  boxy.draw()
-
-  boxy.setUpMaskFramebuffer()
-
-  glClearColor(1, 1, 1, 1)
-  glClear(GL_COLOR_BUFFER_BIT)
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-proc beginMask*(boxy: Boxy) =
-  ## Starts drawing into a mask.
-  if not boxy.frameBegun:
-    raise newException(BoxyError, "beginFrame has not been called")
-  if boxy.maskBegun:
-    raise newException(BoxyError, "beginMask has already been called")
-
-  boxy.maskBegun = true
-
-  boxy.draw()
-
-  inc boxy.maskTextureWrite
-  boxy.maskTextureRead = boxy.maskTextureWrite - 1
-  if boxy.maskTextureWrite >= boxy.maskTextures.len:
-    boxy.addMaskTexture(boxy.frameSize)
-
-  boxy.setUpMaskFramebuffer()
-  glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
-
-  glClearColor(0, 0, 0, 0)
-  glClear(GL_COLOR_BUFFER_BIT)
-
-  boxy.activeShader = boxy.maskShader
-
-proc endMask*(boxy: Boxy) =
-  ## Stops drawing into the mask.
-  if not boxy.maskBegun:
-    raise newException(BoxyError, "beginMask has not been called")
-
-  boxy.draw()
-
-  boxy.maskBegun = false
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-  boxy.maskTextureRead = boxy.maskTextureWrite
-  boxy.activeShader = boxy.atlasShader
-
-proc popMask*(boxy: Boxy) =
-  ## Stops using the mask.
-  boxy.draw()
-
-  dec boxy.maskTextureWrite
-  boxy.maskTextureRead = boxy.maskTextureWrite
-
-proc beginLayer*(boxy: Boxy) =
-  ## Starts drawing into a mask.
-  boxy.beginMask()
-
-proc endLayer*(boxy: Boxy, opacity = 1.0) =
-  boxy.endMask()
-
-  boxy.drawRect(
-    rect(0, 0, boxy.frameSize.x.float32, boxy.frameSize.y.float32),
-    color(1, 1, 1, opacity)
-  )
-
-  boxy.popMask()
-
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
   if boxy.frameBegun:
@@ -593,24 +482,13 @@ proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   boxy.frameBegun = true
   boxy.proj = proj
 
-  if boxy.maskTextures[0].width != frameSize.x or
-    boxy.maskTextures[0].height != frameSize.y:
-    # Resize all of the masks.
-    boxy.frameSize = frameSize
-    for i in 0 ..< boxy.maskTextures.len:
-      boxy.maskTextures[i].width = frameSize.x
-      boxy.maskTextures[i].height = frameSize.y
-      if i > 0:
-        # Never resize the 0th mask because its just white.
-        bindTextureData(boxy.maskTextures[i], nil)
+  boxy.frameSize = frameSize #???
 
   glViewport(0, 0, boxy.frameSize.x, boxy.frameSize.y)
 
   if clearFrame:
     glClearColor(0, 0, 0, 0)
     glClear(GL_COLOR_BUFFER_BIT)
-
-  boxy.clearMask()
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, clearFrame = true) {.inline.} =
   beginFrame(
@@ -624,10 +502,10 @@ proc endFrame*(boxy: Boxy) =
   ## Ends a frame.
   if not boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has not been called")
-  if boxy.maskTextureRead != 0:
-    raise newException(BoxyError, "Not all masks have been popped")
-  if boxy.maskTextureWrite != 0:
-    raise newException(BoxyError, "Not all masks have been popped")
+  # if boxy.maskTextureRead != 0:
+  #   raise newException(BoxyError, "Not all masks have been popped")
+  # if boxy.maskTextureWrite != 0:
+  #   raise newException(BoxyError, "Not all masks have been popped")
 
   boxy.frameBegun = false
   boxy.draw()
@@ -790,10 +668,15 @@ proc drawImage*(
   boxy.drawImage(key, pos = vec2(0, 0), tintColor)
   boxy.restoreTransform()
 
-proc newLayer(width, height: int): Layer =
+proc newLayer*(boxy: Boxy, size: IVec2): Layer =
   result = Layer()
-  result.width = width
-  result.height = height
+  result.boxy = boxy
+  result.width = size.x
+  result.height = size.y
+
+  let image = newImage(size.x, size.y)
+  image.fill(color(1, 1, 1, 1))
+  result.texture = newTexture(image)
 
 proc width*(layer: Layer): int =
   layer.width
@@ -801,10 +684,66 @@ proc width*(layer: Layer): int =
 proc height*(layer: Layer): int =
   layer.height
 
-proc beginDraw(layer: Layer) =
+proc beginDraw*(layer: Layer) =
   ## Starts drawing into a layer.
-  discard
+  layer.boxy.draw()
 
-proc endDraw(layer: Layer) =
+  # Create extra framebuffer if needed.
+  if layer.boxy.extraFramebufferId == 0:
+    glGenFramebuffers(1, layer.boxy.extraFramebufferId.addr)
+
+  glBindFramebuffer(GL_FRAMEBUFFER, layer.boxy.extraFramebufferId)
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER,
+    GL_COLOR_ATTACHMENT0,
+    GL_TEXTURE_2D,
+    layer.texture.textureId,
+    0
+  )
+  let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+  if status != GL_FRAMEBUFFER_COMPLETE:
+    raise newException(
+      BoxyError,
+      "Something wrong with extra framebuffer: " & $toHex(status.int32, 4)
+    )
+
+  glViewport(0, 0, layer.width.GLint, layer.height.GLint)
+
+  glClearColor(0, 0, 0, 0)
+  glClear(GL_COLOR_BUFFER_BIT)
+
+proc endDraw*(layer: Layer) =
   ## Stops drawing into a layer.
-  discard
+  layer.boxy.draw()
+  glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+template with*(layer: Layer, code: untyped) =
+  layer.beginDraw()
+  code
+  layer.endDraw()
+
+proc beginMask*(maskLayer: Layer) =
+  maskLayer.boxy.draw()
+  maskLayer.boxy.maskTexture = maskLayer.texture
+
+proc endMask*(maskLayer: Layer) =
+  maskLayer.boxy.draw()
+  maskLayer.boxy.maskTexture = maskLayer.boxy.fullMask
+
+template withMask*(layer: Layer, code: untyped) =
+  layer.beginMask()
+  code
+  layer.endMask()
+
+proc drawLayer*(
+  boxy: Boxy,
+  layer: Layer,
+  pos = vec2(0, 0),
+  tintColor = color(1, 1, 1, 1),
+) =
+  ## Draws the layer onto the screen
+  layer.withMask:
+    boxy.drawRect(
+      rect(pos.x, pos.y, layer.width.float32, layer.height.float32),
+      tintColor
+    )
