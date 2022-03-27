@@ -56,9 +56,7 @@ type
 
   Layer* = ref object
     ## Kind of a GPU accelerated image.
-    boxy: Boxy
     texture: Texture
-    width, height: int
 
 proc vec2(x, y: SomeNumber): Vec2 {.inline.} =
   ## Integer short cut for creating vectors.
@@ -102,8 +100,6 @@ proc draw(boxy: Boxy) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
-
-  # echo "draw ", boxy.quadCount, " quads with mask texture ", boxy.maskTexture.textureId
 
   boxy.entriesBuffered.clear()
   boxy.upload()
@@ -668,31 +664,40 @@ proc drawImage*(
   boxy.drawImage(key, pos = vec2(0, 0), tintColor)
   boxy.restoreTransform()
 
-proc newLayer*(boxy: Boxy, size: IVec2): Layer =
+proc newLayer(boxy: Boxy, size: IVec2): Layer =
   result = Layer()
-  result.boxy = boxy
-  result.width = size.x
-  result.height = size.y
-
   let image = newImage(size.x, size.y)
   image.fill(color(1, 1, 1, 1))
   result.texture = newTexture(image)
 
+proc newLayer*(boxy: Boxy): Layer =
+  if boxy.frameSize == ivec2(0, 0):
+    boxy.newLayer(ivec2(1, 1))
+  else:
+    boxy.newLayer(boxy.frameSize)
+
 proc width*(layer: Layer): int =
-  layer.width
+  layer.texture.width
 
 proc height*(layer: Layer): int =
-  layer.height
+  layer.texture.height
 
-proc beginDraw*(layer: Layer) =
+proc beginLayer*(boxy: Boxy, layer: Layer) =
   ## Starts drawing into a layer.
-  layer.boxy.draw()
+  boxy.draw()
 
   # Create extra framebuffer if needed.
-  if layer.boxy.extraFramebufferId == 0:
-    glGenFramebuffers(1, layer.boxy.extraFramebufferId.addr)
+  if boxy.extraFramebufferId == 0:
+    glGenFramebuffers(1, boxy.extraFramebufferId.addr)
 
-  glBindFramebuffer(GL_FRAMEBUFFER, layer.boxy.extraFramebufferId)
+  if layer.texture.width != boxy.frameSize.x or
+    layer.texture.height != boxy.frameSize.y:
+    # Resize the layer to match frameSize.
+    layer.texture.width = boxy.frameSize.x
+    layer.texture.height = boxy.frameSize.y
+    bindTextureData(layer.texture, nil)
+
+  glBindFramebuffer(GL_FRAMEBUFFER, boxy.extraFramebufferId)
   glFramebufferTexture2D(
     GL_FRAMEBUFFER,
     GL_COLOR_ATTACHMENT0,
@@ -712,38 +717,37 @@ proc beginDraw*(layer: Layer) =
   glClearColor(0, 0, 0, 0)
   glClear(GL_COLOR_BUFFER_BIT)
 
-proc endDraw*(layer: Layer) =
+proc endLayer*(boxy: Boxy) =
   ## Stops drawing into a layer.
-  layer.boxy.draw()
+  boxy.draw()
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-template with*(layer: Layer, code: untyped) =
-  layer.beginDraw()
+template withLayer*(boxy: Boxy, layer: Layer, code: untyped) =
+  boxy.beginLayer(layer)
   code
-  layer.endDraw()
+  boxy.endLayer()
 
-proc beginMask*(maskLayer: Layer) =
-  maskLayer.boxy.draw()
-  maskLayer.boxy.maskTexture = maskLayer.texture
+proc beginMask*(boxy: Boxy, maskLayer: Layer) =
+  boxy.draw()
+  boxy.maskTexture = maskLayer.texture
 
-proc endMask*(maskLayer: Layer) =
-  maskLayer.boxy.draw()
-  maskLayer.boxy.maskTexture = maskLayer.boxy.fullMask
+proc endMask*(boxy: Boxy) =
+  boxy.draw()
+  boxy.maskTexture = boxy.fullMask
 
-template withMask*(layer: Layer, code: untyped) =
-  layer.beginMask()
+template withMask*(boxy: Boxy, layer: Layer, code: untyped) =
+  boxy.beginMask(layer)
   code
-  layer.endMask()
+  boxy.endMask()
 
 proc drawLayer*(
   boxy: Boxy,
   layer: Layer,
-  pos = vec2(0, 0),
   tintColor = color(1, 1, 1, 1),
 ) =
   ## Draws the layer onto the screen
-  layer.withMask:
+  boxy.withMask(layer):
     boxy.drawRect(
-      rect(pos.x, pos.y, layer.width.float32, layer.height.float32),
+      rect(0, 0, layer.width.float32, layer.height.float32),
       tintColor
     )
