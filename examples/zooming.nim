@@ -1,8 +1,6 @@
 import boxy, opengl, windy
 
-let windowSize = ivec2(1280, 800)
-
-let window = newWindow("Windy + Boxy", windowSize)
+let window = newWindow("Windy + Boxy", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 
@@ -19,13 +17,13 @@ var scale: float32 = 0.7
 # Called when it is time to draw a new frame.
 proc display() =
   # Clear the screen and begin a new frame.
-  bxy.beginFrame(windowSize)
+  bxy.beginFrame(window.size)
 
   # Draw the bg.
-  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
+  bxy.drawRect(rect(vec2(0, 0), window.size.vec2), color(0, 0, 0, 1))
 
   bxy.saveTransform()
-  bxy.translate(windowSize.vec2/2)
+  bxy.translate(window.size.vec2/2)
   bxy.scale(scale)
   scale *= 0.999
   bxy.drawImage("greece", center = vec2(0, 0), angle = 0)
@@ -36,6 +34,9 @@ proc display() =
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc frame
+
+window.onResize = proc() =
+  display()
 
 while not window.closeRequested:
   display()

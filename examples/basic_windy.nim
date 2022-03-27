@@ -1,8 +1,6 @@
 import boxy, opengl, windy
 
-let windowSize = ivec2(1280, 800)
-
-let window = newWindow("Windy + Boxy", windowSize)
+let window = newWindow("Windy + Boxy", ivec2(1280, 800))
 makeContextCurrent(window)
 
 loadExtensions()
@@ -20,13 +18,13 @@ var frame: int
 # Called when it is time to draw a new frame.
 proc display() =
   # Clear the screen and begin a new frame.
-  bxy.beginFrame(windowSize)
+  bxy.beginFrame(window.size)
 
   # Draw the bg.
-  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
+  bxy.drawImage("bg", rect = rect(vec2(0, 0), window.size.vec2))
 
   # Draw the rings.
-  let center = windowSize.vec2 / 2
+  let center = window.size.vec2 / 2
   bxy.drawImage("ring1", center, angle = frame.float / 100)
   bxy.drawImage("ring2", center, angle = -frame.float / 190)
   bxy.drawImage("ring3", center, angle = frame.float / 170)
@@ -36,6 +34,9 @@ proc display() =
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc frame
+
+window.onResize = proc() =
+  display()
 
 while not window.closeRequested:
   display()
