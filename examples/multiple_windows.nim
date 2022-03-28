@@ -34,6 +34,16 @@ loadExtensions()
 let bxy2 = newBoxy()
 bxy2.addImage("rhino", rhino)
 
+window1.onFrame = proc() =
+  if dirty1:
+    dirty1 = false
+    display(window1, bxy1)
+
+window2.onFrame = proc() =
+  if dirty2:
+    dirty2 = false
+    display(window2, bxy2)
+
 window1.onMouseMove = proc() =
   echo "move 1", window1.mouseDelta
   dirty1 = true
@@ -44,11 +54,3 @@ window2.onMouseMove = proc() =
 
 while not window1.closeRequested and not window2.closeRequested:
   pollEvents()
-
-  if dirty1:
-    dirty1 = false
-    display(window1, bxy1)
-
-  if dirty2:
-    dirty2 = false
-    display(window2, bxy2)

@@ -15,7 +15,7 @@ bxy.addImage("star1", readImage("examples/data/star1.png"))
 var frame: int = 1
 
 # Called when it is time to draw a new frame.
-proc display() =
+window.onFrame = proc() =
   # Clear the screen and begin a new frame.
   bxy.beginFrame(windowSize)
 
@@ -43,4 +43,3 @@ proc display() =
 
 while not window.closeRequested:
   pollEvents()
-  display()
