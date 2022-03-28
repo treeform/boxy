@@ -199,7 +199,7 @@ proc newBoxy*(
   result.takenTiles = newBitArray(result.maxTiles)
   result.atlasTexture = result.createAtlasTexture(atlasSize)
 
-  result.addLayerTexture()
+  result.layerNum = -1
 
   when defined(emscripten):
     result.atlasShader = newShaderStatic(
@@ -275,10 +275,6 @@ proc newBoxy*(
   result.activeShader.bindAttrib("vertexPos", result.positions.buffer)
   result.activeShader.bindAttrib("vertexColor", result.colors.buffer)
   result.activeShader.bindAttrib("vertexUv", result.uvs.buffer)
-
-  # Create layer framebuffer
-  glGenFramebuffers(1, result.layerFramebufferId.addr)
-  result.setUpLayerFramebuffer()
 
   let status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
   if status != GL_FRAMEBUFFER_COMPLETE:
@@ -479,9 +475,13 @@ proc drawRect*(
     )
 
 proc pushLayer*(boxy: Boxy) =
-  ## Starts drawing into a layer.
+  ## Starts drawing into a new layer.
   if not boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has not been called")
+
+  if boxy.layerFramebufferId.int == 0:
+    # Create layer framebuffer
+    glGenFramebuffers(1, boxy.layerFramebufferId.addr)
 
   boxy.draw()
   inc boxy.layerNum
@@ -500,26 +500,25 @@ proc popLayer*(
   tintColor = color(1, 1, 1, 1),
   blendMode: BlendMode = NormalBlend
 ) =
-  ## Stops drawing into the layer.
+  ## Pops the layer and draws with tint and blend.
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "popLayer called without pushLayer")
 
   boxy.draw()
 
   let layerTexture = boxy.layerTextures[boxy.layerNum]
-
   dec boxy.layerNum
 
-  if boxy.layerNum == 0:  # TODO make this -1
+  if boxy.layerNum == -1:
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
   else:
     boxy.setUpLayerFramebuffer()
 
   glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
-
   let savedAtlasTexture = boxy.atlasTexture
   boxy.atlasTexture = layerTexture
 
   try:
-
     case blendMode:
       of NormalBlend:
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
@@ -540,10 +539,8 @@ proc popLayer*(
     boxy.draw()
 
   finally:
-
+    # Reset everything back.
     boxy.atlasTexture = savedAtlasTexture
-
-    # rest to NormalBlend and shader
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
     boxy.activeShader = boxy.atlasShader
 
@@ -554,17 +551,16 @@ proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
 
   boxy.frameBegun = true
   boxy.proj = proj
+  boxy.frameSize = frameSize
 
-  if boxy.layerTextures[0].width != frameSize.x or
-    boxy.layerTextures[0].height != frameSize.y:
-    # Resize all of the layers.
-    boxy.frameSize = frameSize
-    for i in 0 ..< boxy.layerTextures.len:
+  # Resize all of the layers.
+  for i in 0 ..< boxy.layerTextures.len:
+    if boxy.layerTextures[i].width != frameSize.x or
+      boxy.layerTextures[i].height != frameSize.y:
       boxy.layerTextures[i].width = frameSize.x
       boxy.layerTextures[i].height = frameSize.y
-      if i > 0:
-        # Never resize the 0th layer because its just white.
-        bindTextureData(boxy.layerTextures[i], nil)
+      # Never resize the 0th layer because its just white.
+      bindTextureData(boxy.layerTextures[i], nil)
 
   glViewport(0, 0, boxy.frameSize.x, boxy.frameSize.y)
 
@@ -584,9 +580,8 @@ proc endFrame*(boxy: Boxy) =
   ## Ends a frame.
   if not boxy.frameBegun:
     raise newException(BoxyError, "beginFrame has not been called")
-  if boxy.layerNum != 0:
+  if boxy.layerNum != -1:
     raise newException(BoxyError, "Not all layers have been popped")
-
 
   boxy.frameBegun = false
   boxy.draw()
