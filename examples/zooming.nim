@@ -17,7 +17,7 @@ var frame: int
 var scale: float32 = 0.7
 
 # Called when it is time to draw a new frame.
-proc display() =
+window.onFrame = proc() =
   # Clear the screen and begin a new frame.
   bxy.beginFrame(windowSize)
 
@@ -38,5 +38,4 @@ proc display() =
   inc frame
 
 while not window.closeRequested:
-  display()
   pollEvents()
