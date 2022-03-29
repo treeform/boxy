@@ -9,7 +9,6 @@ loadExtensions()
 let bxy = newBoxy()
 
 # Load the images.
-bxy.addImage("bg", readImage("examples/data/bg.png"))
 bxy.addImage("ring1", readImage("examples/data/ring1.png"))
 bxy.addImage("ring2", readImage("examples/data/ring2.png"))
 bxy.addImage("ring3", readImage("examples/data/ring3.png"))
@@ -17,8 +16,7 @@ bxy.addImage("ring3", readImage("examples/data/ring3.png"))
 var frame: int
 
 window.onButtonPress = proc(button: Button) =
-  window.close()
-  quit()
+  window.closeRequested = true
 
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =
