@@ -1,8 +1,6 @@
 import boxy, opengl, windy, vmath
 
-let windowSize = ivec2(1280, 800)
-
-let window = newWindow("Windy + Boxy", windowSize)
+let window = newWindow("Windy + Boxy", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 
@@ -22,10 +20,10 @@ var frame: int = 1
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =
   # Clear the screen and begin a new frame.
-  bxy.beginFrame(windowSize)
+  bxy.beginFrame(window.size)
 
   # Draw the bg.
-  bxy.drawRect(rect(vec2(0, 0), windowSize.vec2), color(0, 0, 0, 1))
+  bxy.drawRect(rect(vec2(0, 0), window.size.vec2), color(0, 0, 0, 1))
 
   bxy.saveTransform()
 
@@ -44,7 +42,7 @@ window.onFrame = proc() =
   )
 
   bxy.addImage("heart" & id, image)
-  bxy.drawImage("heart" & id, center = windowSize.vec2 / 2, angle = 0)
+  bxy.drawImage("heart" & id, center = window.size.vec2 / 2, angle = 0)
 
   bxy.restoreTransform()
   # End this frame, flushing the draw commands.

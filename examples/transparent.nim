@@ -1,8 +1,9 @@
 import boxy, opengl, windy
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Windy + Boxy", ivec2(1280, 800), visible=false)
+window.style = Transparent
+window.visible = true
 makeContextCurrent(window)
-
 loadExtensions()
 
 let bxy = newBoxy()
@@ -15,13 +16,14 @@ bxy.addImage("ring3", readImage("examples/data/ring3.png"))
 
 var frame: int
 
+window.onButtonPress = proc(button: Button) =
+  window.close()
+  quit()
+
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =
   # Clear the screen and begin a new frame.
   bxy.beginFrame(window.size)
-
-  # Draw the bg.
-  bxy.drawImage("bg", rect = rect(vec2(0, 0), window.size.vec2))
 
   # Draw the rings.
   let center = window.size.vec2 / 2

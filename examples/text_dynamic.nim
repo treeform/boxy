@@ -1,8 +1,6 @@
 import boxy, opengl, windy, times
 
-let windowSize = ivec2(1280, 800)
-
-let window = newWindow("Windy + Boxy", windowSize)
+let window = newWindow("Windy + Boxy", ivec2(1280, 800))
 makeContextCurrent(window)
 
 loadExtensions()
@@ -41,10 +39,10 @@ proc drawText(
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =
   # Clear the screen and begin a new frame.
-  bxy.beginFrame(windowSize)
+  bxy.beginFrame(window.size)
 
   # Draw the bg.
-  bxy.drawImage("bg", rect = rect(vec2(0, 0), windowSize.vec2))
+  bxy.drawImage("bg", rect = rect(vec2(0, 0), window.size.vec2))
 
   bxy.drawText(
     "main-image",
