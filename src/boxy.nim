@@ -1,5 +1,5 @@
-import bitty, boxy/buffers, boxy/shaders, boxy/textures, bumpy, chroma, hashes,
-    opengl, os, pixie, strutils, tables, vmath, sets
+import bitty, shady, boxy/blends, boxy/buffers, boxy/shaders, boxy/textures,
+    bumpy, chroma, hashes, opengl, os, pixie, strutils, tables, vmath, sets
 
 export pixie
 
@@ -26,12 +26,13 @@ type
     oneColor: Color           ## If tiles = [] then this is the image's color.
 
   Boxy* = ref object
-    atlasShader, maskShader, activeShader: Shader
-    atlasTexture: Texture
+    atlasShader, maskShader, blendShader, activeShader: Shader
+    atlasTexture, srcTexture, dstTexture, blendTexture: Texture
     layerNum: int               ## Index into layer textures for writing.
     layerTextures: seq[Texture] ## Layers array for pushing and popping.
     atlasSize: int              ## Size x size dimensions of the atlas.
     quadCount: int              ## Number of quads drawn so far in this batch.
+    blendMode: BlendMode        ## Which blending mode to pass to shader.
     quadsPerBatch: int          ## Max quads in a batch before issuing an OpenGL call.
     mat: Mat4                   ## The current matrix.
     mats: seq[Mat4]             ## The matrix stack.
@@ -106,9 +107,23 @@ proc draw(boxy: Boxy) =
     )
   boxy.activeShader.setUniform("proj", boxy.proj)
 
-  glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
-  boxy.activeShader.setUniform("atlasTex", 0)
+  if boxy.activeShader.hasUniform("atlasTex"):
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
+    boxy.activeShader.setUniform("atlasTex", 0)
+
+  if boxy.activeShader.hasUniform("srcTexture"):
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_2D, boxy.srcTexture.textureId)
+    boxy.activeShader.setUniform("srcTexture", 0)
+
+  if boxy.activeShader.hasUniform("dstTexture"):
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_2D, boxy.dstTexture.textureId)
+    boxy.activeShader.setUniform("dstTexture", 1)
+
+  if boxy.activeShader.hasUniform("blendMode"):
+    boxy.activeShader.setUniform("blendMode", boxy.blendMode.ord.int32)
 
   boxy.activeShader.bindUniforms()
 
@@ -125,13 +140,13 @@ proc draw(boxy: Boxy) =
 
   boxy.quadCount = 0
 
-proc setUpLayerFramebuffer(boxy: Boxy) =
+proc drawToTexture(boxy: Boxy, texture: Texture) =
   glBindFramebuffer(GL_FRAMEBUFFER, boxy.layerFramebufferId)
   glFramebufferTexture2D(
     GL_FRAMEBUFFER,
     GL_COLOR_ATTACHMENT0,
     GL_TEXTURE_2D,
-    boxy.layerTextures[boxy.layerNum].textureId,
+    texture.textureId,
     0
   )
 
@@ -219,6 +234,10 @@ proc newBoxy*(
     result.maskShader = newShaderStatic(
       "glsl/410/atlas.vert",
       "glsl/410/mask.frag"
+    )
+    result.blendShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("blendingMain", toGLSL(blendingMain))
     )
 
   result.positions.buffer = Buffer()
@@ -506,7 +525,7 @@ proc pushLayer*(boxy: Boxy) =
   if boxy.layerNum >= boxy.layerTextures.len:
     boxy.addLayerTexture(boxy.frameSize)
 
-  boxy.setUpLayerFramebuffer()
+  boxy.drawToTexture(boxy.layerTextures[boxy.layerNum])
   glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
 
   glClearColor(0, 0, 0, 0)
@@ -526,25 +545,28 @@ proc popLayer*(
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   dec boxy.layerNum
 
+  glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
+  let savedAtlasTexture = boxy.atlasTexture
+
   if boxy.layerNum == -1:
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
   else:
-    boxy.setUpLayerFramebuffer()
+    boxy.drawToTexture(boxy.layerTextures[boxy.layerNum])
 
-  glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
-  let savedAtlasTexture = boxy.atlasTexture
-  boxy.atlasTexture = layerTexture
-
-  try:
-    case blendMode:
-      of NormalBlend:
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-        boxy.activeShader = boxy.atlasShader
-      of MaskBlend:
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR)
-        boxy.activeShader = boxy.maskShader
-      else:
-        raise newException(BoxyError, "Unsupported blend mode")
+  if blendMode in {NormalBlend, MaskBlend, ScreenBlend}:
+    # Can use OpenGL blending mode,
+    if blendMode == NormalBlend:
+      boxy.atlasTexture = layerTexture
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+      boxy.activeShader = boxy.atlasShader
+    elif blendMode == MaskBlend:
+      boxy.atlasTexture = layerTexture
+      glBlendFunc(GL_ZERO, GL_SRC_COLOR)
+      boxy.activeShader = boxy.maskShader
+    elif blendMode == ScreenBlend:
+      boxy.atlasTexture = layerTexture
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR)
+      boxy.activeShader = boxy.atlasShader
 
     boxy.drawUvRect(
       at = vec2(0, 0),
@@ -555,11 +577,57 @@ proc popLayer*(
     )
     boxy.draw()
 
-  finally:
-    # Reset everything back.
-    boxy.atlasTexture = savedAtlasTexture
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-    boxy.activeShader = boxy.atlasShader
+  else:
+    # Must use texture based blending.
+    boxy.blendMode = blendMode
+
+    # Create extra blend texture if needed
+    if boxy.blendTexture == nil:
+      boxy.blendTexture = Texture()
+      boxy.blendTexture.width = 1
+      boxy.blendTexture.height = 1
+      boxy.blendTexture.componentType = GL_UNSIGNED_BYTE
+      boxy.blendTexture.format = GL_RGBA
+      boxy.blendTexture.internalFormat = GL_RGBA8
+      boxy.blendTexture.minFilter = minLinear
+      boxy.blendTexture.magFilter = magLinear
+    # Resize extra blend texture if needed
+    if boxy.blendTexture.width != boxy.frameSize.x.int32 or
+      boxy.blendTexture.height != boxy.frameSize.y.int32:
+        boxy.blendTexture.width = boxy.frameSize.x.int32
+        boxy.blendTexture.height = boxy.frameSize.y.int32
+        bindTextureData(boxy.blendTexture, nil)
+
+    boxy.drawToTexture(boxy.blendTexture)
+    glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
+    glClearColor(0, 0, 0, 0)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    boxy.activeShader = boxy.blendShader
+    boxy.srcTexture = layerTexture
+    boxy.dstTexture = boxy.layerTextures[boxy.layerNum]
+
+    # Can use OpenGL blending mode
+    boxy.drawUvRect(
+      at = vec2(0, 0),
+      to = boxy.frameSize.vec2,
+      uvAt = vec2(0, boxy.atlasSize.float32),
+      uvTo = vec2(boxy.atlasSize.float32, 0),
+      color = tintColor
+    )
+    boxy.draw()
+
+    # For testing:
+    # boxy.blendTexture.writeFile("resTexture.png")
+    # boxy.srcTexture.writeFile("srcTexture.png")
+    # boxy.dstTexture.writeFile("dstTexture.png")
+
+    swap boxy.layerTextures[boxy.layerNum], boxy.blendTexture
+
+  # Reset everything back.
+  boxy.atlasTexture = savedAtlasTexture
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+  boxy.activeShader = boxy.atlasShader
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
