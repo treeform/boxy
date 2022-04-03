@@ -4,6 +4,7 @@ var
   srcTexture: Uniform[Sampler2d]
   dstTexture: Uniform[Sampler2d]
   blendMode: Uniform[int32]
+  gl_Position*: Vec4
 
 proc min3(c: Vec3): float =
   min(min(c.r, c.g), c.b)
