@@ -141,3 +141,9 @@ proc readImage*(texture: Texture): Image =
       GL_UNSIGNED_BYTE,
       result.data[0].addr
     )
+
+proc writeFile*(texture: Texture, path: string) =
+  ## Reads the data of the texture and writes it to file.
+  var image = texture.readImage()
+  image.flipVertical()
+  image.writeFile(path)
