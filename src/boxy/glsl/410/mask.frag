@@ -4,7 +4,6 @@ in vec2 pos;
 in vec2 uv;
 in vec4 color;
 
-uniform ivec2 windowFrame;
 uniform sampler2D atlasTex;
 
 out vec4 fragColor;

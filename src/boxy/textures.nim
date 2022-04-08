@@ -144,6 +144,6 @@ proc readImage*(texture: Texture): Image =
 
 proc writeFile*(texture: Texture, path: string) =
   ## Reads the data of the texture and writes it to file.
-  var image = texture.readImage()
+  let image = texture.readImage()
   image.flipVertical()
   image.writeFile(path)
