@@ -624,6 +624,8 @@ proc popLayer*(
       nil
     )
 
+    boxy.quadCount = 0
+
     # For testing:
     # boxy.blendTexture.writeFile("resTexture.png")
     # boxy.srcTexture.writeFile("srcTexture.png")
