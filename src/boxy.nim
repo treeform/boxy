@@ -90,25 +90,8 @@ proc upload(boxy: Boxy) =
 proc contains*(boxy: Boxy, key: string): bool {.inline.} =
   key in boxy.entries
 
-proc draw(boxy: Boxy) =
-  ## Flips - draws current buffer and starts a new one.
-  if boxy.quadCount == 0:
-    return
-
-  boxy.entriesBuffered.clear()
-  boxy.upload()
-
-  glUseProgram(boxy.activeShader.programId)
+proc drawVerts(boxy: Boxy) =
   glBindVertexArray(boxy.vertexArrayId)
-
-  boxy.activeShader.setUniform("proj", boxy.proj)
-
-  glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
-  boxy.activeShader.setUniform("atlasTex", 0)
-
-  boxy.activeShader.bindUniforms()
-
   glBindBuffer(
     GL_ELEMENT_ARRAY_BUFFER,
     boxy.indices.buffer.bufferId
@@ -119,8 +102,27 @@ proc draw(boxy: Boxy) =
     boxy.indices.buffer.componentType,
     nil
   )
-
   boxy.quadCount = 0
+
+proc flush(boxy: Boxy) =
+  ## Flips - draws current buffer and starts a new one.
+  if boxy.quadCount == 0:
+    return
+
+  boxy.entriesBuffered.clear()
+  boxy.upload()
+
+  glUseProgram(boxy.activeShader.programId)
+
+  boxy.activeShader.setUniform("proj", boxy.proj)
+
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
+  boxy.activeShader.setUniform("atlasTex", 0)
+
+  boxy.activeShader.bindUniforms()
+
+  boxy.drawVerts()
 
 proc drawToTexture(boxy: Boxy, texture: Texture) =
   glBindFramebuffer(GL_FRAMEBUFFER, boxy.layerFramebufferId)
@@ -295,7 +297,7 @@ proc newBoxy*(
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
-  boxy.draw()
+  boxy.flush()
 
   # Read old atlas content
   let
@@ -417,7 +419,7 @@ proc getImageSize*(boxy: Boxy, key: string): IVec2 =
 proc checkBatch(boxy: Boxy) {.inline.} =
   if boxy.quadCount == boxy.quadsPerBatch:
     # This batch is full, draw and start a new batch.
-    boxy.draw()
+    boxy.flush()
 
 proc setVert(buf: var seq[float32], i: int, v: Vec2) =
   buf[i * 2 + 0] = v.x
@@ -500,7 +502,7 @@ proc pushLayer*(boxy: Boxy) =
     # Create layer framebuffer
     glGenFramebuffers(1, boxy.layerFramebufferId.addr)
 
-  boxy.draw()
+  boxy.flush()
   inc boxy.layerNum
 
   if boxy.layerNum >= boxy.layerTextures.len:
@@ -521,7 +523,7 @@ proc popLayer*(
   if boxy.layerNum == -1:
     raise newException(BoxyError, "popLayer called without pushLayer")
 
-  boxy.draw()
+  boxy.flush()
 
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   dec boxy.layerNum
@@ -556,7 +558,7 @@ proc popLayer*(
       uvTo = vec2(boxy.atlasSize.float32, 0),
       color = tintColor
     )
-    boxy.draw()
+    boxy.flush()
 
   else:
     # Create extra blend texture if needed
@@ -597,7 +599,6 @@ proc popLayer*(
     boxy.upload()
 
     glUseProgram(boxy.blendShader.programId)
-    glBindVertexArray(boxy.vertexArrayId)
 
     boxy.blendShader.setUniform("proj", boxy.proj)
 
@@ -613,18 +614,7 @@ proc popLayer*(
 
     boxy.blendShader.bindUniforms()
 
-    glBindBuffer(
-      GL_ELEMENT_ARRAY_BUFFER,
-      boxy.indices.buffer.bufferId
-    )
-    glDrawElements(
-      GL_TRIANGLES,
-      boxy.indices.buffer.count.GLint,
-      boxy.indices.buffer.componentType,
-      nil
-    )
-
-    boxy.quadCount = 0
+    boxy.drawVerts()
 
     # For testing:
     # boxy.blendTexture.writeFile("resTexture.png")
@@ -676,7 +666,7 @@ proc endFrame*(boxy: Boxy) =
     raise newException(BoxyError, "Not all layers have been popped")
 
   boxy.frameBegun = false
-  boxy.draw()
+  boxy.flush()
 
 proc applyTransform*(boxy: Boxy, m: Mat4) =
   ## Applies transform to the internal transform.
