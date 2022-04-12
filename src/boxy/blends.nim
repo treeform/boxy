@@ -158,7 +158,7 @@ proc blender(blendMode: int32, dst, src: Vec4): Vec4 =
 proc blendingMain*(
   pos: Vec2,
   uv: Vec2,
-  color: Vec2,
+  color: Vec4,
   fragColor: var Vec4
 ) =
   fragColor = blender(
