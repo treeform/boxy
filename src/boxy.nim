@@ -676,6 +676,10 @@ proc setTransform*(boxy: Boxy, m: Mat4) =
   ## Sets the internal transform.
   boxy.mat = m
 
+proc getTransform*(boxy: Boxy): Mat4 =
+  ## Gets the internal transform.
+  boxy.mat
+
 proc translate*(boxy: Boxy, v: Vec2) =
   ## Translate the internal transform.
   boxy.mat = boxy.mat * translate(vec3(v))
