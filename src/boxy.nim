@@ -33,8 +33,8 @@ type
     atlasSize: int              ## Size x size dimensions of the atlas.
     quadCount: int              ## Number of quads drawn so far in this batch.
     quadsPerBatch: int          ## Max quads in a batch before issuing an OpenGL call.
-    mat: Mat4                   ## The current matrix.
-    mats: seq[Mat4]             ## The matrix stack.
+    mat: Mat3                   ## The current matrix.
+    mats: seq[Mat3]             ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entires used by not flushed yet.
     tileSize: int
@@ -55,9 +55,6 @@ type
 proc vec2(x, y: SomeNumber): Vec2 {.inline.} =
   ## Integer short cut for creating vectors.
   vec2(x.float32, y.float32)
-
-func `*`(m: Mat4, v: Vec2): Vec2 =
-  (m * vec3(v.x, v.y, 0.0)).xy
 
 proc `*`(a, b: Color): Color {.inline.} =
   result.r = a.r * b.r
@@ -191,8 +188,8 @@ proc newBoxy*(
   result.atlasSize = atlasSize
   result.tileSize = tileSize
   result.quadsPerBatch = quadsPerBatch
-  result.mat = mat4()
-  result.mats = newSeq[Mat4]()
+  result.mat = mat3()
+  result.mats = newSeq[Mat3]()
 
   result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
   result.maxTiles = result.tileRun * result.tileRun
@@ -668,33 +665,33 @@ proc endFrame*(boxy: Boxy) =
   boxy.frameBegun = false
   boxy.flush()
 
-proc applyTransform*(boxy: Boxy, m: Mat4) =
+proc applyTransform*(boxy: Boxy, m: Mat3) =
   ## Applies transform to the internal transform.
   boxy.mat = boxy.mat * m
 
-proc setTransform*(boxy: Boxy, m: Mat4) =
+proc setTransform*(boxy: Boxy, m: Mat3) =
   ## Sets the internal transform.
   boxy.mat = m
 
-proc getTransform*(boxy: Boxy): Mat4 =
+proc getTransform*(boxy: Boxy): Mat3 =
   ## Gets the internal transform.
   boxy.mat
 
 proc translate*(boxy: Boxy, v: Vec2) =
   ## Translate the internal transform.
-  boxy.mat = boxy.mat * translate(vec3(v))
+  boxy.mat = boxy.mat * translate(v)
 
 proc rotate*(boxy: Boxy, angle: float32) =
   ## Rotates the internal transform.
-  boxy.mat = boxy.mat * rotateZ(angle)
-
-proc scale*(boxy: Boxy, scale: float32) =
-  ## Scales the internal transform.
-  boxy.mat = boxy.mat * scale(vec3(scale))
+  boxy.mat = boxy.mat * rotate(angle)
 
 proc scale*(boxy: Boxy, scale: Vec2) =
   ## Scales the internal transform.
-  boxy.mat = boxy.mat * scale(vec3(scale.x, scale.y, 1))
+  boxy.mat = boxy.mat * scale(scale)
+
+proc scale*(boxy: Boxy, scale: float32) {.inline.} =
+  ## Scales the internal transform.
+  boxy.scale(vec2(scale))
 
 proc saveTransform*(boxy: Boxy) =
   ## Pushes a transform onto the stack.
@@ -706,7 +703,7 @@ proc restoreTransform*(boxy: Boxy) =
 
 proc clearTransform*(boxy: Boxy) =
   ## Clears transform and transform stack.
-  boxy.mat = mat4()
+  boxy.mat = mat3()
   boxy.mats.setLen(0)
 
 proc fromScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
