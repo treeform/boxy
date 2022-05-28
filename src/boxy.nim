@@ -1,5 +1,6 @@
-import bitty, shady, boxy/blends, boxy/buffers, boxy/shaders, boxy/textures,
-    bumpy, chroma, hashes, opengl, os, pixie, strutils, tables, vmath, sets
+import bitty, shady, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
+    boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, strutils, tables,
+    vmath, sets
 
 export pixie
 
@@ -27,7 +28,8 @@ type
 
   Boxy* = ref object
     atlasShader, maskShader, blendShader, activeShader: Shader
-    atlasTexture, blendTexture: Texture
+    blurXShader, blurYShader: Shader
+    atlasTexture, tmpTexture: Texture
     layerNum: int               ## Index into layer textures for writing.
     layerTextures: seq[Texture] ## Layers array for pushing and popping.
     atlasSize: int              ## Size x size dimensions of the atlas.
@@ -87,7 +89,7 @@ proc upload(boxy: Boxy) =
 proc contains*(boxy: Boxy, key: string): bool {.inline.} =
   key in boxy.entries
 
-proc drawVerts(boxy: Boxy) =
+proc drawVertexArray(boxy: Boxy) =
   glBindVertexArray(boxy.vertexArrayId)
   glBindBuffer(
     GL_ELEMENT_ARRAY_BUFFER,
@@ -119,7 +121,7 @@ proc flush(boxy: Boxy) =
 
   boxy.activeShader.bindUniforms()
 
-  boxy.drawVerts()
+  boxy.drawVertexArray()
 
 proc drawToTexture(boxy: Boxy, texture: Texture) =
   glBindFramebuffer(GL_FRAMEBUFFER, boxy.layerFramebufferId)
@@ -220,6 +222,15 @@ proc newBoxy*(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blendingMain))
     )
+    result.blurXShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("blendingMain", toGLSL(blurXMain))
+    )
+    result.blurYShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("blendingMain", toGLSL(blurYMain))
+    )
+
 
   result.positions.buffer = Buffer()
   result.positions.buffer.componentType = cGL_FLOAT
@@ -490,6 +501,30 @@ proc drawRect*(
       color
     )
 
+proc readyTmpTexture(boxy: Boxy) =
+  ## Makes sure boxy.tmpTexture is ready to be used.
+  # Create extra tmp texture if needed
+  if boxy.tmpTexture == nil:
+    boxy.tmpTexture = Texture()
+    boxy.tmpTexture.width = 1
+    boxy.tmpTexture.height = 1
+    boxy.tmpTexture.componentType = GL_UNSIGNED_BYTE
+    boxy.tmpTexture.format = GL_RGBA
+    boxy.tmpTexture.internalFormat = GL_RGBA8
+    boxy.tmpTexture.minFilter = minLinear
+    boxy.tmpTexture.magFilter = magLinear
+  # Resize extra blend texture if needed
+  if boxy.tmpTexture.width != boxy.frameSize.x.int32 or
+    boxy.tmpTexture.height != boxy.frameSize.y.int32:
+      boxy.tmpTexture.width = boxy.frameSize.x.int32
+      boxy.tmpTexture.height = boxy.frameSize.y.int32
+      bindTextureData(boxy.tmpTexture, nil)
+
+proc clearColor(boxy: Boxy) =
+  glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
+  glClearColor(0, 0, 0, 0)
+  glClear(GL_COLOR_BUFFER_BIT)
+
 proc pushLayer*(boxy: Boxy) =
   ## Starts drawing into a new layer.
   if not boxy.frameBegun:
@@ -558,27 +593,9 @@ proc popLayer*(
     boxy.flush()
 
   else:
-    # Create extra blend texture if needed
-    if boxy.blendTexture == nil:
-      boxy.blendTexture = Texture()
-      boxy.blendTexture.width = 1
-      boxy.blendTexture.height = 1
-      boxy.blendTexture.componentType = GL_UNSIGNED_BYTE
-      boxy.blendTexture.format = GL_RGBA
-      boxy.blendTexture.internalFormat = GL_RGBA8
-      boxy.blendTexture.minFilter = minLinear
-      boxy.blendTexture.magFilter = magLinear
-    # Resize extra blend texture if needed
-    if boxy.blendTexture.width != boxy.frameSize.x.int32 or
-      boxy.blendTexture.height != boxy.frameSize.y.int32:
-        boxy.blendTexture.width = boxy.frameSize.x.int32
-        boxy.blendTexture.height = boxy.frameSize.y.int32
-        bindTextureData(boxy.blendTexture, nil)
-
-    boxy.drawToTexture(boxy.blendTexture)
-    glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
-    glClearColor(0, 0, 0, 0)
-    glClear(GL_COLOR_BUFFER_BIT)
+    boxy.readyTmpTexture()
+    boxy.drawToTexture(boxy.tmpTexture)
+    boxy.clearColor()
 
     let
       srcTexture = layerTexture
@@ -611,19 +628,81 @@ proc popLayer*(
 
     boxy.blendShader.bindUniforms()
 
-    boxy.drawVerts()
+    boxy.drawVertexArray()
 
-    # For testing:
-    # boxy.blendTexture.writeFile("resTexture.png")
+    # For debugging:
+    # boxy.tmpTexture.writeFile("resTexture.png")
     # boxy.srcTexture.writeFile("srcTexture.png")
     # boxy.dstTexture.writeFile("dstTexture.png")
 
-    swap boxy.layerTextures[boxy.layerNum], boxy.blendTexture
+    swap boxy.layerTextures[boxy.layerNum], boxy.tmpTexture
 
   # Reset everything back.
   boxy.atlasTexture = savedAtlasTexture
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
   boxy.activeShader = boxy.atlasShader
+
+proc blurLayer*(boxy: Boxy, radius: float32) =
+  ## Blurs the current layer
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "blurLayer called without pushLayer")
+
+  boxy.flush()
+
+  let
+    layerTexture = boxy.layerTextures[boxy.layerNum]
+    tintColor = color(1, 1, 1, 1)
+
+  # blurX
+  boxy.readyTmpTexture()
+  boxy.drawToTexture(boxy.tmpTexture)
+  boxy.clearColor()
+
+  glUseProgram(boxy.blurXShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
+  boxy.blurXShader.setUniform("srcTexture", 0)
+  boxy.blurXShader.setUniform("proj", boxy.proj)
+  boxy.blurXShader.setUniform("pixelScale", boxy.frameSize.x.float32)
+  boxy.blurXShader.setUniform("blurRadius", radius)
+  boxy.blurXShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0),
+    to = boxy.frameSize.vec2,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    color = tintColor
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  # blurY
+  boxy.drawToTexture(layerTexture)
+  boxy.clearColor()
+
+  glUseProgram(boxy.blurYShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
+  boxy.blurYShader.setUniform("srcTexture", 0)
+  boxy.blurYShader.setUniform("proj", boxy.proj)
+  boxy.blurYShader.setUniform("pixelScale", boxy.frameSize.y.float32)
+  boxy.blurYShader.setUniform("blurRadius", radius)
+  boxy.blurYShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0),
+    to = boxy.frameSize.vec2,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    color = tintColor
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  # For debugging:
+  # boxy.tmpTexture.writeFile("blurX.png")
+  # layerTexture.writeFile("blurY.png")
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
