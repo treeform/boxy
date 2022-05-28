@@ -1,6 +1,6 @@
-import bitty, shady, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, strutils, tables,
-    vmath, sets
+import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
+    boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets, shady,
+    strutils, tables, vmath
 
 export pixie
 
@@ -230,7 +230,6 @@ proc newBoxy*(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blurYMain))
     )
-
 
   result.positions.buffer = Buffer()
   result.positions.buffer.componentType = cGL_FLOAT

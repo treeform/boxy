@@ -1,4 +1,4 @@
-import boxy, opengl, windy, vmath
+import boxy, opengl, vmath, windy
 
 let window = newWindow("Windy + Boxy", ivec2(1280, 800))
 makeContextCurrent(window)

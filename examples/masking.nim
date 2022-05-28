@@ -29,7 +29,12 @@ window.onFrame = proc() =
 
   # Draw the mask.
   bxy.pushLayer()
-  bxy.drawImage("mask", center = window.size.vec2 / 2, angle = 0, tintColor = color(1, 0, 0, 1))
+  bxy.drawImage(
+    "mask",
+    center = window.size.vec2 / 2,
+    angle = 0,
+    tintColor = color(1, 0, 0, 1)
+  )
   bxy.popLayer(blendMode = MaskBlend)
 
   # End this frame, flushing the draw commands.

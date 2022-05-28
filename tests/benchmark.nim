@@ -10,6 +10,3 @@ let
 
 timeIt "add":
   bxy.addImage("boxyBanner", image)
-
-
-#grow
