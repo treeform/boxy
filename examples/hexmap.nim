@@ -1,6 +1,5 @@
 
-import pixie, random, re
-import boxy, opengl, windy
+import boxy, opengl, pixie, random, re, windy
 
 randomize()
 
@@ -49,7 +48,6 @@ proc createHex(size: float32, middle, top, bottom, htmlColor: string): Image =
   font2.paint.color = color
   font2.size = 10
 
-
   let mat = scale(vec2(size))
   image.fillPath(
     bgPath,
@@ -78,9 +76,15 @@ proc createHex(size: float32, middle, top, bottom, htmlColor: string): Image =
     strokeWidth = 3.0
   )
 
-  image.fillText(font.typeset(top, vec2(39, 12), CenterAlign), mat * translate(vec2(21, 10)))
+  image.fillText(
+    font.typeset(top, vec2(39, 12), CenterAlign),
+    mat * translate(vec2(21, 10))
+  )
 
-  image.fillText(font.typeset(bottom, vec2(39, 12), CenterAlign), mat * translate(vec2(21, 58)))
+  image.fillText(
+    font.typeset(bottom, vec2(39, 12), CenterAlign),
+    mat * translate(vec2(21, 58))
+  )
 
   var arrangement: Arrangement
   font2.size = 30
@@ -138,8 +142,8 @@ block:
       id: idC,
       size: thisSize,
       middle: genText(3, 20),
-      top: topList.sample(), #genText(1, 1),
-      bottom: bottomList.sample(), #$more, #$rand(0 .. 999),
+      top: topList.sample(),
+      bottom: bottomList.sample(),
       hexColor: colors.sample(),
     )
     grid[x][y] = hex

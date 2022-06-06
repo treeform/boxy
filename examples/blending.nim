@@ -17,10 +17,10 @@ echo "Use left or right key to switch blend modes."
 window.onButtonPress = proc(button: Button) =
   if button == KeyLeft:
     blendMode = BlendMode(max(blendMode.ord - 1, 0))
-    echo "blendMode :",  blendMode, " #", blendMode.ord
+    echo "blendMode :", blendMode, " #", blendMode.ord
   if button == KeyRight:
     blendMode = BlendMode(min(blendMode.ord + 1, BlendMode.high.ord))
-    echo "blendMode :",  blendMode, " #", blendMode.ord
+    echo "blendMode :", blendMode, " #", blendMode.ord
 
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =

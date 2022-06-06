@@ -1,13 +1,12 @@
 import boxy, opengl, windy
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Boxy Blur", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 
 let bxy = newBoxy()
 
-# Load the images.
-bxy.addImage("mask", readImage("examples/data/mask.png"))
+# Load the image.
 bxy.addImage("greece", readImage("examples/data/greece.png"))
 
 var frame: int
@@ -20,26 +19,23 @@ window.onFrame = proc() =
   # Draw the bg.
   bxy.drawRect(rect(vec2(0, 0), window.size.vec2), color(0, 0, 0, 1))
 
-  # Draw some background image.
+  bxy.pushLayer()
+
   bxy.saveTransform()
-  bxy.translate(window.size.vec2 / 2)
-  bxy.scale(1.2 + 0.2 * sin(frame.float32/100))
+  bxy.translate(window.size.vec2/2)
   bxy.drawImage("greece", center = vec2(0, 0), angle = 0)
   bxy.restoreTransform()
 
-  # Draw the mask.
-  bxy.pushLayer()
-  bxy.drawImage(
-    "mask",
-    center = window.size.vec2 / 2,
-    angle = 0,
-    tintColor = color(1, 0, 0, 1)
-  )
-  bxy.popLayer(blendMode = MaskBlend)
+  # Set the blur amount based on time.
+  let radius = 50 * (sin(frame.float32/100) + 1)
+
+  # Blurs the current pushed layer.
+  bxy.blurLayer(radius)
+
+  bxy.popLayer()
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()
-
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc frame
