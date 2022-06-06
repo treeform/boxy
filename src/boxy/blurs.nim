@@ -15,9 +15,8 @@ proc blurXMain*(
   # gaussian blur
   var accumulation = 0f
   let r = max(round(blurRadius), 1)
-  let rr = r * r
   for x in floor(-r).int .. ceil(r).int:
-    let a = exp(-(x*x).float32/(rr)*2)
+    let a = exp(-(x*x).float32/(r * r)*2)
     fragColor += texture(srcTexture, uv + vec2(x.float32 * pixelScale, 0)) * a
     accumulation += a
   fragColor = fragColor / accumulation
@@ -32,9 +31,8 @@ proc blurYMain*(
   # gaussian blur
   var accumulation = 0f
   let r = max(round(blurRadius), 1)
-  let rr = r * r
   for y in floor(-r).int .. ceil(r).int:
-    let a = exp(-(y*y).float32/(rr)*2)
+    let a = exp(-(y*y).float32/(r * r)*2)
     fragColor += texture(srcTexture, uv + vec2(0, y.float32 * pixelScale)) * a
     accumulation += a
   fragColor = fragColor / accumulation
