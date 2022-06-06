@@ -648,9 +648,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
 
   boxy.flush()
 
-  let
-    layerTexture = boxy.layerTextures[boxy.layerNum]
-    tintColor = color(1, 1, 1, 1)
+  let layerTexture = boxy.layerTextures[boxy.layerNum]
 
   # blurX
   boxy.readyTmpTexture()
@@ -662,7 +660,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
   boxy.blurXShader.setUniform("srcTexture", 0)
   boxy.blurXShader.setUniform("proj", boxy.proj)
-  boxy.blurXShader.setUniform("pixelScale", boxy.frameSize.x.float32)
+  boxy.blurXShader.setUniform("pixelScale", 1/boxy.frameSize.x.float32)
   boxy.blurXShader.setUniform("blurRadius", radius)
   boxy.blurXShader.bindUniforms()
 
@@ -671,7 +669,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
     to = boxy.frameSize.vec2,
     uvAt = vec2(0, boxy.atlasSize.float32),
     uvTo = vec2(boxy.atlasSize.float32, 0),
-    color = tintColor
+    color = color(1, 1, 1, 1)
   )
   boxy.upload()
   boxy.drawVertexArray()
@@ -685,7 +683,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
   boxy.blurYShader.setUniform("srcTexture", 0)
   boxy.blurYShader.setUniform("proj", boxy.proj)
-  boxy.blurYShader.setUniform("pixelScale", boxy.frameSize.y.float32)
+  boxy.blurYShader.setUniform("pixelScale", 1/boxy.frameSize.y.float32)
   boxy.blurYShader.setUniform("blurRadius", radius)
   boxy.blurYShader.bindUniforms()
 
@@ -694,7 +692,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
     to = boxy.frameSize.vec2,
     uvAt = vec2(0, boxy.atlasSize.float32),
     uvTo = vec2(boxy.atlasSize.float32, 0),
-    color = tintColor
+    color = color(1, 1, 1, 1)
   )
   boxy.upload()
   boxy.drawVertexArray()
