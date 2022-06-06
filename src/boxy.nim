@@ -30,21 +30,21 @@ type
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
     atlasTexture, tmpTexture: Texture
-    layerNum: int               ## Index into layer textures for writing.
-    layerTextures: seq[Texture] ## Layers array for pushing and popping.
-    atlasSize: int              ## Size x size dimensions of the atlas.
-    quadCount: int              ## Number of quads drawn so far in this batch.
-    quadsPerBatch: int          ## Max quads in a batch before issuing an OpenGL call.
-    mat: Mat3                   ## The current matrix.
-    mats: seq[Mat3]             ## The matrix stack.
+    layerNum: int                    ## Index into layer textures for writing.
+    layerTextures: seq[Texture]      ## Layers array for pushing and popping.
+    atlasSize: int                   ## Size x size dimensions of the atlas.
+    quadCount: int                   ## Number of quads drawn so far in this batch.
+    quadsPerBatch: int               ## Max quads in a batch before issuing an OpenGL call.
+    mat: Mat3                        ## The current matrix.
+    mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entires used by not flushed yet.
     tileSize: int
     maxTiles: int
     tileRun: int
-    takenTiles: BitArray       ## Flag for if the tile is taken or not.
+    takenTiles: BitArray             ## Flag for if the tile is taken or not.
     proj: Mat4
-    frameSize: IVec2           ## Dimensions of the window frame.
+    frameSize: IVec2                 ## Dimensions of the window frame.
     vertexArrayId, layerFramebufferId: GLuint
     frameBegun: bool
 
@@ -515,9 +515,9 @@ proc readyTmpTexture(boxy: Boxy) =
   # Resize extra blend texture if needed
   if boxy.tmpTexture.width != boxy.frameSize.x.int32 or
     boxy.tmpTexture.height != boxy.frameSize.y.int32:
-      boxy.tmpTexture.width = boxy.frameSize.x.int32
-      boxy.tmpTexture.height = boxy.frameSize.y.int32
-      bindTextureData(boxy.tmpTexture, nil)
+    boxy.tmpTexture.width = boxy.frameSize.x.int32
+    boxy.tmpTexture.height = boxy.frameSize.y.int32
+    bindTextureData(boxy.tmpTexture, nil)
 
 proc clearColor(boxy: Boxy) =
   glViewport(0, 0, boxy.frameSize.x.GLint, boxy.frameSize.y.GLint)
@@ -660,7 +660,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
   boxy.blurXShader.setUniform("srcTexture", 0)
   boxy.blurXShader.setUniform("proj", boxy.proj)
-  boxy.blurXShader.setUniform("pixelScale", 1/boxy.frameSize.x.float32)
+  boxy.blurXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
   boxy.blurXShader.setUniform("blurRadius", radius)
   boxy.blurXShader.bindUniforms()
 
@@ -683,7 +683,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
   boxy.blurYShader.setUniform("srcTexture", 0)
   boxy.blurYShader.setUniform("proj", boxy.proj)
-  boxy.blurYShader.setUniform("pixelScale", 1/boxy.frameSize.y.float32)
+  boxy.blurYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
   boxy.blurYShader.setUniform("blurRadius", radius)
   boxy.blurYShader.bindUniforms()
 
