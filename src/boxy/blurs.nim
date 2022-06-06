@@ -11,6 +11,7 @@ proc blurXMain*(
   color: Vec2,
   fragColor: var Vec4
 ) =
+  fragColor = vec4(0, 0, 0, 0)
   # gaussian blur
   var accumulation = 0f
   let r = blurRadius
@@ -27,6 +28,7 @@ proc blurYMain*(
   color: Vec2,
   fragColor: var Vec4
 ) =
+  fragColor = vec4(0, 0, 0, 0)
   # gaussian blur
   var accumulation = 0f
   let r = blurRadius
