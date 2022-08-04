@@ -8,7 +8,7 @@ var
 proc blurXMain*(
   pos: Vec2,
   uv: Vec2,
-  color: Vec2,
+  color: Vec4,
   fragColor: var Vec4
 ) =
   fragColor = vec4(0, 0, 0, 0)
@@ -24,7 +24,7 @@ proc blurXMain*(
 proc blurYMain*(
   pos: Vec2,
   uv: Vec2,
-  color: Vec2,
+  color: Vec4,
   fragColor: var Vec4
 ) =
   fragColor = vec4(0, 0, 0, 0)
