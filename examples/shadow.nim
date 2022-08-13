@@ -34,14 +34,15 @@ window.onFrame = proc() =
   # # Set the blur amount based on time.
   let radius = 50 * (sin(frame.float32/100) + 1)
 
-  # # Blurs the current pushed layer.
+  # Shadows the current pushed layer.
   let
-    mouse = ivec2(window.mousePos.x, window.size.y-window.mousePos.y).vec2
+    mouse = ivec2(window.mousePos.x, window.mousePos.y).vec2
+
   bxy.dropShadowLayer(
-    color(0, 0, 1, 1),
-    vec2(0, 0), # (mouse - window.size.vec2/2)/10,
+    color(0, 0, 0, 1),
+    (mouse - window.size.vec2/2)/10,
     radius,
-    (mouse - window.size.vec2/2).length / 10
+    0 #(mouse - window.size.vec2/2).length / 10
   )
 
   bxy.popLayer()

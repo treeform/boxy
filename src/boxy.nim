@@ -1,6 +1,6 @@
 import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets, shady,
-    strutils, tables, vmath
+    boxy/shadows, boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets,
+    shady, strutils, tables, vmath
 
 export pixie
 
@@ -29,6 +29,7 @@ type
   Boxy* = ref object
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
+    shadowXShader, shadowYShader: Shader
     atlasTexture, tmpTexture: Texture
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
@@ -218,6 +219,13 @@ proc newBoxy*(
       "glsl/410/atlas.vert",
       "glsl/410/mask.frag"
     )
+    writeFile("atlasVert.glsl", toGLSL(atlasVert))
+    writeFile("blendingMain.glsl", toGLSL(blendingMain))
+    writeFile("blurXMain.glsl", toGLSL(blurXMain))
+    writeFile("blurYMain.glsl", toGLSL(blurYMain))
+    writeFile("blurXMain.glsl", toGLSL(shadowXMain))
+    writeFile("blurYMain.glsl", toGLSL(shadowYMain))
+
     result.blendShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blendingMain))
@@ -229,6 +237,15 @@ proc newBoxy*(
     result.blurYShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blurYMain))
+    )
+
+    result.shadowXShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("shadowXMain", toGLSL(shadowXMain))
+    )
+    result.shadowYShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("shadowYMain", toGLSL(shadowYMain))
     )
 
   result.positions.buffer = Buffer()
@@ -700,6 +717,77 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   # For debugging:
   # boxy.tmpTexture.writeFile("blurX.png")
   # layerTexture.writeFile("blurY.png")
+
+proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: float32) =
+  ## drop shadows the current layer
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "shadowLayer called without pushLayer")
+
+  boxy.flush()
+
+  boxy.pushLayer()
+  let underTexture = boxy.layerTextures[boxy.layerNum]
+  let layerTexture = boxy.layerTextures[boxy.layerNum - 1]
+
+  # shadowX
+  boxy.readyTmpTexture()
+  boxy.drawToTexture(boxy.tmpTexture)
+  boxy.clearColor()
+
+  glUseProgram(boxy.shadowXShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
+  boxy.shadowXShader.setUniform("srcTexture", 0)
+  boxy.shadowXShader.setUniform("proj", boxy.proj)
+  boxy.shadowXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
+
+  boxy.shadowXShader.setUniform("shadowRadius", radius)
+  #boxy.shadowXShader.setUniform("shadowSpread", spread)
+
+  boxy.shadowXShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0),
+    to = boxy.frameSize.vec2,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    color = color(1, 1, 1, 1)
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  # shadowY
+  boxy.drawToTexture(underTexture)
+  boxy.clearColor()
+
+  glUseProgram(boxy.shadowYShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
+  boxy.shadowYShader.setUniform("srcTexture", 0)
+  boxy.shadowYShader.setUniform("proj", boxy.proj)
+  boxy.shadowYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
+
+  boxy.shadowYShader.setUniform("shadowRadius", radius)
+  #boxy.shadowYShader.setUniform("shadowSpread", spread)
+
+  boxy.shadowYShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0) + offset,
+    to = boxy.frameSize.vec2 + offset,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    color = color
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  swap(boxy.layerTextures[boxy.layerNum], boxy.layerTextures[boxy.layerNum - 1])
+  boxy.popLayer()
+
+  # For debugging:
+  # boxy.tmpTexture.writeFile("shadowX.png")
+  # layerTexture.writeFile("shadowY.png")
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.

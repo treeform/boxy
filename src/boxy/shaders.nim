@@ -26,6 +26,7 @@ proc getErrorLog*(
   strProc: typeof(glGetShaderInfoLog)
 ): string =
   ## Gets the error log from compiling or linking shaders.
+  echo path, " :"
   var length: GLint = 0
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)
@@ -356,6 +357,12 @@ proc setUniform*(shader: Shader, name: string, args: varargs[float32]) =
       raiseUniformVarargsException(name, len(args))
 
   shader.setUniform(name, cGL_FLOAT, kind, values)
+
+proc setUniform*(shader: Shader, name: string, v: Vec2) =
+  var values: array[16, float32]
+  values[0] = v.x
+  values[1] = v.y
+  shader.setUniform(name, cGL_FLOAT, bkVEC2, values)
 
 proc setUniform*(shader: Shader, name: string, v: Vec3) =
   var values: array[16, float32]
