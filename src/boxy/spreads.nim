@@ -2,19 +2,18 @@ import shady, vmath
 
 var
   srcTexture: Uniform[Sampler2d]
-  shadowSpread: Uniform[float32]
+  radius: Uniform[float32]
   pixelScale: Uniform[float32]
 
-proc shadowXMain*(
+proc spreadXMain*(
   pos: Vec2,
   uv: Vec2,
   color: Vec4,
   fragColor: var Vec4
 ) =
-  # spread
   var
     alpha = 0f
-  let r = shadowSpread
+  let r = radius
   for x in floor(-r).int .. ceil(r).int:
     alpha = max(alpha, texture(
       srcTexture,
@@ -22,16 +21,15 @@ proc shadowXMain*(
     ).a)
   fragColor.rgba = vec4(alpha)
 
-proc shadowYMain*(
+proc spreadYMain*(
   pos: Vec2,
   uv: Vec2,
   color: Vec4,
   fragColor: var Vec4
 ) =
-  # spread
   var
     alpha = 0f
-  let r = shadowSpread
+  let r = radius
   for y in floor(-r).int .. ceil(r).int:
     alpha = max(alpha, texture(
       srcTexture,

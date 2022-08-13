@@ -1,5 +1,5 @@
 import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/shadows, boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets,
+    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets,
     shady, strutils, tables, vmath
 
 export pixie
@@ -29,7 +29,7 @@ type
   Boxy* = ref object
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
-    shadowXShader, shadowYShader: Shader
+    spreadXShader, spreadYShader: Shader
     atlasTexture, tmpTexture: Texture
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
@@ -232,13 +232,13 @@ proc newBoxy*(
       ("blendingMain", toGLSL(blurYMain))
     )
 
-    result.shadowXShader = newShader(
+    result.spreadXShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
-      ("shadowXMain", toGLSL(shadowXMain))
+      ("spreadXMain", toGLSL(spreadXMain))
     )
-    result.shadowYShader = newShader(
+    result.spreadYShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
-      ("shadowYMain", toGLSL(shadowYMain))
+      ("spreadYMain", toGLSL(spreadYMain))
     )
 
   result.positions.buffer = Buffer()
@@ -737,19 +737,19 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   let underTexture = boxy.layerTextures[boxy.layerNum]
   let layerTexture = boxy.layerTextures[boxy.layerNum - 1]
 
-  # shadowX
+  # spreadX
   boxy.readyTmpTexture()
   boxy.drawToTexture(boxy.tmpTexture)
   boxy.clearColor()
 
-  glUseProgram(boxy.shadowXShader.programId)
+  glUseProgram(boxy.spreadXShader.programId)
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
-  boxy.shadowXShader.setUniform("srcTexture", 0)
-  boxy.shadowXShader.setUniform("proj", boxy.proj)
-  boxy.shadowXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
-  boxy.shadowXShader.setUniform("shadowSpread", spread)
-  boxy.shadowXShader.bindUniforms()
+  boxy.spreadXShader.setUniform("srcTexture", 0)
+  boxy.spreadXShader.setUniform("proj", boxy.proj)
+  boxy.spreadXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
+  boxy.spreadXShader.setUniform("radius", spread)
+  boxy.spreadXShader.bindUniforms()
 
   boxy.drawUvRect(
     at = vec2(0, 0),
@@ -761,20 +761,18 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   boxy.upload()
   boxy.drawVertexArray()
 
-  #boxy.tmpTexture.writeFile("shadowX.png")
-
-  # shadowY
+  # spreadY
   boxy.drawToTexture(underTexture)
   boxy.clearColor()
 
-  glUseProgram(boxy.shadowYShader.programId)
+  glUseProgram(boxy.spreadYShader.programId)
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
-  boxy.shadowYShader.setUniform("srcTexture", 0)
-  boxy.shadowYShader.setUniform("proj", boxy.proj)
-  boxy.shadowYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
-  boxy.shadowYShader.setUniform("shadowSpread", spread)
-  boxy.shadowYShader.bindUniforms()
+  boxy.spreadYShader.setUniform("srcTexture", 0)
+  boxy.spreadYShader.setUniform("proj", boxy.proj)
+  boxy.spreadYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
+  boxy.spreadYShader.setUniform("radius", spread)
+  boxy.spreadYShader.bindUniforms()
 
   boxy.drawUvRect(
     at = vec2(0, 0) + offset,
@@ -792,8 +790,8 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   boxy.popLayer()
 
   # For debugging:
-  # boxy.tmpTexture.writeFile("shadowX.png")
-  # layerTexture.writeFile("shadowY.png")
+  # boxy.tmpTexture.writeFile("spreadX.png")
+  # layerTexture.writeFile("spreadY.png")
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
