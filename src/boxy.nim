@@ -219,13 +219,6 @@ proc newBoxy*(
       "glsl/410/atlas.vert",
       "glsl/410/mask.frag"
     )
-    writeFile("atlasVert.glsl", toGLSL(atlasVert))
-    writeFile("blendingMain.glsl", toGLSL(blendingMain))
-    writeFile("blurXMain.glsl", toGLSL(blurXMain))
-    writeFile("blurYMain.glsl", toGLSL(blurYMain))
-    writeFile("blurXMain.glsl", toGLSL(shadowXMain))
-    writeFile("blurYMain.glsl", toGLSL(shadowYMain))
-
     result.blendShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blendingMain))
@@ -658,14 +651,19 @@ proc popLayer*(
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
   boxy.activeShader = boxy.atlasShader
 
-proc blurLayer*(boxy: Boxy, radius: float32) =
+proc blurLayerAdvanced(
+  boxy: Boxy,
+  radius: float32,
+  color=color(1, 1, 1, 1),
+  offset: Vec2,
+  fromTexture: Texture,
+  toTexture: Texture
+) =
   ## Blurs the current layer
   if boxy.layerNum == -1:
     raise newException(BoxyError, "blurLayer called without pushLayer")
 
   boxy.flush()
-
-  let layerTexture = boxy.layerTextures[boxy.layerNum]
 
   # blurX
   boxy.readyTmpTexture()
@@ -674,7 +672,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
 
   glUseProgram(boxy.blurXShader.programId)
   glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
+  glBindTexture(GL_TEXTURE_2D, fromTexture.textureId)
   boxy.blurXShader.setUniform("srcTexture", 0)
   boxy.blurXShader.setUniform("proj", boxy.proj)
   boxy.blurXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
@@ -692,7 +690,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   boxy.drawVertexArray()
 
   # blurY
-  boxy.drawToTexture(layerTexture)
+  boxy.drawToTexture(toTexture)
   boxy.clearColor()
 
   glUseProgram(boxy.blurYShader.programId)
@@ -705,18 +703,28 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   boxy.blurYShader.bindUniforms()
 
   boxy.drawUvRect(
-    at = vec2(0, 0),
-    to = boxy.frameSize.vec2,
+    at = offset,
+    to = offset + boxy.frameSize.vec2,
     uvAt = vec2(0, boxy.atlasSize.float32),
     uvTo = vec2(boxy.atlasSize.float32, 0),
-    color = color(1, 1, 1, 1)
+    color = color
   )
   boxy.upload()
   boxy.drawVertexArray()
 
   # For debugging:
   # boxy.tmpTexture.writeFile("blurX.png")
-  # layerTexture.writeFile("blurY.png")
+  # texture.writeFile("blurY.png")
+
+proc blurLayer*(boxy: Boxy, radius: float32) =
+  let topLayerTexture = boxy.layerTextures[boxy.layerNum]
+  boxy.blurLayerAdvanced(
+    radius,
+    color=color(1, 1, 1, 1),
+    vec2(0, 0),
+    topLayerTexture,
+    topLayerTexture
+  )
 
 proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: float32) =
   ## drop shadows the current layer
@@ -740,10 +748,7 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   boxy.shadowXShader.setUniform("srcTexture", 0)
   boxy.shadowXShader.setUniform("proj", boxy.proj)
   boxy.shadowXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
-
-  boxy.shadowXShader.setUniform("shadowRadius", radius)
-  #boxy.shadowXShader.setUniform("shadowSpread", spread)
-
+  boxy.shadowXShader.setUniform("shadowSpread", spread)
   boxy.shadowXShader.bindUniforms()
 
   boxy.drawUvRect(
@@ -756,6 +761,8 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   boxy.upload()
   boxy.drawVertexArray()
 
+  #boxy.tmpTexture.writeFile("shadowX.png")
+
   # shadowY
   boxy.drawToTexture(underTexture)
   boxy.clearColor()
@@ -766,10 +773,7 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   boxy.shadowYShader.setUniform("srcTexture", 0)
   boxy.shadowYShader.setUniform("proj", boxy.proj)
   boxy.shadowYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
-
-  boxy.shadowYShader.setUniform("shadowRadius", radius)
-  #boxy.shadowYShader.setUniform("shadowSpread", spread)
-
+  boxy.shadowYShader.setUniform("shadowSpread", spread)
   boxy.shadowYShader.bindUniforms()
 
   boxy.drawUvRect(
@@ -781,6 +785,8 @@ proc dropShadowLayer*(boxy: Boxy, color: Color, offset: Vec2, radius, spread: fl
   )
   boxy.upload()
   boxy.drawVertexArray()
+
+  boxy.blurLayerAdvanced(radius, color, offset, underTexture, underTexture)
 
   swap(boxy.layerTextures[boxy.layerNum], boxy.layerTextures[boxy.layerNum - 1])
   boxy.popLayer()

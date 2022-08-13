@@ -39,10 +39,10 @@ window.onFrame = proc() =
     mouse = ivec2(window.mousePos.x, window.mousePos.y).vec2
 
   bxy.dropShadowLayer(
-    color(0, 0, 0, 1),
+    color(1, 0, 0, 1),
     (mouse - window.size.vec2/2)/10,
     radius,
-    0 #(mouse - window.size.vec2/2).length / 10
+    10 #(mouse - window.size.vec2/2).length / 10
   )
 
   bxy.popLayer()
