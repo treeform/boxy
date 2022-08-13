@@ -11,14 +11,23 @@ proc spreadXMain*(
   color: Vec4,
   fragColor: var Vec4
 ) =
-  var
+  var alpha: float32
+  if radius >= 0:
+    let r = radius
     alpha = 0f
-  let r = radius
-  for x in floor(-r).int .. ceil(r).int:
-    alpha = max(alpha, texture(
-      srcTexture,
-      uv + vec2(x.float32 * pixelScale, 0)
-    ).a)
+    for x in floor(-r).int .. ceil(r).int:
+      alpha = max(alpha, texture(
+        srcTexture,
+        uv + vec2(x.float32 * pixelScale, 0)
+      ).a)
+  else:
+    let r = -radius
+    alpha = 1f
+    for x in floor(-r).int .. ceil(r).int:
+      alpha = min(alpha, texture(
+        srcTexture,
+        uv + vec2(x.float32 * pixelScale, 0)
+      ).a)
   fragColor.rgba = vec4(alpha)
 
 proc spreadYMain*(
@@ -27,12 +36,21 @@ proc spreadYMain*(
   color: Vec4,
   fragColor: var Vec4
 ) =
-  var
+  var alpha: float32
+  if radius >= 0:
+    let r = radius
     alpha = 0f
-  let r = radius
-  for y in floor(-r).int .. ceil(r).int:
-    alpha = max(alpha, texture(
-      srcTexture,
-      uv + vec2(0, y.float32 * pixelScale)
-    ).a)
+    for y in floor(-r).int .. ceil(r).int:
+      alpha = max(alpha, texture(
+        srcTexture,
+        uv + vec2(0, y.float32 * pixelScale)
+      ).a)
+  else:
+    let r = -radius
+    alpha = 1f
+    for y in floor(-r).int .. ceil(r).int:
+      alpha = min(alpha, texture(
+        srcTexture,
+        uv + vec2(0, y.float32 * pixelScale)
+      ).a)
   fragColor.rgba = vec4(alpha)
