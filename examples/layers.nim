@@ -36,7 +36,7 @@ window.onFrame = proc() =
   bxy.drawImage("mask", center = vec2(0, 0), angle = 0, color(1, 1, 1, 1))
   bxy.restoreTransform()
 
-  bxy.popLayer(tintColor = c2)
+  bxy.popLayer(tint = c2)
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()

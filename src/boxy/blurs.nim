@@ -36,3 +36,4 @@ proc blurYMain*(
     fragColor += texture(srcTexture, uv + vec2(0, y.float32 * pixelScale)) * a
     accumulation += a
   fragColor = fragColor / accumulation
+  fragColor *= color

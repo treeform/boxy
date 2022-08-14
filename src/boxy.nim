@@ -1,6 +1,6 @@
 import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets, shady,
-    strutils, tables, vmath
+    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets,
+    shady, strutils, tables, vmath
 
 export pixie
 
@@ -29,6 +29,7 @@ type
   Boxy* = ref object
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
+    spreadXShader, spreadYShader: Shader
     atlasTexture, tmpTexture: Texture
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
@@ -229,6 +230,15 @@ proc newBoxy*(
     result.blurYShader = newShader(
       ("atlasVert", toGLSL(atlasVert)),
       ("blendingMain", toGLSL(blurYMain))
+    )
+
+    result.spreadXShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("spreadXMain", toGLSL(spreadXMain))
+    )
+    result.spreadYShader = newShader(
+      ("atlasVert", toGLSL(atlasVert)),
+      ("spreadYMain", toGLSL(spreadYMain))
     )
 
   result.positions.buffer = Buffer()
@@ -442,7 +452,7 @@ proc drawQuad(
   boxy: Boxy,
   verts: array[4, Vec2],
   uvs: array[4, Vec2],
-  colors: array[4, Color]
+  tints: array[4, Color]
 ) =
   boxy.checkBatch()
 
@@ -457,14 +467,14 @@ proc drawQuad(
   boxy.uvs.data.setVert(offset + 2, uvs[2])
   boxy.uvs.data.setVert(offset + 3, uvs[3])
 
-  boxy.colors.data.setVertColor(offset + 0, colors[0].asRgbx())
-  boxy.colors.data.setVertColor(offset + 1, colors[1].asRgbx())
-  boxy.colors.data.setVertColor(offset + 2, colors[2].asRgbx())
-  boxy.colors.data.setVertColor(offset + 3, colors[3].asRgbx())
+  boxy.colors.data.setVertColor(offset + 0, tints[0].asRgbx())
+  boxy.colors.data.setVertColor(offset + 1, tints[1].asRgbx())
+  boxy.colors.data.setVertColor(offset + 2, tints[2].asRgbx())
+  boxy.colors.data.setVertColor(offset + 3, tints[3].asRgbx())
 
   inc boxy.quadCount
 
-proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
+proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color) =
   ## Adds an image rect with a path to an ctx
   ## at, to, uvAt, uvTo are all in pixels
   let
@@ -482,9 +492,9 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, color: Color) =
       vec2(uvTo.x, uvAt.y),
       vec2(uvAt.x, uvAt.y),
     ]
-    colorQuad = [color, color, color, color]
+    tints = [tint, tint, tint, tint]
 
-  boxy.drawQuad(posQuad, uvQuad, colorQuad)
+  boxy.drawQuad(posQuad, uvQuad, tints)
 
 proc drawRect*(
   boxy: Boxy,
@@ -547,7 +557,7 @@ proc pushLayer*(boxy: Boxy) =
 
 proc popLayer*(
   boxy: Boxy,
-  tintColor = color(1, 1, 1, 1),
+  tint = color(1, 1, 1, 1),
   blendMode: BlendMode = NormalBlend
 ) =
   ## Pops the layer and draws with tint and blend.
@@ -587,7 +597,7 @@ proc popLayer*(
       to = boxy.frameSize.vec2,
       uvAt = vec2(0, boxy.atlasSize.float32),
       uvTo = vec2(boxy.atlasSize.float32, 0),
-      color = tintColor
+      tint = tint
     )
     boxy.flush()
 
@@ -606,7 +616,7 @@ proc popLayer*(
       to = boxy.frameSize.vec2,
       uvAt = vec2(0, boxy.atlasSize.float32),
       uvTo = vec2(boxy.atlasSize.float32, 0),
-      color = tintColor
+      tint = tint
     )
 
     boxy.upload()
@@ -641,14 +651,19 @@ proc popLayer*(
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
   boxy.activeShader = boxy.atlasShader
 
-proc blurLayer*(boxy: Boxy, radius: float32) =
+proc blurEffect(
+  boxy: Boxy,
+  radius: float32,
+  tint: Color,
+  offset: Vec2,
+  readTexture: Texture,
+  writeTexture: Texture
+) =
   ## Blurs the current layer
   if boxy.layerNum == -1:
-    raise newException(BoxyError, "blurLayer called without pushLayer")
+    raise newException(BoxyError, "blurEffect called without pushLayer")
 
   boxy.flush()
-
-  let layerTexture = boxy.layerTextures[boxy.layerNum]
 
   # blurX
   boxy.readyTmpTexture()
@@ -657,7 +672,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
 
   glUseProgram(boxy.blurXShader.programId)
   glActiveTexture(GL_TEXTURE0)
-  glBindTexture(GL_TEXTURE_2D, layerTexture.textureId)
+  glBindTexture(GL_TEXTURE_2D, readTexture.textureId)
   boxy.blurXShader.setUniform("srcTexture", 0)
   boxy.blurXShader.setUniform("proj", boxy.proj)
   boxy.blurXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
@@ -669,13 +684,13 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
     to = boxy.frameSize.vec2,
     uvAt = vec2(0, boxy.atlasSize.float32),
     uvTo = vec2(boxy.atlasSize.float32, 0),
-    color = color(1, 1, 1, 1)
+    tint = color(1, 1, 1, 1)
   )
   boxy.upload()
   boxy.drawVertexArray()
 
   # blurY
-  boxy.drawToTexture(layerTexture)
+  boxy.drawToTexture(writeTexture)
   boxy.clearColor()
 
   glUseProgram(boxy.blurYShader.programId)
@@ -688,18 +703,98 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
   boxy.blurYShader.bindUniforms()
 
   boxy.drawUvRect(
-    at = vec2(0, 0),
-    to = boxy.frameSize.vec2,
+    at = offset,
+    to = offset + boxy.frameSize.vec2,
     uvAt = vec2(0, boxy.atlasSize.float32),
     uvTo = vec2(boxy.atlasSize.float32, 0),
-    color = color(1, 1, 1, 1)
+    tint = tint
   )
   boxy.upload()
   boxy.drawVertexArray()
 
   # For debugging:
   # boxy.tmpTexture.writeFile("blurX.png")
-  # layerTexture.writeFile("blurY.png")
+  # texture.writeFile("blurY.png")
+
+proc blurEffect*(boxy: Boxy, radius: float32) =
+  ## Blurs the current layer
+  let layerTexture = boxy.layerTextures[boxy.layerNum]
+  boxy.blurEffect(
+    radius,
+    color(1, 1, 1, 1),
+    vec2(0, 0),
+    layerTexture,
+    layerTexture
+  )
+
+proc dropShadowEffect*(boxy: Boxy, tint: Color, offset: Vec2, radius, spread: float32) =
+  ## Drop shadows the current layer
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "shadowLayer called without pushLayer")
+
+  boxy.flush()
+
+  boxy.pushLayer()
+
+  let
+    shadowLayer = boxy.layerTextures[boxy.layerNum]
+    mainLayer = boxy.layerTextures[boxy.layerNum - 1]
+
+  # spreadX
+  boxy.readyTmpTexture()
+  boxy.drawToTexture(boxy.tmpTexture)
+  boxy.clearColor()
+
+  glUseProgram(boxy.spreadXShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, mainLayer.textureId)
+  boxy.spreadXShader.setUniform("srcTexture", 0)
+  boxy.spreadXShader.setUniform("proj", boxy.proj)
+  boxy.spreadXShader.setUniform("pixelScale", 1 / boxy.frameSize.x.float32)
+  boxy.spreadXShader.setUniform("radius", spread)
+  boxy.spreadXShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0),
+    to = boxy.frameSize.vec2,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    tint = color(1, 1, 1, 1)
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  # spreadY
+  boxy.drawToTexture(shadowLayer)
+  boxy.clearColor()
+
+  glUseProgram(boxy.spreadYShader.programId)
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.tmpTexture.textureId)
+  boxy.spreadYShader.setUniform("srcTexture", 0)
+  boxy.spreadYShader.setUniform("proj", boxy.proj)
+  boxy.spreadYShader.setUniform("pixelScale", 1 / boxy.frameSize.y.float32)
+  boxy.spreadYShader.setUniform("radius", spread)
+  boxy.spreadYShader.bindUniforms()
+
+  boxy.drawUvRect(
+    at = vec2(0, 0) + offset,
+    to = boxy.frameSize.vec2 + offset,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    tint = color(1, 1, 1, 1)
+  )
+  boxy.upload()
+  boxy.drawVertexArray()
+
+  boxy.blurEffect(radius, tint, offset, shadowLayer, shadowLayer)
+
+  swap(boxy.layerTextures[boxy.layerNum], boxy.layerTextures[boxy.layerNum - 1])
+  boxy.popLayer()
+
+  # For debugging:
+  # boxy.tmpTexture.writeFile("spreadX.png")
+  # mainLayer.writeFile("spreadY.png")
 
 proc beginFrame*(boxy: Boxy, frameSize: IVec2, proj: Mat4, clearFrame = true) =
   ## Starts a new frame.
@@ -795,7 +890,7 @@ proc drawImage*(
   boxy: Boxy,
   key: string,
   pos: Vec2,
-  tintColor = color(1, 1, 1, 1)
+  tint = color(1, 1, 1, 1)
 ) =
   ## Draws image at pos from top-left.
   ## The image should have already been added.
@@ -803,7 +898,7 @@ proc drawImage*(
   if imageInfo.tiles.len == 0:
     boxy.drawRect(
       rect(pos, imageInfo.size.vec2),
-      imageInfo.oneColor * tintColor
+      imageInfo.oneColor * tint
     )
   else:
     var i = 0
@@ -848,7 +943,7 @@ proc drawImage*(
             posAt + vec2(boxy.tileSize, boxy.tileSize),
             uvAt,
             uvAt + vec2(boxy.tileSize, boxy.tileSize),
-            tintColor
+            tint
           )
         of tkColor:
           if tile.color != color(0, 0, 0, 0):
@@ -859,7 +954,7 @@ proc drawImage*(
             )
             boxy.drawRect(
               rect(posAt, wh),
-              tile.color * tintColor
+              tile.color * tint
             )
         inc i
 
@@ -870,7 +965,7 @@ proc drawImage*(
   boxy: Boxy,
   key: string,
   rect: Rect,
-  tintColor = color(1, 1, 1, 1)
+  tint = color(1, 1, 1, 1)
 ) =
   ## Draws image at filling the ract.
   ## The image should have already been added.
@@ -883,7 +978,7 @@ proc drawImage*(
       rect.y / scale.y
     )
   boxy.scale(scale)
-  boxy.drawImage(key, pos, tintColor)
+  boxy.drawImage(key, pos, tint)
   boxy.restoreTransform()
 
 proc drawImage*(
@@ -891,7 +986,7 @@ proc drawImage*(
   key: string,
   center: Vec2,
   angle: float32,
-  tintColor = color(1, 1, 1, 1)
+  tint = color(1, 1, 1, 1)
 ) =
   ## Draws image at center and rotated by angle.
   ## The image should have already been added.
@@ -900,5 +995,5 @@ proc drawImage*(
   boxy.translate(center)
   boxy.rotate(angle)
   boxy.translate(-imageInfo.size.vec2 / 2)
-  boxy.drawImage(key, pos = vec2(0, 0), tintColor)
+  boxy.drawImage(key, pos = vec2(0, 0), tint)
   boxy.restoreTransform()

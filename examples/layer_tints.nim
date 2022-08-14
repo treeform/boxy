@@ -27,10 +27,10 @@ window.onFrame = proc() =
   bxy.drawImage("greece", center = vec2(0, 0), angle = 0, color(1, 1, 1, 1))
   bxy.restoreTransform()
 
-  bxy.popLayer(tintColor = color(1, 1, 1, 0.5))
-  bxy.popLayer(tintColor = color(1, 1, 1, 0.5))
-  bxy.popLayer(tintColor = color(1, 1, 1, 0.5))
-  bxy.popLayer(tintColor = color(1, 1, 1, 0.5))
+  bxy.popLayer(tint = color(1, 1, 1, 0.5))
+  bxy.popLayer(tint = color(1, 1, 1, 0.5))
+  bxy.popLayer(tint = color(1, 1, 1, 0.5))
+  bxy.popLayer(tint = color(1, 1, 1, 0.5))
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()
