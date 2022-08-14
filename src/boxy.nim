@@ -651,7 +651,7 @@ proc popLayer*(
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
   boxy.activeShader = boxy.atlasShader
 
-proc blurLayer(
+proc blurEffect(
   boxy: Boxy,
   radius: float32,
   tint: Color,
@@ -661,7 +661,7 @@ proc blurLayer(
 ) =
   ## Blurs the current layer
   if boxy.layerNum == -1:
-    raise newException(BoxyError, "blurLayer called without pushLayer")
+    raise newException(BoxyError, "blurEffect called without pushLayer")
 
   boxy.flush()
 
@@ -716,10 +716,10 @@ proc blurLayer(
   # boxy.tmpTexture.writeFile("blurX.png")
   # texture.writeFile("blurY.png")
 
-proc blurLayer*(boxy: Boxy, radius: float32) =
+proc blurEffect*(boxy: Boxy, radius: float32) =
   ## Blurs the current layer
   let layerTexture = boxy.layerTextures[boxy.layerNum]
-  boxy.blurLayer(
+  boxy.blurEffect(
     radius,
     color(1, 1, 1, 1),
     vec2(0, 0),
@@ -727,7 +727,7 @@ proc blurLayer*(boxy: Boxy, radius: float32) =
     layerTexture
   )
 
-proc dropShadowLayer*(boxy: Boxy, tint: Color, offset: Vec2, radius, spread: float32) =
+proc dropShadowEffect*(boxy: Boxy, tint: Color, offset: Vec2, radius, spread: float32) =
   ## Drop shadows the current layer
   if boxy.layerNum == -1:
     raise newException(BoxyError, "shadowLayer called without pushLayer")
@@ -735,6 +735,7 @@ proc dropShadowLayer*(boxy: Boxy, tint: Color, offset: Vec2, radius, spread: flo
   boxy.flush()
 
   boxy.pushLayer()
+
   let
     shadowLayer = boxy.layerTextures[boxy.layerNum]
     mainLayer = boxy.layerTextures[boxy.layerNum - 1]
@@ -786,7 +787,7 @@ proc dropShadowLayer*(boxy: Boxy, tint: Color, offset: Vec2, radius, spread: flo
   boxy.upload()
   boxy.drawVertexArray()
 
-  boxy.blurLayer(radius, tint, offset, shadowLayer, shadowLayer)
+  boxy.blurEffect(radius, tint, offset, shadowLayer, shadowLayer)
 
   swap(boxy.layerTextures[boxy.layerNum], boxy.layerTextures[boxy.layerNum - 1])
   boxy.popLayer()

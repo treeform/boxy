@@ -37,7 +37,7 @@ window.onFrame = proc() =
   # Shadow follows the mouse.
   let mouse = ivec2(window.mousePos.x, window.mousePos.y).vec2
 
-  bxy.dropShadowLayer(
+  bxy.dropShadowEffect(
     color(0, 0, 0, 1),
     (mouse - window.size.vec2/2) / 10,
     radius,

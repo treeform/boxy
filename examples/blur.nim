@@ -30,7 +30,7 @@ window.onFrame = proc() =
   let radius = 50 * (sin(frame.float32/100) + 1)
 
   # Blurs the current pushed layer.
-  bxy.blurLayer(radius)
+  bxy.blurEffect(radius)
 
   bxy.popLayer()
 
