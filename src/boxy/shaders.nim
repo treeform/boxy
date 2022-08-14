@@ -26,7 +26,6 @@ proc getErrorLog*(
   strProc: typeof(glGetShaderInfoLog)
 ): string =
   ## Gets the error log from compiling or linking shaders.
-  echo path, " :"
   var length: GLint = 0
   lenProc(id, GL_INFO_LOG_LENGTH, length.addr)
   var log = newString(length.int)

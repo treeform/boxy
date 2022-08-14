@@ -33,7 +33,7 @@ window.onFrame = proc() =
     "mask",
     center = window.size.vec2 / 2,
     angle = 0,
-    tintColor = color(1, 0, 0, 1)
+    tint = color(1, 0, 0, 1)
   )
   bxy.popLayer(blendMode = MaskBlend)
 

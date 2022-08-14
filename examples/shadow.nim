@@ -27,23 +27,21 @@ window.onFrame = proc() =
     "mask",
     center = vec2(0, 0),
     angle = 0,
-    tintColor = color(1, 1, 1, 1)
+    tint = color(1, 1, 1, 1)
   )
   bxy.restoreTransform()
 
-  # # Set the blur amount based on time.
+  # Set the shadow blur amount based on time.
   let radius = 50 * (sin(frame.float32/100) + 1)
-  let spread = 20 * (cos(frame.float32/200))
 
-  # Shadows the current pushed layer.
-  let
-    mouse = ivec2(window.mousePos.x, window.mousePos.y).vec2
+  # Shadow follows the mouse.
+  let mouse = ivec2(window.mousePos.x, window.mousePos.y).vec2
 
   bxy.dropShadowLayer(
-    color(1, 0, 0, 1),
+    color(0, 0, 0, 1),
     (mouse - window.size.vec2/2) / 10,
     radius,
-    10 #spread
+    10
   )
 
   bxy.popLayer()
