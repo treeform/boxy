@@ -909,9 +909,11 @@ proc drawImage*(
       wantLevel = int((-log2(vecMag) + 0.5).floor)
       level = clamp(wantLevel, 0, imageInfo.tiles.len - 1)
       levelPow2 = 2 ^ level
+      scale = vec2(levelPow2, levelPow2)
+      pos = pos / scale
 
     boxy.saveTransform()
-    boxy.scale(vec2(levelPow2, levelPow2))
+    boxy.scale(scale)
 
     var
       width = imageInfo.size.x
