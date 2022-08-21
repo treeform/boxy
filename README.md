@@ -20,6 +20,11 @@ The basic model for using Boxy goes something like this:
 * Add these images to Boxy, where they are put into a tiling atlas texture.
 * Draw these images to screen each frame.
 
+## Videos
+
+* [Efficient 2D rendering on GPU](https://www.youtube.com/watch?v=UFbffBIzEDc)
+* [GPU Gaussian Blur in Nim using Boxy and Shady](https://youtu.be/oUB0BGsNY5g)
+
 ## Basic Example
 
 ```nim
