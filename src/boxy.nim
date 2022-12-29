@@ -1025,17 +1025,14 @@ proc drawImage*(
   boxy.drawImage(key, pos = vec2(0, 0), tint)
   boxy.restoreTransform()
 
-proc addLayerAsImage*(boxy: Boxy, key: string, rect: Rect, genMipmaps = true) =
-  ## Adds already drawn seection as image.
-
+proc getImage*(boxy: Boxy, bounds: Rect): Image =
+  ## Gets iamge from the current layer.
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   let fullLayer = layerTexture.readImage()
   fullLayer.flipVertical()
-
-  var layerImage = fullLayer.subImage(
-    rect.x.int,
-    rect.y.int,
-    rect.w.int,
-    rect.h.int
+  return fullLayer.subImage(
+    bounds.x.int,
+    bounds.y.int,
+    bounds.w.int,
+    bounds.h.int
   )
-  boxy.addImage(key, layerImage, genMipmaps)

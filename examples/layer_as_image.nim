@@ -8,11 +8,7 @@ let bxy = newBoxy()
 
 # Load the image.
 let greeceImage = readImage("examples/data/greece.png")
-echo greeceImage.width
-echo greeceImage.height
-
 bxy.addImage("greece", greeceImage)
-
 
 # Draw into an image so that it can be resued.
 # Blur operation are potentially costly, save to an atlas already blured
@@ -23,7 +19,7 @@ bxy.pushLayer()
 bxy.drawImage("greece", pos = vec2(50, 50))
 bxy.blurLayer(50)
 
-bxy.addLayerAsImage("greeceBlur", rect(0, 0, 512+50*2, 512+50*2))
+bxy.addImage("greeceBlur", bxy.getImage(rect(0, 0, 512+50*2, 512+50*2)))
 
 bxy.popLayer()
 
