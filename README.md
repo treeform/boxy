@@ -8,29 +8,35 @@
 
 [API reference](https://treeform.github.io/boxy)
 
-## About Boxy
+## About
 
-Welcome, dear reader, to the fantastical realm of Boxy! If you've stumbled upon this page, chances are you're seeking a way to bring your 2D graphics projects to life in the delightful programming language of Nim. Perhaps you're even dreaming of creating the next great 2D game. Well, fear not – Boxy is here to help you realize those dreams and more!
+Boxy is a powerful 2D graphics library for Nim that allows developers to easily create stunning visuals using the GPU. Built on top of the [Pixie](https://github.com/treeform/pixie) image library and OpenGL. Boxy provides a simple, yet powerful API for rendering 2D graphics.
 
-With Boxy, you'll be able to easily create stunning visuals using the power of Nim and OpenGL, the industry-standard graphics API. All you need to do is open a window, load your images, and let Boxy take care of the rest. Plus, with its simple and intuitive API, you'll be up and running in no time, even if you're new to Nim.
+Using Boxy is straightforward. First, you can open a window using [Windy](https://github.com/treeform/windy) and prepare an OpenGL context. Then, you can load image files using [Pixie](https://github.com/treeform/pixie) or render any dynamic assets, such as text. These images can then be added to Boxy, where they are placed into the tiling atlas texture. You can draw these images to the screen each frame to create a smooth, seamless visual experience. At any point an image may be removed or added to the boxy tiling atlas. You can also use layers to mask, shadow or blending or apply shadow or blur effects.
 
-But Boxy isn't just about drawing pretty pictures frame after frame – it's also about making them fast. By rendering dynamic assets (such as text) into images once using Pixie and then adding them to Boxy, you can take advantage of Boxy's tiling atlas texture to draw your images to the screen each frame with lightning-fast speed.
+### Dynamic Texture Atlas
 
-Ah, the Boxy tiling atlas! This is where all the magic happens. You see, the tiling atlas is what makes Boxy so fast and efficient. It's like a giant canvas where you can add and remove images with ease, without worrying about fragmentation or wasting texture space.
-
-But how does it work, you might ask? Well, it's actually quite simple. When you add an image to the tiling atlas, it's automatically converted into a set of 32x32 tiles. This might sound like a lot of work, but don't worry – Boxy takes care of everything for you in the background.
-
-And here's the really cool part: Boxy is smart enough to skip over any transparent tiles, so they won't be drawn on screen. Plus, solid colors are optimized! This means that you can use all sorts images with big single color or transparent swatches without worrying about performance. Huge UI rectangles or sprites with liberal transparent padding are drawn even faster!
+One of the coolest features of Boxy is its use of a dynamic [texture atlas](https://en.wikipedia.org/wiki/Texture_atlas), which helps to optimize graphics rendering by breaking images into small tiles that can be efficiently stored in texture memory. This helps to eliminate texture memory fragmentation and can improve rendering speed by not drawing transparent tiles or drawing solid color tiles without texture memory overhead. This is particularly useful for UI elements that have borders but a solid color in the middle, as well as sprites with liberal use transparency.
 
 See our youtube video on the topic: https://www.youtube.com/watch?v=UFbffBIzEDc
 
-But that's not all – Boxy also has some advanced features that you can use to really spice up your graphics. For example, you can push and pop layers to create all sorts of interesting effects, like parallax scrolling or pop-up menus. You can also apply different blending modes to layers, or even mask them with other layers. And if that's not enough, you can even blur and shadow with layers, or save parts of them back as images for later use.
+### Powerful Layers
 
-Boxy runs on Windows, Mac, and Linux, so you can use it no matter what kind of computer you have. And with its easy-to-use API, you'll be up and running in no time.
+Another great features of Boxy is its support for layers, which allow developers to create complex graphics and visual effects with ease. Layers in Boxy can be used for a variety of purposes, including masking, shadowing, and blending.
 
-But what exactly is Boxy, you might ask? Well, think of it being similar to the drawing part of the SDL and PyGame libraries. It's got all the power and flexibility you need to create beautiful graphics, with none of the complexity. Just load your images, add them to the tiling atlas, and watch the magic happen!
+Boxy supports a wide range of blending modes, similar to those found in image editing software like Photoshop. These modes include Darken, Multiply, ColorBurn, Lighten, Screen, ColorDodge, Overlay, SoftLight, HardLight, Difference, Exclusion, Hue, Saturation, Color, and Luminosity. These modes allow developers to create a wide range of visual effects, including shadows, glows, and color tints.
 
-So go ahead and give the Boxy a try – I guarantee you'll be amazed at what you can create!
+In addition to blending modes, Boxy also supports several additional masking modes, such as Subtract and Exclude. These modes allow developers to create masks that can be used to reveal or hide certain parts of a layer. This is particularly useful for creating complex UI elements or for creating special effects in games.
+
+Boxy also includes support for filters, which can be applied to layers to create even more advanced visual effects. Filters available in Boxy include Drop Shadow, Inner Shadow, and Blur. These filters can be used to create glowing effects, border around complex elements, and more.
+
+### And More
+
+Boxy together with [Windy](https://github.com/treeform/windy) and [Pixie](https://github.com/treeform/pixie) is similar to other 2D graphics libraries such as SDL (Simple DirectMedia Layer) and PyGame in that it provides a set of tools for creating and rendering 2D graphics. If you have experience with either of these libraries, you will likely find it easy to use Boxy as well. However, Boxy takes advantage of the GPU to accelerate rendering, which can result in faster and smoother visuals. If you need sound or networking support take a look at our [Slappy](https://github.com/treeform/slappy) and [Netty](https://github.com/treeform/netty) libraries.
+
+Boxy is a cross-platform 2D graphics library, which means that it is designed to run on a variety of different operating systems. Specifically, it runs on Windows, macOS, and Linux, making it a great choice for developers who need to create applications that can be deployed on a wide range of platforms. There is some even proof of concept work done to get Boxy run on iOS and Android, and even the browser though WASM but currently its not supported.
+
+Overall, Boxy is a powerful, easy-to-use 2D graphics library that is ideal for developers looking to create stunning visuals using the GPU. With its texture atlas optimization, advanced layers effects, and simple API, it is a great choice for anyone looking to create beautiful, efficient graphic applications or games in Nim.
 
 Boxy uses:
 * [Windy](https://github.com/treeform/windy) windowing and OS interactions for Windows, macOS and Linux.
