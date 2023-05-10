@@ -1,0 +1,12 @@
+bkSCALAR	boxy/buffers.html#bkSCALAR	BufferKind.bkSCALAR	
+bkVEC2	boxy/buffers.html#bkVEC2	BufferKind.bkVEC2	
+bkVEC3	boxy/buffers.html#bkVEC3	BufferKind.bkVEC3	
+bkVEC4	boxy/buffers.html#bkVEC4	BufferKind.bkVEC4	
+bkMAT2	boxy/buffers.html#bkMAT2	BufferKind.bkMAT2	
+bkMAT3	boxy/buffers.html#bkMAT3	BufferKind.bkMAT3	
+bkMAT4	boxy/buffers.html#bkMAT4	BufferKind.bkMAT4	
+BufferKind	boxy/buffers.html#BufferKind	buffers: BufferKind	
+Buffer	boxy/buffers.html#Buffer	buffers: Buffer	
+size	boxy/buffers.html#size,GLenum	buffers: size(componentType: GLenum): Positive	
+componentCount	boxy/buffers.html#componentCount,BufferKind	buffers: componentCount(bufferKind: BufferKind): Positive	
+bindBufferData	boxy/buffers.html#bindBufferData,Buffer,pointer	buffers: bindBufferData(buffer: Buffer; data: pointer)	

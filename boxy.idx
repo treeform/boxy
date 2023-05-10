@@ -1,0 +1,32 @@
+BoxyError	boxy.html#BoxyError	boxy: BoxyError	
+Boxy	boxy.html#Boxy	boxy: Boxy	
+readAtlas	boxy.html#readAtlas,Boxy	boxy: readAtlas(boxy: Boxy): Image	
+contains	boxy.html#contains,Boxy,string	boxy: contains(boxy: Boxy; key: string): bool	
+clearAtlas	boxy.html#clearAtlas,Boxy	boxy: clearAtlas(boxy: Boxy)	
+newBoxy	boxy.html#newBoxy,int,int	boxy: newBoxy(atlasSize = 512; tileSize = 32 - 2; quadsPerBatch = 1024): Boxy	
+removeImage	boxy.html#removeImage,Boxy,string	boxy: removeImage(boxy: Boxy; key: string)	
+addImage	boxy.html#addImage,Boxy,string,Image	boxy: addImage(boxy: Boxy; key: string; image: Image; genMipmaps = true)	
+getImageSize	boxy.html#getImageSize,Boxy,string	boxy: getImageSize(boxy: Boxy; key: string): IVec2	
+drawRect	boxy.html#drawRect,Boxy,Rect,Color	boxy: drawRect(boxy: Boxy; rect: Rect; color: Color)	
+pushLayer	boxy.html#pushLayer,Boxy	boxy: pushLayer(boxy: Boxy)	
+popLayer	boxy.html#popLayer,Boxy,BlendMode	boxy: popLayer(boxy: Boxy; tint = color(1, 1, 1, 1);\n         blendMode: BlendMode = NormalBlend)	
+blurEffect	boxy.html#blurEffect,Boxy,float32	boxy: blurEffect(boxy: Boxy; radius: float32)	
+dropShadowEffect	boxy.html#dropShadowEffect,Boxy,Color,Vec2,float32,float32	boxy: dropShadowEffect(boxy: Boxy; tint: Color; offset: Vec2; radius, spread: float32)	
+beginFrame	boxy.html#beginFrame,Boxy,IVec2,Mat4	boxy: beginFrame(boxy: Boxy; frameSize: IVec2; proj: Mat4; clearFrame = true)	
+beginFrame	boxy.html#beginFrame,Boxy,IVec2	boxy: beginFrame(boxy: Boxy; frameSize: IVec2; clearFrame = true)	
+endFrame	boxy.html#endFrame,Boxy	boxy: endFrame(boxy: Boxy)	
+applyTransform	boxy.html#applyTransform,Boxy,Mat3	boxy: applyTransform(boxy: Boxy; m: Mat3)	
+setTransform	boxy.html#setTransform,Boxy,Mat3	boxy: setTransform(boxy: Boxy; m: Mat3)	
+getTransform	boxy.html#getTransform,Boxy	boxy: getTransform(boxy: Boxy): Mat3	
+translate	boxy.html#translate,Boxy,Vec2	boxy: translate(boxy: Boxy; v: Vec2)	
+rotate	boxy.html#rotate,Boxy,float32	boxy: rotate(boxy: Boxy; angle: float32)	
+scale	boxy.html#scale,Boxy,Vec2	boxy: scale(boxy: Boxy; scale: Vec2)	
+scale	boxy.html#scale,Boxy,float32	boxy: scale(boxy: Boxy; scale: float32)	
+saveTransform	boxy.html#saveTransform,Boxy	boxy: saveTransform(boxy: Boxy)	
+restoreTransform	boxy.html#restoreTransform,Boxy	boxy: restoreTransform(boxy: Boxy)	
+clearTransform	boxy.html#clearTransform,Boxy	boxy: clearTransform(boxy: Boxy)	
+fromScreen	boxy.html#fromScreen,Boxy,Vec2,Vec2	boxy: fromScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2	
+toScreen	boxy.html#toScreen,Boxy,Vec2,Vec2	boxy: toScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2	
+drawImage	boxy.html#drawImage,Boxy,string,Vec2	boxy: drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))	
+drawImage	boxy.html#drawImage,Boxy,string,Rect	boxy: drawImage(boxy: Boxy; key: string; rect: Rect; tint = color(1, 1, 1, 1))	
+drawImage	boxy.html#drawImage,Boxy,string,Vec2,float32	boxy: drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;\n          tint = color(1, 1, 1, 1))	

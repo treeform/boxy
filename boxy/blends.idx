@@ -1,0 +1,3 @@
+gl_Position	boxy/blends.html#gl_Position	blends: gl_Position	
+blendingMain	boxy/blends.html#blendingMain,Vec2,Vec2,Vec4,Vec4	blends: blendingMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)	
+atlasVert	boxy/blends.html#atlasVert,Vec2,Vec2,Vec4,Vec2,Vec2,Vec4	blends: atlasVert(vertexPos: Vec2; vertexUv: Vec2; vertexColor: Vec4; pos: var Vec2;\n          uv: var Vec2; color: var Vec4)	

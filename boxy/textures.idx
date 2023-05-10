@@ -1,0 +1,25 @@
+minDefault	boxy/textures.html#minDefault	MinFilter.minDefault	
+minNearest	boxy/textures.html#minNearest	MinFilter.minNearest	
+minLinear	boxy/textures.html#minLinear	MinFilter.minLinear	
+minNearestMipmapNearest	boxy/textures.html#minNearestMipmapNearest	MinFilter.minNearestMipmapNearest	
+minLinearMipmapNearest	boxy/textures.html#minLinearMipmapNearest	MinFilter.minLinearMipmapNearest	
+minNearestMipmapLinear	boxy/textures.html#minNearestMipmapLinear	MinFilter.minNearestMipmapLinear	
+minLinearMipmapLinear	boxy/textures.html#minLinearMipmapLinear	MinFilter.minLinearMipmapLinear	
+MinFilter	boxy/textures.html#MinFilter	textures: MinFilter	
+magDefault	boxy/textures.html#magDefault	MagFilter.magDefault	
+magNearest	boxy/textures.html#magNearest	MagFilter.magNearest	
+magLinear	boxy/textures.html#magLinear	MagFilter.magLinear	
+MagFilter	boxy/textures.html#MagFilter	textures: MagFilter	
+wDefault	boxy/textures.html#wDefault	Wrap.wDefault	
+wRepeat	boxy/textures.html#wRepeat	Wrap.wRepeat	
+wClampToEdge	boxy/textures.html#wClampToEdge	Wrap.wClampToEdge	
+wMirroredRepeat	boxy/textures.html#wMirroredRepeat	Wrap.wMirroredRepeat	
+Wrap	boxy/textures.html#Wrap	textures: Wrap	
+Texture	boxy/textures.html#Texture	textures: Texture	
+bindTextureBufferData	boxy/textures.html#bindTextureBufferData,Texture,Buffer,pointer	textures: bindTextureBufferData(texture: Texture; buffer: Buffer; data: pointer)	
+bindTextureData	boxy/textures.html#bindTextureData,Texture,pointer	textures: bindTextureData(texture: Texture; data: pointer)	
+newTexture	boxy/textures.html#newTexture,Image	textures: newTexture(image: Image): Texture	
+updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image,int	textures: updateSubImage(texture: Texture; x, y: int; image: Image; level: int)	
+updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image	textures: updateSubImage(texture: Texture; x, y: int; image: Image)	
+readImage	boxy/textures.html#readImage,Texture	textures: readImage(texture: Texture): Image	
+writeFile	boxy/textures.html#writeFile,Texture,string	textures: writeFile(texture: Texture; path: string)	

@@ -1,0 +1,2 @@
+spreadXMain	boxy/spreads.html#spreadXMain,Vec2,Vec2,Vec4,Vec4	spreads: spreadXMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)	
+spreadYMain	boxy/spreads.html#spreadYMain,Vec2,Vec2,Vec4,Vec4	spreads: spreadYMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)	
