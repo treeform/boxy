@@ -1,4 +1,4 @@
-<img src="docs/boxyBanner.png">
+<img src="docs/banner.png">
 
 # Boxy - 2D GPU rendering with a tiling atlas.
 
