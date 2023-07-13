@@ -2,6 +2,7 @@ BoxyError	boxy.html#BoxyError	boxy: BoxyError
 Boxy	boxy.html#Boxy	boxy: Boxy	
 readAtlas	boxy.html#readAtlas,Boxy	boxy: readAtlas(boxy: Boxy): Image	
 contains	boxy.html#contains,Boxy,string	boxy: contains(boxy: Boxy; key: string): bool	
+flush	boxy.html#flush,Boxy	boxy: flush(boxy: Boxy)	
 clearAtlas	boxy.html#clearAtlas,Boxy	boxy: clearAtlas(boxy: Boxy)	
 newBoxy	boxy.html#newBoxy,int,int	boxy: newBoxy(atlasSize = 512; tileSize = 32 - 2; quadsPerBatch = 1024): Boxy	
 removeImage	boxy.html#removeImage,Boxy,string	boxy: removeImage(boxy: Boxy; key: string)	
@@ -29,4 +30,4 @@ fromScreen	boxy.html#fromScreen,Boxy,Vec2,Vec2	boxy: fromScreen(boxy: Boxy; wind
 toScreen	boxy.html#toScreen,Boxy,Vec2,Vec2	boxy: toScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2	
 drawImage	boxy.html#drawImage,Boxy,string,Vec2	boxy: drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))	
 drawImage	boxy.html#drawImage,Boxy,string,Rect	boxy: drawImage(boxy: Boxy; key: string; rect: Rect; tint = color(1, 1, 1, 1))	
-drawImage	boxy.html#drawImage,Boxy,string,Vec2,float32	boxy: drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;\n          tint = color(1, 1, 1, 1))	
+drawImage	boxy.html#drawImage,Boxy,string,Vec2,float32,float32	boxy: drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;\n          tint = color(1, 1, 1, 1); scale = 1.0&apos;f32)	

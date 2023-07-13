@@ -180,10 +180,10 @@ window.addEventListener('DOMContentLoaded', main);
 
   </ul>
   <ul class="simple nested-toc-section">drawImage
-      <li><a class="reference" href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32"
+      <li><a class="reference" href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32%2Cfloat32"
     title="drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;
-          tint = color(1, 1, 1, 1))">drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;
-          tint = color(1, 1, 1, 1))</a></li>
+          tint = color(1, 1, 1, 1); scale = 1.0'f32)">drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;
+          tint = color(1, 1, 1, 1); scale = 1.0'f32)</a></li>
   <li><a class="reference" href="#drawImage%2CBoxy%2Cstring%2CVec2"
     title="drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))">drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))</a></li>
   <li><a class="reference" href="#drawImage%2CBoxy%2Cstring%2CRect"
@@ -203,6 +203,11 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">endFrame
       <li><a class="reference" href="#endFrame%2CBoxy"
     title="endFrame(boxy: Boxy)">endFrame(boxy: Boxy)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">flush
+      <li><a class="reference" href="#flush%2CBoxy"
+    title="flush(boxy: Boxy)">flush(boxy: Boxy)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">fromScreen
@@ -464,9 +469,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 </dd>
 </div>
-<div id="drawImage,Boxy,string,Vec2,float32">
-<dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">center</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span> <span class="Identifier">angle</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span>
-               <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">)</span> {.
+<div id="drawImage,Boxy,string,Vec2,float32,float32">
+<dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32%2Cfloat32"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">center</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span> <span class="Identifier">angle</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span>
+               <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">scale</span> <span class="Other">=</span> <span class="FloatNumber">1.0'f32</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -541,6 +546,18 @@ Ends a frame.
 href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L829"
 class="link-seesrc" target="_blank">Source</a>
 &nbsp;&nbsp;<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L829" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+</div>
+<div id="flush,Boxy">
+<dt><pre><span class="Keyword">proc</span> <a href="#flush%2CBoxy"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">ValueError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Flips - draws current buffer and starts a new one.
+&nbsp;&nbsp;<a
+href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L107"
+class="link-seesrc" target="_blank">Source</a>
+&nbsp;&nbsp;<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L107" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 </div>
@@ -753,7 +770,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2023-05-11 17:41:58 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2023-07-13 18:53:09 UTC</small>
       </div>
     </div>
   </div>
