@@ -104,7 +104,7 @@ proc drawVertexArray(boxy: Boxy) =
   )
   boxy.quadCount = 0
 
-proc flush(boxy: Boxy) =
+proc flush*(boxy: Boxy) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
@@ -988,7 +988,8 @@ proc drawImage*(
   key: string,
   center: Vec2,
   angle: float32,
-  tint = color(1, 1, 1, 1)
+  tint = color(1, 1, 1, 1),
+  scale = 1f
 ) =
   ## Draws image at center and rotated by angle.
   ## The image should have already been added.
@@ -996,6 +997,7 @@ proc drawImage*(
   boxy.saveTransform()
   boxy.translate(center)
   boxy.rotate(angle)
+  boxy.scale(vec2(scale, scale))
   boxy.translate(-imageInfo.size.vec2 / 2)
   boxy.drawImage(key, pos = vec2(0, 0), tint)
   boxy.restoreTransform()
