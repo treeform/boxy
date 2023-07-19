@@ -48,6 +48,7 @@ type
     frameSize: IVec2                 ## Dimensions of the window frame.
     vertexArrayId, layerFramebufferId: GLuint
     frameBegun: bool
+    maxAtlasSize: int
 
     # Buffer data for OpenGL
     positions: tuple[buffer: Buffer, data: seq[float32]]
@@ -312,8 +313,27 @@ proc newBoxy*(
 
   result.addWhiteTile()
 
+  var maxAtlasSize: int32
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, maxAtlasSize.addr)
+  result.maxAtlasSize = maxAtlasSize
+
+  if result.maxAtlasSize < result.atlasSize:
+    raise newException(
+      BoxyError,
+      "Requested atlas texture is larger then max supported size: " &
+      $result.maxAtlasSize
+    )
+
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
+
+  if boxy.atlasSize == boxy.maxAtlasSize:
+    raise newException(
+      BoxyError,
+      "Can't grow boxy atlas texture, max supported size reached: " &
+      $boxy.maxAtlasSize
+    )
+
   boxy.flush()
 
   # Read old atlas content
@@ -322,6 +342,9 @@ proc grow(boxy: Boxy) =
     oldTileRun = boxy.tileRun
 
   boxy.atlasSize *= 2
+  if boxy.atlasSize > boxy.maxAtlasSize:
+    boxy.atlasSize = boxy.maxAtlasSize
+
   boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
@@ -989,7 +1012,7 @@ proc drawImage*(
   center: Vec2,
   angle: float32,
   tint = color(1, 1, 1, 1),
-  scale = 1f
+  scale: float32 = 1
 ) =
   ## Draws image at center and rotated by angle.
   ## The image should have already been added.
