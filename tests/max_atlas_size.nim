@@ -13,4 +13,3 @@ var count = 0
 while true:
   bxy.addImage("test" & $count, testImage)
   inc count
-  #echo count
