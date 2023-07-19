@@ -316,7 +316,6 @@ proc newBoxy*(
   var maxAtlasSize: int32
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, maxAtlasSize.addr)
   result.maxAtlasSize = maxAtlasSize
-  echo maxAtlasSize
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
@@ -338,7 +337,6 @@ proc grow(boxy: Boxy) =
   boxy.atlasSize *= 2
   if boxy.atlasSize > boxy.maxAtlasSize:
     boxy.atlasSize = boxy.maxAtlasSize
-  echo "new size", boxy.atlasSize, " < ", boxy.maxAtlasSize
 
   boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
