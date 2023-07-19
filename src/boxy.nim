@@ -317,6 +317,13 @@ proc newBoxy*(
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, maxAtlasSize.addr)
   result.maxAtlasSize = maxAtlasSize
 
+  if result.maxAtlasSize < result.atlasSize:
+    raise newException(
+      BoxyError,
+      "Requested atlas texture is larger then max supported size: " &
+      $result.maxAtlasSize
+    )
+
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
 
