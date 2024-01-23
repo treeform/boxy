@@ -1024,3 +1024,21 @@ proc drawImage*(
   boxy.translate(-imageInfo.size.vec2 / 2)
   boxy.drawImage(key, pos = vec2(0, 0), tint)
   boxy.restoreTransform()
+
+proc enterRawOpenGLMode*(boxy: Boxy) =
+  # Enter raw OpenGL mode.
+  # Used for using boxy with other OpenGL code.
+  glEnable(GL_DEPTH_TEST)
+  glDepthMask(GL_TRUE)
+  glEnable(GL_MULTISAMPLE)
+  glEnable(GL_CULL_FACE)
+  glCullFace(GL_BACK)
+  glFrontFace(GL_CCW)
+
+proc exitRawOpenGLMode*(boxy: Boxy) =
+  # Exit raw OpenGL mode.
+  # Used for using boxy with other OpenGL code.
+  glDisable(GL_DEPTH_TEST)
+  glDisable(GL_MULTISAMPLE)
+  glDisable(GL_CULL_FACE)
+  glUseProgram(boxy.activeShader.programId)
