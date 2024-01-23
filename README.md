@@ -25,11 +25,6 @@ The basic model for using Boxy goes something like this:
 * [Efficient 2D rendering on GPU](https://www.youtube.com/watch?v=UFbffBIzEDc)
 * [GPU Gaussian Blur in Nim using Boxy and Shady](https://youtu.be/oUB0BGsNY5g)
 
-## Videos
-
-* [Efficient 2D rendering on GPU](https://www.youtube.com/watch?v=UFbffBIzEDc)
-* [GPU Gaussian Blur in Nim using Boxy and Shady](https://youtu.be/oUB0BGsNY5g)
-
 ## Basic Example
 
 ```nim
