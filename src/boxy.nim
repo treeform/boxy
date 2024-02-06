@@ -1029,6 +1029,8 @@ proc drawImage*(
 
 proc getImage*(boxy: Boxy, bounds: Rect): Image =
   ## Gets an Image rectangle from the current layer.
+  ## Note: This is very close because it transfers GPU data to CPU.
+  ## It's not recommended to use this in a game loop.
   if boxy.layerNum == -1:
     raise newException(BoxyError, "getImage called without pushLayer")
   let layerTexture = boxy.layerTextures[boxy.layerNum]
