@@ -741,6 +741,8 @@ proc blurEffect(
 
 proc blurEffect*(boxy: Boxy, radius: float32) =
   ## Blurs the current layer
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "blurEffect called without pushLayer")
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   boxy.blurEffect(
     radius,
@@ -1024,3 +1026,19 @@ proc drawImage*(
   boxy.translate(-imageInfo.size.vec2 / 2)
   boxy.drawImage(key, pos = vec2(0, 0), tint)
   boxy.restoreTransform()
+
+proc getImage*(boxy: Boxy, bounds: Rect): Image =
+  ## Gets an Image rectangle from the current layer.
+  ## Note: This is very close because it transfers GPU data to CPU.
+  ## It's not recommended to use this in a game loop.
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "getImage called without pushLayer")
+  let layerTexture = boxy.layerTextures[boxy.layerNum]
+  let fullLayer = layerTexture.readImage()
+  fullLayer.flipVertical()
+  return fullLayer.subImage(
+    bounds.x.int,
+    bounds.y.int,
+    bounds.w.int,
+    bounds.h.int
+  )
