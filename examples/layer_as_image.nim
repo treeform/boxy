@@ -14,15 +14,13 @@ bxy.addImage("greece", greeceImage)
 # Blur operation are potentially costly, save to an atlas already blured
 # and draw them much faster.
 bxy.beginFrame(window.size)
+
 bxy.pushLayer()
-
-bxy.drawImage("greece", pos = vec2(50, 50))
-bxy.blurLayer(50)
-
-bxy.addImage("greeceBlur", bxy.getImage(rect(0, 0, 512+50*2, 512+50*2)))
-
+block:
+  bxy.drawImage("greece", pos = vec2(50, 50))
+  bxy.blurEffect(50)
+  bxy.addImage("greeceBlur", bxy.getImage(rect(0, 0, 512+50*2, 512+50*2)))
 bxy.popLayer()
-
 
 bxy.endFrame()
 

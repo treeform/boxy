@@ -741,6 +741,8 @@ proc blurEffect(
 
 proc blurEffect*(boxy: Boxy, radius: float32) =
   ## Blurs the current layer
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "blurEffect called without pushLayer")
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   boxy.blurEffect(
     radius,
@@ -1026,7 +1028,9 @@ proc drawImage*(
   boxy.restoreTransform()
 
 proc getImage*(boxy: Boxy, bounds: Rect): Image =
-  ## Gets iamge from the current layer.
+  ## Gets an Image rectangle from the current layer.
+  if boxy.layerNum == -1:
+    raise newException(BoxyError, "getImage called without pushLayer")
   let layerTexture = boxy.layerTextures[boxy.layerNum]
   let fullLayer = layerTexture.readImage()
   fullLayer.flipVertical()
