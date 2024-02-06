@@ -24,8 +24,6 @@ bxy.popLayer()
 
 bxy.endFrame()
 
-var frame: int
-
 # Called when it is time to draw a new frame.
 window.onFrame = proc() =
   # Clear the screen and begin a new frame.
@@ -43,7 +41,6 @@ window.onFrame = proc() =
   bxy.endFrame()
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
-  inc frame
 
 while not window.closeRequested:
   pollEvents()
