@@ -1,23 +1,29 @@
-Shader	boxy/shaders.html#Shader	shaders: Shader	
-getErrorLog	boxy/shaders.html#getErrorLog,GLuint,string,,	shaders: getErrorLog(id: GLuint; path: string; lenProc: typeof(glGetShaderiv);\n            strProc: typeof(glGetShaderInfoLog)): string	
-compileComputeShader	boxy/shaders.html#compileComputeShader	shaders: compileComputeShader(compute: (string, string)): GLuint	
-compileComputeShader	boxy/shaders.html#compileComputeShader,string	shaders: compileComputeShader(path: string): GLuint	
-compileShaderFiles	boxy/shaders.html#compileShaderFiles,,	shaders: compileShaderFiles(vert, frag: (string, string)): GLuint	
-compileShaderFiles	boxy/shaders.html#compileShaderFiles,string,string	shaders: compileShaderFiles(vertPath, fragPath: string): GLuint	
-newShader	boxy/shaders.html#newShader	shaders: newShader(compute: (string, string)): Shader	
-newShader	boxy/shaders.html#newShader,string	shaders: newShader(computePath: string): Shader	
-newShaderStatic	boxy/shaders.html#newShaderStatic.t,string	shaders: newShaderStatic(computePath: string): Shader	
-newShader	boxy/shaders.html#newShader,,	shaders: newShader(vert, frag: (string, string)): Shader	
-newShader	boxy/shaders.html#newShader,string,string	shaders: newShader(vertPath, fragPath: string): Shader	
-newShaderStatic	boxy/shaders.html#newShaderStatic.t,string,string	shaders: newShaderStatic(vertPath, fragPath: string): Shader	
-hasUniform	boxy/shaders.html#hasUniform,Shader,string	shaders: hasUniform(shader: Shader; name: string): bool	
-setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[int32]	shaders: setUniform(shader: Shader; name: string; args: varargs[int32])	
-setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[float32]	shaders: setUniform(shader: Shader; name: string; args: varargs[float32])	
-setUniform	boxy/shaders.html#setUniform,Shader,string,Vec2	shaders: setUniform(shader: Shader; name: string; v: Vec2)	
-setUniform	boxy/shaders.html#setUniform,Shader,string,Vec3	shaders: setUniform(shader: Shader; name: string; v: Vec3)	
-setUniform	boxy/shaders.html#setUniform,Shader,string,Vec4	shaders: setUniform(shader: Shader; name: string; v: Vec4)	
-setUniform	boxy/shaders.html#setUniform,Shader,string,Mat4	shaders: setUniform(shader: Shader; name: string; m: Mat4)	
-setUniform	boxy/shaders.html#setUniform,Shader,string,bool	shaders: setUniform(shader: Shader; name: string; b: bool)	
-bindUniforms	boxy/shaders.html#bindUniforms,Shader	shaders: bindUniforms(shader: Shader)	
-bindUniformBuffer	boxy/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	shaders: bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)	
-bindAttrib	boxy/shaders.html#bindAttrib,Shader,string,Buffer	shaders: bindAttrib(shader: Shader; name: string; buffer: Buffer)	
+nimTitle	shaders	boxy/shaders.html	module src/boxy/shaders		0
+nim	Shader	boxy/shaders.html#Shader	type Shader		16
+nim	getErrorLog	boxy/shaders.html#getErrorLog,GLuint,string,,	proc getErrorLog(id: GLuint; path: string; lenProc: typeof(glGetShaderiv);\n            strProc: typeof(glGetShaderInfoLog)): string		22
+nim	compileComputeShader	boxy/shaders.html#compileComputeShader	proc compileComputeShader(compute: (string, string)): GLuint		46
+nim	compileComputeShader	boxy/shaders.html#compileComputeShader,string	proc compileComputeShader(path: string): GLuint		83
+nim	compileShaderFiles	boxy/shaders.html#compileShaderFiles,,	proc compileShaderFiles(vert, frag: (string, string)): GLuint		87
+nim	compileShaderFiles	boxy/shaders.html#compileShaderFiles,string,string	proc compileShaderFiles(vertPath, fragPath: string): GLuint		138
+nim	newShader	boxy/shaders.html#newShader	proc newShader(compute: (string, string)): Shader		204
+nim	newShader	boxy/shaders.html#newShader,string	proc newShader(computePath: string): Shader		210
+nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string	template newShaderStatic(computePath: string): Shader		217
+nim	newShader	boxy/shaders.html#newShader,,	proc newShader(vert, frag: (string, string)): Shader		226
+nim	newShader	boxy/shaders.html#newShader,string,string	proc newShader(vertPath, fragPath: string): Shader		232
+nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string,string	template newShaderStatic(vertPath, fragPath: string): Shader		241
+nim	hasUniform	boxy/shaders.html#hasUniform,Shader,string	proc hasUniform(shader: Shader; name: string): bool		252
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[int32]	proc setUniform(shader: Shader; name: string; args: varargs[int32])		320
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[float32]	proc setUniform(shader: Shader; name: string; args: varargs[float32])		340
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec2	proc setUniform(shader: Shader; name: string; v: Vec2)		360
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec3	proc setUniform(shader: Shader; name: string; v: Vec3)		366
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec4	proc setUniform(shader: Shader; name: string; v: Vec4)		373
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Mat4	proc setUniform(shader: Shader; name: string; m: Mat4)		381
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,bool	proc setUniform(shader: Shader; name: string; b: bool)		384
+nim	bindUniforms	boxy/shaders.html#bindUniforms,Shader	proc bindUniforms(shader: Shader)		389
+nim	bindUniformBuffer	boxy/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	proc bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)		447
+nim	bindAttrib	boxy/shaders.html#bindAttrib,Shader,string,Buffer	proc bindAttrib(shader: Shader; name: string; buffer: Buffer)		455
+nimgrp	compilecomputeshader	boxy/shaders.html#compileComputeShader-procs-all	proc		46
+nimgrp	newshader	boxy/shaders.html#newShader-procs-all	proc		204
+nimgrp	setuniform	boxy/shaders.html#setUniform-procs-all	proc		320
+nimgrp	compileshaderfiles	boxy/shaders.html#compileShaderFiles-procs-all	proc		87
+nimgrp	newshaderstatic	boxy/shaders.html#newShaderStatic-templates-all	template		217
