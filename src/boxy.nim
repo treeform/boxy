@@ -1042,3 +1042,56 @@ proc getImage*(boxy: Boxy, bounds: Rect): Image =
     bounds.w.int,
     bounds.h.int
   )
+
+proc drawLine*(
+  boxy: Boxy,
+  points: seq[Vec2],
+  tints: seq[Color],
+  lineWidth: float32
+) =
+  ## Draws a line.
+
+  if tints.len != points.len:
+    raise newException(BoxyError, "Number of points and tints must match!")
+
+  for i in 0 .. points.len - 2:
+    let
+      a = points[i]
+      b = points[i + 1]
+
+      # Compute segments
+      # al -- a -- ar
+      #  |    |    |
+      #  |    |    |
+      #  |    |    |
+      # bl -- b -- br
+
+      ab = b - a
+      abNormal = ab.normalize
+      abTangent = vec2(-abNormal.y, abNormal.x)
+      al = a + abTangent * lineWidth / 2
+      ar = a - abTangent * lineWidth / 2
+      bl = b + abTangent * lineWidth / 2
+      br = b - abTangent * lineWidth / 2
+
+      posQuad = [
+        boxy.mat * vec2(al.x, al.y),
+        boxy.mat * vec2(ar.x, ar.y),
+        boxy.mat * vec2(br.x, br.y),
+        boxy.mat * vec2(bl.x, bl.y),
+      ]
+
+      # First pure white tile:
+      uvAt = vec2(boxy.tileSize / 2, boxy.tileSize / 2)
+      uvTo = uvAt
+      uvQuad = [
+        vec2(uvAt.x, uvTo.y),
+        vec2(uvTo.x, uvTo.y),
+        vec2(uvTo.x, uvAt.y),
+        vec2(uvAt.x, uvAt.y),
+      ]
+
+      tints = [tints[i], tints[i], tints[i + 1], tints[i + 1]]
+
+    boxy.drawQuad(posQuad, uvQuad, tints)
+    
