@@ -30,17 +30,17 @@ type
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
     spreadXShader, spreadYShader: Shader
-    atlasTexture, tmpTexture: Texture
+    atlasTexture*, tmpTexture: Texture
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
     atlasSize: int                   ## Size x size dimensions of the atlas.
     quadCount: int                   ## Number of quads drawn so far in this batch.
     quadsPerBatch: int               ## Max quads in a batch before issuing an OpenGL call.
-    mat: Mat3                        ## The current matrix.
+    mat*: Mat3                        ## The current matrix.
     mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entires used by not flushed yet.
-    tileSize: int
+    tileSize*: int
     maxTiles: int
     tileRun: int
     takenTiles: BitArray             ## Flag for if the tile is taken or not.
@@ -73,6 +73,56 @@ proc tileWidth(boxy: Boxy, width: int): int {.inline.} =
 proc tileHeight(boxy: Boxy, height: int): int {.inline.} =
   ## Number of tiles high.
   ceil(height / boxy.tileSize).int
+
+proc applyTransform*(boxy: Boxy, m: Mat3) =
+  ## Applies transform to the internal transform.
+  boxy.mat = boxy.mat * m
+
+proc setTransform*(boxy: Boxy, m: Mat3) =
+  ## Sets the internal transform.
+  boxy.mat = m
+
+proc getTransform*(boxy: Boxy): Mat3 =
+  ## Gets the internal transform.
+  boxy.mat
+
+proc translate*(boxy: Boxy, v: Vec2) =
+  ## Translate the internal transform.
+  boxy.mat = boxy.mat * translate(v)
+
+proc rotate*(boxy: Boxy, angle: float32) =
+  ## Rotates the internal transform.
+  boxy.mat = boxy.mat * rotate(angle)
+
+proc scale*(boxy: Boxy, scale: Vec2) =
+  ## Scales the internal transform.
+  boxy.mat = boxy.mat * scale(scale)
+
+proc scale*(boxy: Boxy, scale: float32) {.inline.} =
+  ## Scales the internal transform.
+  boxy.scale(vec2(scale))
+
+proc saveTransform*(boxy: Boxy) =
+  ## Pushes a transform onto the stack.
+  boxy.mats.add boxy.mat
+
+proc restoreTransform*(boxy: Boxy) =
+  ## Pops a transform off the stack.
+  boxy.mat = boxy.mats.pop()
+
+proc clearTransform*(boxy: Boxy) =
+  ## Clears transform and transform stack.
+  boxy.mat = mat3()
+  boxy.mats.setLen(0)
+
+proc fromScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
+  ## Takes a point from screen and translates it to point inside the current transform.
+  (boxy.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
+
+proc toScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
+  ## Takes a point from current transform and translates it to screen.
+  result = (boxy.mat * vec3(v.x, v.y, 1)).xy
+  result.y = -result.y + windowFrame.y
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -471,7 +521,7 @@ proc setVertColor(buf: var seq[uint8], i: int, rgbx: ColorRGBX) =
   buf[i * 4 + 2] = rgbx.b
   buf[i * 4 + 3] = rgbx.a
 
-proc drawQuad(
+proc drawQuad*(
   boxy: Boxy,
   verts: array[4, Vec2],
   uvs: array[4, Vec2],
@@ -615,6 +665,9 @@ proc popLayer*(
       glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR)
       boxy.activeShader = boxy.atlasShader
 
+    boxy.saveTransform()
+    boxy.setTransform(mat3())
+
     boxy.drawUvRect(
       at = vec2(0, 0),
       to = boxy.frameSize.vec2,
@@ -623,6 +676,8 @@ proc popLayer*(
       tint = tint
     )
     boxy.flush()
+
+    boxy.restoreTransform()
 
   else:
     boxy.readyTmpTexture()
@@ -861,56 +916,6 @@ proc endFrame*(boxy: Boxy) =
   boxy.frameBegun = false
   boxy.flush()
 
-proc applyTransform*(boxy: Boxy, m: Mat3) =
-  ## Applies transform to the internal transform.
-  boxy.mat = boxy.mat * m
-
-proc setTransform*(boxy: Boxy, m: Mat3) =
-  ## Sets the internal transform.
-  boxy.mat = m
-
-proc getTransform*(boxy: Boxy): Mat3 =
-  ## Gets the internal transform.
-  boxy.mat
-
-proc translate*(boxy: Boxy, v: Vec2) =
-  ## Translate the internal transform.
-  boxy.mat = boxy.mat * translate(v)
-
-proc rotate*(boxy: Boxy, angle: float32) =
-  ## Rotates the internal transform.
-  boxy.mat = boxy.mat * rotate(angle)
-
-proc scale*(boxy: Boxy, scale: Vec2) =
-  ## Scales the internal transform.
-  boxy.mat = boxy.mat * scale(scale)
-
-proc scale*(boxy: Boxy, scale: float32) {.inline.} =
-  ## Scales the internal transform.
-  boxy.scale(vec2(scale))
-
-proc saveTransform*(boxy: Boxy) =
-  ## Pushes a transform onto the stack.
-  boxy.mats.add boxy.mat
-
-proc restoreTransform*(boxy: Boxy) =
-  ## Pops a transform off the stack.
-  boxy.mat = boxy.mats.pop()
-
-proc clearTransform*(boxy: Boxy) =
-  ## Clears transform and transform stack.
-  boxy.mat = mat3()
-  boxy.mats.setLen(0)
-
-proc fromScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from screen and translates it to point inside the current transform.
-  (boxy.mat.inverse() * vec3(v.x, windowFrame.y - v.y, 0)).xy
-
-proc toScreen*(boxy: Boxy, windowFrame: Vec2, v: Vec2): Vec2 =
-  ## Takes a point from current transform and translates it to screen.
-  result = (boxy.mat * vec3(v.x, v.y, 1)).xy
-  result.y = -result.y + windowFrame.y
-
 proc drawImage*(
   boxy: Boxy,
   key: string,
@@ -1054,6 +1059,190 @@ proc drawLine*(
   if tints.len != points.len:
     raise newException(BoxyError, "Number of points and tints must match!")
 
+  let
+    # First pure white tile:
+    uvAt = vec2(boxy.tileSize / 2, boxy.tileSize / 2)
+    uvTo = uvAt
+    uvQuad = [
+      vec2(uvAt.x, uvTo.y),
+      vec2(uvTo.x, uvTo.y),
+      vec2(uvTo.x, uvAt.y),
+      vec2(uvAt.x, uvAt.y),
+    ]
+
+  # Start cap
+  if points.len > 1:
+    let
+      a = points[0]
+      b = (points[0] + points[1])/2
+
+      aColor = tints[0]
+      bColor = mix(tints[0], tints[1])
+
+      ab = b - a
+      abNormal = ab.normalize
+      abTangent = vec2(-abNormal.y, abNormal.x)
+      al = a + abTangent * lineWidth / 2
+      ar = a - abTangent * lineWidth / 2
+      bl = b + abTangent * lineWidth / 2
+      br = b - abTangent * lineWidth / 2
+
+      posQuad = [
+        boxy.mat * vec2(al.x, al.y),
+        boxy.mat * vec2(ar.x, ar.y),
+        boxy.mat * vec2(br.x, br.y),
+        boxy.mat * vec2(bl.x, bl.y),
+      ]
+
+      tints = [aColor, aColor, bColor, bColor]
+
+    boxy.drawQuad(posQuad, uvQuad, tints)
+
+  for i in 0 .. points.len - 3:
+    let
+      a = (points[i] + points[i + 1])/2
+      b = points[i + 1]
+      c = (points[i + 1] + points[i + 2])/2
+
+      aColor = mix(tints[i], tints[i + 1])
+      bColor = tints[i + 1]
+      cColor = mix(tints[i + 1], tints[i + 2])
+
+      # Compute segments
+      # al -- a -- ar
+      #  |    |    |
+      #  |    |    |
+      #  |    |    |
+      # bl -- b -- br
+      #  |    |    |
+      #  |    |    |
+      #  |    |    |
+      # cl -- c -- cr
+
+    var
+      ab = b - a
+      abNormal = ab.normalize
+      abTangent = vec2(-abNormal.y, abNormal.x)
+      al = a + abTangent * lineWidth / 2
+      ar = a - abTangent * lineWidth / 2
+      bl = b + abTangent * lineWidth / 2
+      br = b - abTangent * lineWidth / 2
+
+    var
+      bc = c - b
+      bcNormal = bc.normalize
+      bcTangent = vec2(-bcNormal.y, bcNormal.x)
+      bl2 = b + bcTangent * lineWidth / 2
+      br2 = b - bcTangent * lineWidth / 2
+      cl = c + bcTangent * lineWidth / 2
+      cr = c - bcTangent * lineWidth / 2
+
+    # check for intersection
+    var
+      pos: Vec2
+      pos2: Vec2
+    if intersects(segment(al, bl), segment(bl2, cl), pos):
+
+      bl = pos
+      bl2 = pos
+
+
+      let
+        conQuad = [
+          boxy.mat * pos,
+          boxy.mat * pos,
+          boxy.mat * vec2(br.x, br.y),
+          boxy.mat * vec2(br2.x, br2.y),
+        ]
+        conTints = [bColor, bColor, bColor, bColor]
+      boxy.drawQuad(conQuad, uvQuad, conTints)
+
+    elif intersects(segment(ar, br), segment(br2, cr), pos2):
+
+      br = pos2
+      br2 = pos2
+
+      let
+        conQuad = [
+          boxy.mat * pos2,
+          boxy.mat * pos2,
+          boxy.mat * vec2(bl.x, bl.y),
+          boxy.mat * vec2(bl2.x, bl2.y),
+        ]
+        conTints = [bColor, bColor, bColor, bColor]
+      boxy.drawQuad(conQuad, uvQuad, conTints)
+
+    let
+      posQuadAb = [
+        boxy.mat * vec2(al.x, al.y),
+        boxy.mat * vec2(ar.x, ar.y),
+        boxy.mat * vec2(br.x, br.y),
+        boxy.mat * vec2(bl.x, bl.y),
+      ]
+      tintsAb = [aColor, aColor, bColor, bColor]
+
+      posQuadBc = [
+        boxy.mat * vec2(bl2.x, bl2.y),
+        boxy.mat * vec2(br2.x, br2.y),
+        boxy.mat * vec2(cr.x, cr.y),
+        boxy.mat * vec2(cl.x, cl.y),
+      ]
+      tintsBc = [bColor, bColor, cColor, cColor]
+
+    boxy.drawQuad(posQuadAb, uvQuad, tintsAb)
+    boxy.drawQuad(posQuadBc, uvQuad, tintsBc)
+
+  # proc draw end cap
+  if points.len > 1:
+    let
+      a = points[points.len - 1]
+      b = (points[points.len - 2] + points[points.len - 1]) / 2
+
+      aColor = tints[tints.len - 1]
+      bColor = mix(tints[tints.len - 2], tints[tints.len - 1])
+
+      ab = b - a
+      abNormal = ab.normalize
+      abTangent = vec2(-abNormal.y, abNormal.x)
+      al = a + abTangent * lineWidth / 2
+      ar = a - abTangent * lineWidth / 2
+      bl = b + abTangent * lineWidth / 2
+      br = b - abTangent * lineWidth / 2
+
+      posQuad = [
+        boxy.mat * vec2(al.x, al.y),
+        boxy.mat * vec2(ar.x, ar.y),
+        boxy.mat * vec2(br.x, br.y),
+        boxy.mat * vec2(bl.x, bl.y),
+      ]
+
+      tints = [aColor, aColor, bColor, bColor]
+
+    boxy.drawQuad(posQuad, uvQuad, tints)
+
+proc drawLine*(
+  boxy: Boxy,
+  points: seq[Vec2],
+  tint: Color,
+  lineWidth: float32
+) =
+  ## Draws a line of a single color.
+  var tints = newSeq[Color](points.len)
+  for i in 0 ..< points.len:
+    tints[i] = tint
+  boxy.drawLine(points, tints, lineWidth)
+
+proc drawLineFast*(
+  boxy: Boxy,
+  points: seq[Vec2],
+  tints: seq[Color],
+  lineWidth: float32
+) =
+  ## Draws a line.
+
+  if tints.len != points.len:
+    raise newException(BoxyError, "Number of points and tints must match!")
+
   for i in 0 .. points.len - 2:
     let
       a = points[i]
@@ -1094,4 +1283,3 @@ proc drawLine*(
       tints = [tints[i], tints[i], tints[i + 1], tints[i + 1]]
 
     boxy.drawQuad(posQuad, uvQuad, tints)
-    
