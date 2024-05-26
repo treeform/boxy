@@ -1,4 +1,4 @@
-#version 410 // Highest version on Mac.
+#version 410
 
 in vec2 pos;
 in vec2 uv;
