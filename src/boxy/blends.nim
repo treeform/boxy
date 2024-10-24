@@ -180,4 +180,4 @@ proc atlasVert*(
   pos = vertexPos
   uv = vertexUv
   color = vertexColor
-  gl_Position = proj * vec4(vertexPos.x, vertexPos.y, 0.0, 1.0)
+  gl_Position = proj.Mat4 * vec4(vertexPos.x, vertexPos.y, 0.0, 1.0)
