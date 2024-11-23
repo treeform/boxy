@@ -30,7 +30,7 @@ type
     atlasShader, maskShader, blendShader, activeShader: Shader
     blurXShader, blurYShader: Shader
     spreadXShader, spreadYShader: Shader
-    atlasTexture, tmpTexture: Texture
+    atlasTexture*, tmpTexture: Texture
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
     atlasSize: int                   ## Size x size dimensions of the atlas.
