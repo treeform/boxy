@@ -1,16 +1,16 @@
-#version 100
+#version 300 es
 
 precision highp float;
 
-attribute vec2 vertexPos;
-attribute vec2 vertexUv;
-attribute vec4 vertexColor;
+in vec2 vertexPos;
+in vec2 vertexUv;
+in vec4 vertexColor;
 
 uniform mat4 proj;
 
-varying vec2 pos;
-varying vec2 uv;
-varying vec4 color;
+out vec2 pos;
+out vec2 uv;
+out vec4 color;
 
 void main() {
   pos = vertexPos;
