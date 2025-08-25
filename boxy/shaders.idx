@@ -22,8 +22,8 @@ nim	setUniform	boxy/shaders.html#setUniform,Shader,string,bool	proc setUniform(s
 nim	bindUniforms	boxy/shaders.html#bindUniforms,Shader	proc bindUniforms(shader: Shader)		389
 nim	bindUniformBuffer	boxy/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	proc bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)		447
 nim	bindAttrib	boxy/shaders.html#bindAttrib,Shader,string,Buffer	proc bindAttrib(shader: Shader; name: string; buffer: Buffer)		455
-nimgrp	compilecomputeshader	boxy/shaders.html#compileComputeShader-procs-all	proc		46
-nimgrp	newshader	boxy/shaders.html#newShader-procs-all	proc		204
 nimgrp	setuniform	boxy/shaders.html#setUniform-procs-all	proc		320
+nimgrp	newshader	boxy/shaders.html#newShader-procs-all	proc		204
 nimgrp	compileshaderfiles	boxy/shaders.html#compileShaderFiles-procs-all	proc		87
+nimgrp	compilecomputeshader	boxy/shaders.html#compileComputeShader-procs-all	proc		46
 nimgrp	newshaderstatic	boxy/shaders.html#newShaderStatic-templates-all	template		217

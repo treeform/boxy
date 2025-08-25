@@ -17,11 +17,11 @@ nim	wClampToEdge	boxy/textures.html#wClampToEdge	Wrap.wClampToEdge		18
 nim	wMirroredRepeat	boxy/textures.html#wMirroredRepeat	Wrap.wMirroredRepeat		18
 nim	Wrap	boxy/textures.html#Wrap	enum Wrap		18
 nim	Texture	boxy/textures.html#Texture	type Texture		24
-nim	bindTextureBufferData	boxy/textures.html#bindTextureBufferData,Texture,Buffer,pointer	proc bindTextureBufferData(texture: Texture; buffer: Buffer; data: pointer)		33
-nim	bindTextureData	boxy/textures.html#bindTextureData,Texture,pointer	proc bindTextureData(texture: Texture; data: pointer)		47
-nim	newTexture	boxy/textures.html#newTexture,Image	proc newTexture(image: Image): Texture		85
-nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image,int	proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)		98
-nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image	proc updateSubImage(texture: Texture; x, y: int; image: Image)		113
-nim	readImage	boxy/textures.html#readImage,Texture	proc readImage(texture: Texture): Image		131
-nim	writeFile	boxy/textures.html#writeFile,Texture,string	proc writeFile(texture: Texture; path: string)		145
-nimgrp	updatesubimage	boxy/textures.html#updateSubImage-procs-all	proc		98
+nim	bindTextureBufferData	boxy/textures.html#bindTextureBufferData,Texture,Buffer,pointer	proc bindTextureBufferData(texture: Texture; buffer: Buffer; data: pointer)		34
+nim	bindTextureData	boxy/textures.html#bindTextureData,Texture,pointer	proc bindTextureData(texture: Texture; data: pointer)		48
+nim	newTexture	boxy/textures.html#newTexture,Image	proc newTexture(image: Image): Texture		86
+nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image,int	proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)		100
+nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image	proc updateSubImage(texture: Texture; x, y: int; image: Image)		121
+nim	readImage	boxy/textures.html#readImage,Texture	proc readImage(texture: Texture): Image		139
+nim	writeFile	boxy/textures.html#writeFile,Texture,string	proc writeFile(texture: Texture; path: string)		143
+nimgrp	updatesubimage	boxy/textures.html#updateSubImage-procs-all	proc		100
