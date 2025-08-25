@@ -144,6 +144,8 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.internalFormat = GL_RGBA8
   result.minFilter = minLinear
   result.magFilter = magLinear
+  result.backingImage = newImage(size, size)
+  result.backingImage.fill(color(0, 0, 0, 0))
   bindTextureData(result, nil)
 
 proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
@@ -204,42 +206,63 @@ proc newBoxy*(
 
   when defined(emscripten):
     result.atlasShader = newShaderStatic(
-      "glsl/100/atlas.vert",
-      "glsl/100/atlas.frag"
+      "glsl/300es/atlas.vert",
+      "glsl/300es/atlas.frag"
     )
     result.maskShader = newShaderStatic(
-      "glsl/100/atlas.vert",
-      "glsl/100/mask.frag"
+      "glsl/300es/atlas.vert",
+      "glsl/300es/mask.frag"
     )
+    result.blendShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("blendingMain", toGLSL(blendingMain, "300 es", "precision highp float;\n"))
+    )
+    result.blurXShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("blendingMain", toGLSL(blurXMain, "300 es", "precision highp float;\n"))
+    )
+    result.blurYShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("blendingMain", toGLSL(blurYMain, "300 es", "precision highp float;\n"))
+    )
+    result.spreadXShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("spreadXMain", toGLSL(spreadXMain, "300 es", "precision highp float;\n"))
+    )
+    result.spreadYShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("spreadYMain", toGLSL(spreadYMain, "300 es", "precision highp float;\n"))
+    )
+
   else:
     result.atlasShader = newShaderStatic(
       "glsl/410/atlas.vert",
       "glsl/410/atlas.frag"
     )
+
     result.maskShader = newShaderStatic(
       "glsl/410/atlas.vert",
       "glsl/410/mask.frag"
     )
     result.blendShader = newShader(
-      ("atlasVert", toGLSL(atlasVert)),
-      ("blendingMain", toGLSL(blendingMain))
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("blendingMain", toGLSL(blendingMain, "410", ""))
     )
     result.blurXShader = newShader(
-      ("atlasVert", toGLSL(atlasVert)),
-      ("blendingMain", toGLSL(blurXMain))
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("blendingMain", toGLSL(blurXMain, "410", ""))
     )
     result.blurYShader = newShader(
-      ("atlasVert", toGLSL(atlasVert)),
-      ("blendingMain", toGLSL(blurYMain))
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("blendingMain", toGLSL(blurYMain, "410", ""))
     )
-
     result.spreadXShader = newShader(
-      ("atlasVert", toGLSL(atlasVert)),
-      ("spreadXMain", toGLSL(spreadXMain))
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("spreadXMain", toGLSL(spreadXMain, "410", ""))
     )
     result.spreadYShader = newShader(
-      ("atlasVert", toGLSL(atlasVert)),
-      ("spreadYMain", toGLSL(spreadYMain))
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("spreadYMain", toGLSL(spreadYMain, "410", ""))
     )
 
   result.positions.buffer = Buffer()
