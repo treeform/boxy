@@ -101,6 +101,9 @@ proc compileShaderFiles*(vert, frag: (string, string)): GLuint =
 
     if isCompiled == 0:
       echo "Vertex shader compilation failed:"
+      echo "--------------------------------"
+      echo vert[1]
+      echo "--------------------------------"
       echo getErrorLog(
         vertShader, vert[0], glGetShaderiv, glGetShaderInfoLog
       )
@@ -113,6 +116,9 @@ proc compileShaderFiles*(vert, frag: (string, string)): GLuint =
 
     if isCompiled == 0:
       echo "Fragment shader compilation failed:"
+      echo "--------------------------------"
+      echo frag[1]
+      echo "--------------------------------"
       echo getErrorLog(
         fragShader, frag[0], glGetShaderiv, glGetShaderInfoLog
       )
