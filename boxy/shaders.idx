@@ -4,26 +4,26 @@ nim	getErrorLog	boxy/shaders.html#getErrorLog,GLuint,string,,	proc getErrorLog(i
 nim	compileComputeShader	boxy/shaders.html#compileComputeShader	proc compileComputeShader(compute: (string, string)): GLuint		46
 nim	compileComputeShader	boxy/shaders.html#compileComputeShader,string	proc compileComputeShader(path: string): GLuint		83
 nim	compileShaderFiles	boxy/shaders.html#compileShaderFiles,,	proc compileShaderFiles(vert, frag: (string, string)): GLuint		87
-nim	compileShaderFiles	boxy/shaders.html#compileShaderFiles,string,string	proc compileShaderFiles(vertPath, fragPath: string): GLuint		138
-nim	newShader	boxy/shaders.html#newShader	proc newShader(compute: (string, string)): Shader		204
-nim	newShader	boxy/shaders.html#newShader,string	proc newShader(computePath: string): Shader		210
-nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string	template newShaderStatic(computePath: string): Shader		217
-nim	newShader	boxy/shaders.html#newShader,,	proc newShader(vert, frag: (string, string)): Shader		226
-nim	newShader	boxy/shaders.html#newShader,string,string	proc newShader(vertPath, fragPath: string): Shader		232
-nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string,string	template newShaderStatic(vertPath, fragPath: string): Shader		241
-nim	hasUniform	boxy/shaders.html#hasUniform,Shader,string	proc hasUniform(shader: Shader; name: string): bool		252
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[int32]	proc setUniform(shader: Shader; name: string; args: varargs[int32])		320
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[float32]	proc setUniform(shader: Shader; name: string; args: varargs[float32])		340
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec2	proc setUniform(shader: Shader; name: string; v: Vec2)		360
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec3	proc setUniform(shader: Shader; name: string; v: Vec3)		366
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec4	proc setUniform(shader: Shader; name: string; v: Vec4)		373
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Mat4	proc setUniform(shader: Shader; name: string; m: Mat4)		381
-nim	setUniform	boxy/shaders.html#setUniform,Shader,string,bool	proc setUniform(shader: Shader; name: string; b: bool)		384
-nim	bindUniforms	boxy/shaders.html#bindUniforms,Shader	proc bindUniforms(shader: Shader)		389
-nim	bindUniformBuffer	boxy/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	proc bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)		447
-nim	bindAttrib	boxy/shaders.html#bindAttrib,Shader,string,Buffer	proc bindAttrib(shader: Shader; name: string; buffer: Buffer)		455
-nimgrp	setuniform	boxy/shaders.html#setUniform-procs-all	proc		320
-nimgrp	newshader	boxy/shaders.html#newShader-procs-all	proc		204
+nim	compileShaderFiles	boxy/shaders.html#compileShaderFiles,string,string	proc compileShaderFiles(vertPath, fragPath: string): GLuint		144
+nim	newShader	boxy/shaders.html#newShader	proc newShader(compute: (string, string)): Shader		210
+nim	newShader	boxy/shaders.html#newShader,string	proc newShader(computePath: string): Shader		216
+nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string	template newShaderStatic(computePath: string): Shader		223
+nim	newShader	boxy/shaders.html#newShader,,	proc newShader(vert, frag: (string, string)): Shader		232
+nim	newShader	boxy/shaders.html#newShader,string,string	proc newShader(vertPath, fragPath: string): Shader		238
+nim	newShaderStatic	boxy/shaders.html#newShaderStatic.t,string,string	template newShaderStatic(vertPath, fragPath: string): Shader		247
+nim	hasUniform	boxy/shaders.html#hasUniform,Shader,string	proc hasUniform(shader: Shader; name: string): bool		258
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[int32]	proc setUniform(shader: Shader; name: string; args: varargs[int32])		326
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,varargs[float32]	proc setUniform(shader: Shader; name: string; args: varargs[float32])		346
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec2	proc setUniform(shader: Shader; name: string; v: Vec2)		366
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec3	proc setUniform(shader: Shader; name: string; v: Vec3)		372
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Vec4	proc setUniform(shader: Shader; name: string; v: Vec4)		379
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,Mat4	proc setUniform(shader: Shader; name: string; m: Mat4)		387
+nim	setUniform	boxy/shaders.html#setUniform,Shader,string,bool	proc setUniform(shader: Shader; name: string; b: bool)		390
+nim	bindUniforms	boxy/shaders.html#bindUniforms,Shader	proc bindUniforms(shader: Shader)		395
+nim	bindUniformBuffer	boxy/shaders.html#bindUniformBuffer,Shader,string,Buffer,GLuint	proc bindUniformBuffer(shader: Shader; name: string; buffer: Buffer; binding: GLuint)		453
+nim	bindAttrib	boxy/shaders.html#bindAttrib,Shader,string,Buffer	proc bindAttrib(shader: Shader; name: string; buffer: Buffer)		461
+nimgrp	setuniform	boxy/shaders.html#setUniform-procs-all	proc		326
+nimgrp	newshader	boxy/shaders.html#newShader-procs-all	proc		210
 nimgrp	compileshaderfiles	boxy/shaders.html#compileShaderFiles-procs-all	proc		87
 nimgrp	compilecomputeshader	boxy/shaders.html#compileComputeShader-procs-all	proc		46
-nimgrp	newshaderstatic	boxy/shaders.html#newShaderStatic-templates-all	template		217
+nimgrp	newshaderstatic	boxy/shaders.html#newShaderStatic-templates-all	template		223
