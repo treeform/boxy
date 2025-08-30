@@ -67,7 +67,7 @@
   ## Max quads in a batch before issuing an OpenGL call.
   ## The current matrix.
   ## The matrix stack.
-  ## Entires used by not flushed yet.
+  ## Entries used but not flushed yet.
   ## Flag for if the tile is taken or not.
   ## Dimensions of the window frame.">Boxy</a></li>
 <li><a class="reference" href="#BoxyError" title="BoxyError = object of ValueError">BoxyError</a></li>
@@ -233,7 +233,7 @@
   <span class="Comment">## Max quads in a batch before issuing an OpenGL call.</span>
   <span class="Comment">## The current matrix.</span>
   <span class="Comment">## The matrix stack.</span>
-  <span class="Comment">## Entires used by not flushed yet.</span>
+  <span class="Comment">## Entries used but not flushed yet.</span>
   <span class="Comment">## Flag for if the tile is taken or not.</span>
   <span class="Comment">## Dimensions of the window frame.</span></pre></dt>
   <dd>
@@ -397,7 +397,7 @@
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Draws image at filling the ract. The image should have already been added.
+    Draws image filling the rect. The image should have already been added.
     <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1014" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
 <a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1014" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
@@ -481,7 +481,7 @@
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
-    Gets an Image rectangle from the current layer. Note: This is very close because it transfers GPU data to CPU. It's not recommended to use this in a game loop.
+    Gets an Image rectangle from the current layer. Note: This is very costly because it transfers GPU data to CPU. It's not recommended to use this in a game loop.
     <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1053" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
 <a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1053" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
@@ -700,7 +700,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-08-26 22:21:51 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-08-30 04:28:30 UTC</small>
       </div>
     </div>
   </div>
