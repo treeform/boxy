@@ -39,7 +39,7 @@ type
     mat: Mat3                        ## The current matrix.
     mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
-    entriesBuffered: HashSet[string] ## Entires used by not flushed yet.
+    entriesBuffered: HashSet[string] ## Entries used but not flushed yet.
     tileSize: int
     maxTiles: int
     tileRun: int
@@ -320,7 +320,7 @@ proc newBoxy*(
   if result.maxAtlasSize < result.atlasSize:
     raise newException(
       BoxyError,
-      "Requested atlas texture is larger then max supported size: " &
+      "Requested atlas texture is larger than max supported size: " &
       $result.maxAtlasSize
     )
 
@@ -498,7 +498,7 @@ proc drawQuad(
   inc boxy.quadCount
 
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color) =
-  ## Adds an image rect with a path to an ctx
+  ## Adds an image rect with a path to a ctx
   ## at, to, uvAt, uvTo are all in pixels
   let
     posQuad = [
@@ -994,7 +994,7 @@ proc drawImage*(
   rect: Rect,
   tint = color(1, 1, 1, 1)
 ) =
-  ## Draws image at filling the ract.
+  ## Draws image filling the rect.
   ## The image should have already been added.
   let imageInfo = boxy.entries[key]
   boxy.saveTransform()
@@ -1029,7 +1029,7 @@ proc drawImage*(
 
 proc getImage*(boxy: Boxy, bounds: Rect): Image =
   ## Gets an Image rectangle from the current layer.
-  ## Note: This is very close because it transfers GPU data to CPU.
+  ## Note: This is very costly because it transfers GPU data to CPU.
   ## It's not recommended to use this in a game loop.
   if boxy.layerNum == -1:
     raise newException(BoxyError, "getImage called without pushLayer")

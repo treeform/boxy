@@ -83,7 +83,7 @@ func getFormat(image: Image): GLenum =
   result = GL_RGBA
 
 proc newTexture*(image: Image): Texture =
-  ## Creates a new format.
+  ## Creates a new texture.
   result = Texture()
   result.width = image.width.GLint
   result.height = image.height.GLint
