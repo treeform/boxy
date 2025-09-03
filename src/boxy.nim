@@ -117,9 +117,9 @@ proc flush*(boxy: Boxy, useAtlas: bool = true) =
 
   boxy.activeShader.setUniform("proj", boxy.proj)
 
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
   if useAtlas:
-    glActiveTexture(GL_TEXTURE0)
-    glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
     boxy.activeShader.setUniform("atlasTex", 0)
 
   boxy.activeShader.bindUniforms()
