@@ -105,7 +105,7 @@ proc drawVertexArray(boxy: Boxy) =
   )
   boxy.quadCount = 0
 
-proc flush*(boxy: Boxy) =
+proc flush*(boxy: Boxy, useAtlas: bool = true) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
@@ -119,7 +119,8 @@ proc flush*(boxy: Boxy) =
 
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
-  boxy.activeShader.setUniform("atlasTex", 0)
+  if useAtlas:
+    boxy.activeShader.setUniform("atlasTex", 0)
 
   boxy.activeShader.bindUniforms()
 
@@ -645,7 +646,7 @@ proc popLayer*(
       uvTo = vec2(boxy.atlasSize.float32, 0),
       tint = tint
     )
-    boxy.flush()
+    boxy.flush(blendMode != MaskBlend)
 
   else:
     boxy.readyTmpTexture()
