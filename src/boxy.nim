@@ -1,6 +1,8 @@
 import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, os, pixie, sets,
+    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, pixie, sets,
     shady, strutils, tables, vmath
+
+export atlasVert, atlasMain, maskMain
 
 export pixie
 
@@ -206,13 +208,13 @@ proc newBoxy*(
   result.layerNum = -1
 
   when defined(emscripten):
-    result.atlasShader = newShaderStatic(
-      "glsl/300es/atlas.vert",
-      "glsl/300es/atlas.frag"
+    result.atlasShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("atlasMain", toGLSL(atlasMain, "300 es", "precision highp float;\n"))
     )
-    result.maskShader = newShaderStatic(
-      "glsl/300es/atlas.vert",
-      "glsl/300es/mask.frag"
+    result.maskShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
+      ("maskMain", toGLSL(maskMain, "300 es", "precision highp float;\n"))
     )
     result.blendShader = newShader(
       ("atlasVert", toGLSL(atlasVert, "300 es", "precision highp float;\n")),
@@ -236,14 +238,13 @@ proc newBoxy*(
     )
 
   else:
-    result.atlasShader = newShaderStatic(
-      "glsl/410/atlas.vert",
-      "glsl/410/atlas.frag"
+    result.atlasShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("atlasMain", toGLSL(atlasMain, "410", ""))
     )
-
-    result.maskShader = newShaderStatic(
-      "glsl/410/atlas.vert",
-      "glsl/410/mask.frag"
+    result.maskShader = newShader(
+      ("atlasVert", toGLSL(atlasVert, "410", "")),
+      ("maskMain", toGLSL(maskMain, "410", ""))
     )
     result.blendShader = newShader(
       ("atlasVert", toGLSL(atlasVert, "410", "")),

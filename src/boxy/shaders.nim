@@ -169,7 +169,7 @@ proc readAttribsAndUniforms(shader: Shader) =
         length.addr,
         size.addr,
         kind.addr,
-        buf[0].addr
+        cast[cstring](buf[0].addr)
       )
       buf.setLen(length)
 
@@ -196,7 +196,7 @@ proc readAttribsAndUniforms(shader: Shader) =
         length.addr,
         size.addr,
         kind.addr,
-        buf[0].addr
+        cast[cstring](buf[0].addr)
       )
       buf.setLen(length)
 

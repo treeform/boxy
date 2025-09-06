@@ -168,6 +168,8 @@ proc blendingMain*(
   )
 
 var proj: Uniform[Mat4]
+var atlasTex: Uniform[Sampler2d]
+var maskTex: Uniform[Sampler2d]
 
 proc atlasVert*(
   vertexPos: Vec2,
@@ -181,3 +183,19 @@ proc atlasVert*(
   uv = vertexUv
   color = vertexColor
   gl_Position = proj * vec4(vertexPos.x, vertexPos.y, 0.0, 1.0)
+
+proc atlasMain*(
+  pos: Vec2,
+  uv: Vec2,
+  color: Vec4,
+  fragColor: var Vec4
+) =
+  fragColor = texture(atlasTex, uv) * color
+
+proc maskMain*(
+  pos: Vec2,
+  uv: Vec2,
+  color: Vec4,
+  fragColor: var Vec4
+) =
+  fragColor = vec4(texture(maskTex, uv).r)
