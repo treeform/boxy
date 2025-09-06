@@ -1,3 +1,6 @@
+# This example needs GLFW to be installed:
+# nimble install staticglfw
+
 import boxy, opengl, staticglfw
 
 let windowSize = ivec2(1280, 800)

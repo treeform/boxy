@@ -1,4 +1,4 @@
-import boxy, opengl, pixie, pixie/fileformats/gif, std/os, std/times, windy
+import boxy, opengl, pixie, pixie/fileformats/gif, std/times, windy
 
 let window = newWindow("Animated Gif", ivec2(1280, 800))
 makeContextCurrent(window)

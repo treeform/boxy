@@ -1,3 +1,6 @@
+# This example needs SDL2 to be installed:
+# nimble install sdl2
+
 import boxy, opengl, sdl2
 
 let windowSize = ivec2(1280, 800)

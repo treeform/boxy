@@ -128,7 +128,7 @@ for x in 0 ..< gridSize:
 
 # grow clusters
 block:
-
+  echo "Generating hexes..."
   proc addCluster(x, y, more: int) =
     if x < 0 or y < 0 or x >= gridSize or y >= gridSize:
       return
@@ -169,7 +169,7 @@ block:
 
   #addCluster(0, 0, 0)
 
-echo "done"
+  echo "Done generating hexes"
 
 proc vec3(v: IVec2): Vec3 =
   vec3(v.x.float32, v.y.float32, 1)
