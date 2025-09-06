@@ -1,4 +1,6 @@
 nimTitle	blends	boxy/blends.html	module src/boxy/blends		0
 nim	gl_Position	boxy/blends.html#gl_Position	var gl_Position		7
 nim	blendingMain	boxy/blends.html#blendingMain,Vec2,Vec2,Vec4,Vec4	proc blendingMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)		158
-nim	atlasVert	boxy/blends.html#atlasVert,Vec2,Vec2,Vec4,Vec2,Vec2,Vec4	proc atlasVert(vertexPos: Vec2; vertexUv: Vec2; vertexColor: Vec4; pos: var Vec2;\n          uv: var Vec2; color: var Vec4)		172
+nim	atlasVert	boxy/blends.html#atlasVert,Vec2,Vec2,Vec4,Vec2,Vec2,Vec4	proc atlasVert(vertexPos: Vec2; vertexUv: Vec2; vertexColor: Vec4; pos: var Vec2;\n          uv: var Vec2; color: var Vec4)		174
+nim	atlasMain	boxy/blends.html#atlasMain,Vec2,Vec2,Vec4,Vec4	proc atlasMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)		187
+nim	maskMain	boxy/blends.html#maskMain,Vec2,Vec2,Vec4,Vec4	proc maskMain(pos: Vec2; uv: Vec2; color: Vec4; fragColor: var Vec4)		195
