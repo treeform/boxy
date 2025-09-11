@@ -699,6 +699,33 @@ proc popLayer*(
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
   boxy.activeShader = boxy.atlasShader
 
+proc copyLowerToCurrent*(boxy: Boxy) =
+  ## Copies the immediately lower layer texture into the current layer.
+  ## Requires that at least one lower layer exists and a current layer is active.
+  if boxy.layerNum <= 0:
+    raise newException(BoxyError, "copyLowerToCurrent requires an active layer above a lower layer")
+
+  boxy.flush()
+
+  let srcTexture = boxy.layerTextures[boxy.layerNum - 1]
+  let savedAtlasTexture = boxy.atlasTexture
+  let savedShader = boxy.activeShader
+
+  boxy.atlasTexture = srcTexture
+  boxy.activeShader = boxy.atlasShader
+
+  boxy.drawUvRect(
+    at = vec2(0, 0),
+    to = boxy.frameSize.vec2,
+    uvAt = vec2(0, boxy.atlasSize.float32),
+    uvTo = vec2(boxy.atlasSize.float32, 0),
+    tint = color(1, 1, 1, 1)
+  )
+  boxy.flush()
+
+  boxy.atlasTexture = savedAtlasTexture
+  boxy.activeShader = savedShader
+
 proc blurEffect(
   boxy: Boxy,
   radius: float32,
