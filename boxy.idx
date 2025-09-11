@@ -12,27 +12,28 @@ nim	getImageSize	boxy.html#getImageSize,Boxy,string	proc getImageSize(boxy: Boxy
 nim	drawRect	boxy.html#drawRect,Boxy,Rect,Color	proc drawRect(boxy: Boxy; rect: Rect; color: Color)		547
 nim	pushLayer	boxy.html#pushLayer,Boxy	proc pushLayer(boxy: Boxy)		585
 nim	popLayer	boxy.html#popLayer,Boxy,BlendMode	proc popLayer(boxy: Boxy; tint = color(1, 1, 1, 1);\n         blendMode: BlendMode = NormalBlend)		606
-nim	blurEffect	boxy.html#blurEffect,Boxy,float32	proc blurEffect(boxy: Boxy; radius: float32)		767
-nim	dropShadowEffect	boxy.html#dropShadowEffect,Boxy,Color,Vec2,float32,float32	proc dropShadowEffect(boxy: Boxy; tint: Color; offset: Vec2; radius, spread: float32)		780
-nim	beginFrame	boxy.html#beginFrame,Boxy,IVec2,Mat4	proc beginFrame(boxy: Boxy; frameSize: IVec2; proj: Mat4; clearFrame = true)		849
-nim	beginFrame	boxy.html#beginFrame,Boxy,IVec2	proc beginFrame(boxy: Boxy; frameSize: IVec2; clearFrame = true)		871
-nim	endFrame	boxy.html#endFrame,Boxy	proc endFrame(boxy: Boxy)		879
-nim	applyTransform	boxy.html#applyTransform,Boxy,Mat3	proc applyTransform(boxy: Boxy; m: Mat3)		889
-nim	setTransform	boxy.html#setTransform,Boxy,Mat3	proc setTransform(boxy: Boxy; m: Mat3)		893
-nim	getTransform	boxy.html#getTransform,Boxy	proc getTransform(boxy: Boxy): Mat3		897
-nim	translate	boxy.html#translate,Boxy,Vec2	proc translate(boxy: Boxy; v: Vec2)		901
-nim	rotate	boxy.html#rotate,Boxy,float32	proc rotate(boxy: Boxy; angle: float32)		905
-nim	scale	boxy.html#scale,Boxy,Vec2	proc scale(boxy: Boxy; scale: Vec2)		909
-nim	scale	boxy.html#scale,Boxy,float32	proc scale(boxy: Boxy; scale: float32)		913
-nim	saveTransform	boxy.html#saveTransform,Boxy	proc saveTransform(boxy: Boxy)		917
-nim	restoreTransform	boxy.html#restoreTransform,Boxy	proc restoreTransform(boxy: Boxy)		921
-nim	clearTransform	boxy.html#clearTransform,Boxy	proc clearTransform(boxy: Boxy)		925
-nim	fromScreen	boxy.html#fromScreen,Boxy,Vec2,Vec2	proc fromScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2		930
-nim	toScreen	boxy.html#toScreen,Boxy,Vec2,Vec2	proc toScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2		934
-nim	drawImage	boxy.html#drawImage,Boxy,string,Vec2	proc drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))		939
-nim	drawImage	boxy.html#drawImage,Boxy,string,Rect	proc drawImage(boxy: Boxy; key: string; rect: Rect; tint = color(1, 1, 1, 1))		1016
-nim	drawImage	boxy.html#drawImage,Boxy,string,Vec2,float32,float32	proc drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;\n          tint = color(1, 1, 1, 1); scale: float32 = 1.0)		1036
-nim	getImage	boxy.html#getImage,Boxy,Rect	proc getImage(boxy: Boxy; bounds: Rect): Image		1055
-nimgrp	scale	boxy.html#scale-procs-all	proc		909
-nimgrp	beginframe	boxy.html#beginFrame-procs-all	proc		849
-nimgrp	drawimage	boxy.html#drawImage-procs-all	proc		939
+nim	copyLowerToCurrent	boxy.html#copyLowerToCurrent,Boxy	proc copyLowerToCurrent(boxy: Boxy)		702
+nim	blurEffect	boxy.html#blurEffect,Boxy,float32	proc blurEffect(boxy: Boxy; radius: float32)		794
+nim	dropShadowEffect	boxy.html#dropShadowEffect,Boxy,Color,Vec2,float32,float32	proc dropShadowEffect(boxy: Boxy; tint: Color; offset: Vec2; radius, spread: float32)		807
+nim	beginFrame	boxy.html#beginFrame,Boxy,IVec2,Mat4	proc beginFrame(boxy: Boxy; frameSize: IVec2; proj: Mat4; clearFrame = true)		876
+nim	beginFrame	boxy.html#beginFrame,Boxy,IVec2	proc beginFrame(boxy: Boxy; frameSize: IVec2; clearFrame = true)		898
+nim	endFrame	boxy.html#endFrame,Boxy	proc endFrame(boxy: Boxy)		906
+nim	applyTransform	boxy.html#applyTransform,Boxy,Mat3	proc applyTransform(boxy: Boxy; m: Mat3)		916
+nim	setTransform	boxy.html#setTransform,Boxy,Mat3	proc setTransform(boxy: Boxy; m: Mat3)		920
+nim	getTransform	boxy.html#getTransform,Boxy	proc getTransform(boxy: Boxy): Mat3		924
+nim	translate	boxy.html#translate,Boxy,Vec2	proc translate(boxy: Boxy; v: Vec2)		928
+nim	rotate	boxy.html#rotate,Boxy,float32	proc rotate(boxy: Boxy; angle: float32)		932
+nim	scale	boxy.html#scale,Boxy,Vec2	proc scale(boxy: Boxy; scale: Vec2)		936
+nim	scale	boxy.html#scale,Boxy,float32	proc scale(boxy: Boxy; scale: float32)		940
+nim	saveTransform	boxy.html#saveTransform,Boxy	proc saveTransform(boxy: Boxy)		944
+nim	restoreTransform	boxy.html#restoreTransform,Boxy	proc restoreTransform(boxy: Boxy)		948
+nim	clearTransform	boxy.html#clearTransform,Boxy	proc clearTransform(boxy: Boxy)		952
+nim	fromScreen	boxy.html#fromScreen,Boxy,Vec2,Vec2	proc fromScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2		957
+nim	toScreen	boxy.html#toScreen,Boxy,Vec2,Vec2	proc toScreen(boxy: Boxy; windowFrame: Vec2; v: Vec2): Vec2		961
+nim	drawImage	boxy.html#drawImage,Boxy,string,Vec2	proc drawImage(boxy: Boxy; key: string; pos: Vec2; tint = color(1, 1, 1, 1))		966
+nim	drawImage	boxy.html#drawImage,Boxy,string,Rect	proc drawImage(boxy: Boxy; key: string; rect: Rect; tint = color(1, 1, 1, 1))		1043
+nim	drawImage	boxy.html#drawImage,Boxy,string,Vec2,float32,float32	proc drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;\n          tint = color(1, 1, 1, 1); scale: float32 = 1.0)		1063
+nim	getImage	boxy.html#getImage,Boxy,Rect	proc getImage(boxy: Boxy; bounds: Rect): Image		1082
+nimgrp	scale	boxy.html#scale-procs-all	proc		936
+nimgrp	beginframe	boxy.html#beginFrame-procs-all	proc		876
+nimgrp	drawimage	boxy.html#drawImage-procs-all	proc		966

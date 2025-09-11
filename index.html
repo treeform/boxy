@@ -108,6 +108,10 @@
   <li><a class="reference" href="#contains%2CBoxy%2Cstring" title="contains(boxy: Boxy; key: string): bool">contains(boxy: Boxy; key: string): bool</a></li>
 
 </ul>
+<ul class="simple nested-toc-section">copyLowerToCurrent
+  <li><a class="reference" href="#copyLowerToCurrent%2CBoxy" title="copyLowerToCurrent(boxy: Boxy)">copyLowerToCurrent(boxy: Boxy)</a></li>
+
+</ul>
 <ul class="simple nested-toc-section">drawImage
   <li><a class="reference" href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32%2Cfloat32" title="drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;
           tint = color(1, 1, 1, 1); scale: float32 = 1.0)">drawImage(boxy: Boxy; key: string; center: Vec2; angle: float32;
@@ -284,8 +288,8 @@
   <dd>
     
     Applies transform to the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L889" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L889" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L916" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L916" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -298,8 +302,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L871" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L871" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L898" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L898" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -309,8 +313,8 @@
   <dd>
     
     Starts a new frame.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L849" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L849" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L876" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L876" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -323,8 +327,8 @@
   <dd>
     
     Blurs the current layer
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L767" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L767" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L794" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L794" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -350,8 +354,8 @@
   <dd>
     
     Clears transform and transform stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L925" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L925" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L952" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L952" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -371,6 +375,20 @@
 </div>
 
 </div>
+<div id="copyLowerToCurrent-procs-all">
+  <div id="copyLowerToCurrent,Boxy">
+  <dt><pre><span class="Keyword">proc</span> <a href="#copyLowerToCurrent%2CBoxy"><span class="Identifier">copyLowerToCurrent</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+                                      <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dd>
+    
+    Copies the immediately lower layer texture into the current layer. Requires that at least one lower layer exists and a current layer is active.
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L702" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L702" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+
+  </dd>
+</div>
+
+</div>
 <div id="drawImage-procs-all">
   <div id="drawImage,Boxy,string,Vec2,float32,float32">
   <dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32%2Cfloat32"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">center</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span> <span class="Identifier">angle</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span>
@@ -379,8 +397,8 @@
   <dd>
     
     Draws image at center and rotated by angle. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1036" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1036" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1063" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1063" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -390,8 +408,8 @@
   <dd>
     
     Draws image at pos from top-left. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L939" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L939" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L966" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L966" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -401,8 +419,8 @@
   <dd>
     
     Draws image filling the rect. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1016" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1016" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1043" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1043" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -430,8 +448,8 @@
   <dd>
     
     Drop shadows the current layer
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L780" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L780" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L807" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L807" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -444,8 +462,8 @@
   <dd>
     
     Ends a frame.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L879" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L879" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L906" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L906" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -472,8 +490,8 @@
   <dd>
     
     Takes a point from screen and translates it to point inside the current transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L930" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L930" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L957" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L957" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -486,8 +504,8 @@
   <dd>
     
     Gets an Image rectangle from the current layer. Note: This is very costly because it transfers GPU data to CPU. It's not recommended to use this in a game loop.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1055" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1055" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1082" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1082" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -513,8 +531,8 @@
   <dd>
     
     Gets the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L897" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L897" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L924" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L924" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -597,8 +615,8 @@
   <dd>
     
     Pops a transform off the stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L921" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L921" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L948" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L948" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -610,8 +628,8 @@
   <dd>
     
     Rotates the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L905" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L905" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L932" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L932" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -623,8 +641,8 @@
   <dd>
     
     Pushes a transform onto the stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L917" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L917" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L944" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L944" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -637,8 +655,8 @@
   <dd>
     
     Scales the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L913" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L913" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L940" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L940" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -647,8 +665,8 @@
   <dd>
     
     Scales the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L909" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L909" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L936" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L936" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -660,8 +678,8 @@
   <dd>
     
     Sets the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L893" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L893" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L920" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L920" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -674,8 +692,8 @@
   <dd>
     
     Takes a point from current transform and translates it to screen.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L934" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L934" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L961" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L961" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -687,8 +705,8 @@
   <dd>
     
     Translate the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L901" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L901" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L928" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L928" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -710,7 +728,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-06 15:30:16 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-11 23:39:38 UTC</small>
       </div>
     </div>
   </div>
