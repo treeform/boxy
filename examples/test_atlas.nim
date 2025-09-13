@@ -98,13 +98,14 @@ if not dirExists("tmp"):
   createDir("tmp")
 
 echo "Generating random images and packing them..."
-echo "Atlas will be saved every 10 images to tmp/atlas_N.png"
+echo "Atlas will be saved every 20 images to tmp/atlas_N.png"
+echo "Testing GPU-based atlas growth when space runs out..."
 echo ""
 
 var
   imageCount = 0
-  totalImages = 100  # Total number of images to generate
-  saveInterval = 10  # Save atlas every N images
+  totalImages = 200  # Generate more images to trigger atlas growth
+  saveInterval = 20  # Save atlas every N images
 
 # Generate and add random images
 for i in 1..totalImages:
@@ -125,7 +126,7 @@ for i in 1..totalImages:
   echo "Added image ", i, " (", img.width, "x", img.height, ")"
 
   # Save atlas periodically
-  if i mod saveInterval == 0 or i == totalImages:
+  if (i < 40) or (i mod saveInterval == 0) or (i == totalImages):
     # Force packing by drawing something
     ctx.beginFrame(ivec2(800, 600))
     ctx.drawImage(key, vec2(0, 0))

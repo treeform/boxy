@@ -311,37 +311,8 @@ proc newBoxy*(
       $result.maxAtlasSize
     )
 
-proc grow(boxy: Boxy) =
-  ## Grows the atlas size by 2 (growing area by 4).
-  if boxy.atlasSize == boxy.maxAtlasSize:
-    raise newException(
-      BoxyError,
-      "Can't grow boxy atlas texture, max supported size reached: " &
-      $boxy.maxAtlasSize
-    )
-
-  boxy.flush()
-
-  # Read old atlas content
-  let oldAtlas = boxy.readAtlas()
-  let oldSize = boxy.atlasSize
-
-  boxy.atlasSize *= 2
-  if boxy.atlasSize > boxy.maxAtlasSize:
-    boxy.atlasSize = boxy.maxAtlasSize
-
-  # Create new atlas and copy old content
-  let newAtlas = boxy.createAtlasTexture(boxy.atlasSize)
-  updateSubImage(
-    newAtlas,
-    0,
-    0,
-    oldAtlas
-  )
-  boxy.atlasTexture = newAtlas
-
-  # Update allocator for new size
-  boxy.allocator.grow(boxy.atlasSize)
+# Forward declaration
+proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color)
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
@@ -357,6 +328,116 @@ proc removeImage*(boxy: Boxy, key: string) =
     # For simplicity, we just remove the entry
     boxy.entries.del(key)
 
+proc grow(boxy: Boxy) =
+  ## Grows the atlas size by 2 (growing area by 4) using GPU-based copying.
+  if boxy.atlasSize == boxy.maxAtlasSize:
+    raise newException(
+      BoxyError,
+      "Can't grow boxy atlas texture, max supported size reached: " &
+      $boxy.maxAtlasSize
+    )
+
+  boxy.flush()
+
+  let oldSize = boxy.atlasSize
+  let oldAtlasTexture = boxy.atlasTexture
+  let oldEntries = boxy.entries
+  let oldAllocator = boxy.allocator
+
+  # Calculate new size
+  var newAtlasSize = boxy.atlasSize * 2
+  if newAtlasSize > boxy.maxAtlasSize:
+    newAtlasSize = boxy.maxAtlasSize
+
+  # Create new atlas texture and allocator
+  let newAtlasTexture = boxy.createAtlasTexture(newAtlasSize)
+  let newAllocator = newSkylineAllocator(newAtlasSize, oldAllocator.margin)
+
+  # Create a framebuffer for the new atlas
+  var growFramebufferId: GLuint
+  glGenFramebuffers(1, growFramebufferId.addr)
+  glBindFramebuffer(GL_FRAMEBUFFER, growFramebufferId)
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER,
+    GL_COLOR_ATTACHMENT0,
+    GL_TEXTURE_2D,
+    newAtlasTexture.textureId,
+    0
+  )
+
+  # Clear the new atlas
+  glViewport(0, 0, newAtlasSize.GLint, newAtlasSize.GLint)
+  glClearColor(0, 0, 0, 0)
+  glClear(GL_COLOR_BUFFER_BIT)
+
+  # Set up for drawing to the new atlas
+  let savedProj = boxy.proj
+  let savedMat = boxy.mat
+  let savedMats = boxy.mats
+  boxy.proj = ortho(0.float32, newAtlasSize.float32, 0, newAtlasSize.float32, -1000, 1000)
+  boxy.mat = mat3()
+  boxy.mats = @[]
+
+  # Create new entries table and re-allocate all images
+  var newEntries: Table[string, ImageInfo]
+  for key, oldInfo in oldEntries:
+    if oldInfo.isOneColor:
+      # Solid color images don't need atlas space
+      newEntries[key] = oldInfo
+    else:
+      # Allocate space in the new atlas
+      let allocation = newAllocator.allocate(oldInfo.size.x, oldInfo.size.y)
+      if not allocation.success:
+        raise newException(BoxyError, "Failed to re-allocate image during grow: " & key)
+
+      var newInfo = oldInfo
+      newInfo.atlasPos = ivec2(allocation.x.int32, allocation.y.int32)
+      newEntries[key] = newInfo
+
+      # Draw the image from old position to new position using GPU
+      let
+        srcX = oldInfo.atlasPos.x.float32
+        srcY = oldInfo.atlasPos.y.float32
+        srcW = oldInfo.size.x.float32
+        srcH = oldInfo.size.y.float32
+        dstX = allocation.x.float32
+        dstY = allocation.y.float32
+
+      # Use drawUvRect to copy the image data
+      boxy.drawUvRect(
+        at = vec2(dstX, dstY),
+        to = vec2(dstX + srcW, dstY + srcH),
+        uvAt = vec2(srcX, srcY),
+        uvTo = vec2(srcX + srcW, srcY + srcH),
+        tint = color(1, 1, 1, 1)
+      )
+
+  # Flush the draw calls to copy all images
+  boxy.flush()
+
+  # Restore framebuffer binding
+  if boxy.layerNum >= 0:
+    glBindFramebuffer(GL_FRAMEBUFFER, boxy.layerFramebufferId)
+  else:
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+  # Clean up the temporary framebuffer
+  glDeleteFramebuffers(1, growFramebufferId.addr)
+
+  # Swap to the new atlas and entries
+  boxy.atlasTexture = newAtlasTexture
+  boxy.atlasSize = newAtlasSize
+  boxy.allocator = newAllocator
+  boxy.entries = newEntries
+
+  # Restore matrices
+  boxy.proj = savedProj
+  boxy.mat = savedMat
+  boxy.mats = savedMats
+
+  # Delete the old atlas texture
+  glDeleteTextures(1, oldAtlasTexture.textureId.addr)
+
 proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   if key in boxy.entriesBuffered:
     raise newException(
@@ -365,24 +446,36 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
       "(try using a unique key?)"
     )
 
-  boxy.removeImage(key)
-
-  boxy.entriesBuffered.incl(key)
-
-  var imageInfo: ImageInfo
-  imageInfo.size = ivec2(image.width.int32, image.height.int32)
-
+  # If image is one color:
   if image.isOneColor():
+    var imageInfo = ImageInfo()
+    imageInfo.size = ivec2(image.width.int32, image.height.int32)
     imageInfo.isOneColor = true
     imageInfo.oneColor = image[0, 0].color
-    imageInfo.atlasPos = ivec2(0, 0)  # Not used for solid colors
-  else:
+    imageInfo.atlasPos = ivec2(0, 0)
+    boxy.entries[key] = imageInfo
+    return
+
+  # Check if the image is already in the atlas
+  var imageInfo: ImageInfo
+  var reusing = false
+  if key in boxy.entries:
+    imageInfo = boxy.entries[key]
+    if imageInfo.size.x >= image.width and imageInfo.size.y >= image.height:
+      reusing = true
+
+  if not reusing:
+    # New image can't fit in the existing image info.
+    # Remove the existing image info and create a new one.
+    boxy.removeImage(key)
+    imageInfo = ImageInfo()
+    boxy.entriesBuffered.incl(key)
+    imageInfo.size = ivec2(image.width.int32, image.height.int32)
     imageInfo.isOneColor = false
 
     # Try to pack the image using the allocator
     var packed = false
     var x, y: int
-
     while not packed:
       let allocation = boxy.allocator.allocate(image.width, image.height)
       if allocation.success:
@@ -392,16 +485,17 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
       else:
         # Need to grow the atlas
         boxy.grow()
-
     imageInfo.atlasPos = ivec2(x.int32, y.int32)
 
-    # Copy the image to the atlas at the packed position
-    updateSubImage(
-      boxy.atlasTexture,
-      x,
-      y,
-      image
-    )
+  # Update the image info size
+  imageInfo.size = ivec2(image.width.int32, image.height.int32)
+  # Copy the image to the atlas at the packed position
+  updateSubImage(
+    boxy.atlasTexture,
+    imageInfo.atlasPos.x,
+    imageInfo.atlasPos.y,
+    image
+  )
 
   boxy.entries[key] = imageInfo
 
