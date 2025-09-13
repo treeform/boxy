@@ -1,22 +1,17 @@
-import boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
+import boxy/allocator, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
     boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, pixie, sets,
     shady, strutils, tables, vmath
 
 export atlasVert, atlasMain, maskMain
 
 export pixie
+export SkylineAllocator, AllocationResult
 
 const
   quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
 
 type
   BoxyError* = object of ValueError
-
-  # Skyline packing node for efficient texture atlas packing
-  SkylineNode = object
-    x: int      ## X position in atlas
-    y: int      ## Y position of skyline at this point
-    width: int  ## Width of this skyline segment
 
   ImageInfo = object
     size: IVec2        ## Size of the image in pixels.
@@ -38,7 +33,7 @@ type
     mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entries used but not flushed yet.
-    skyline: seq[SkylineNode]        ## Skyline nodes for packing algorithm
+    allocator*: SkylineAllocator            ## Texture atlas allocator (pluggable)
     proj: Mat4
     frameSize: IVec2                 ## Dimensions of the window frame.
     vertexArrayId, layerFramebufferId: GLuint
@@ -150,104 +145,17 @@ proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   bindTextureData(layerTexture, nil)
   boxy.layerTextures.add(layerTexture)
 
-proc initSkyline(boxy: Boxy) =
-  # Initialize the skyline with a single node spanning the atlas width
-  boxy.skyline = @[SkylineNode(x: 0, y: 0, width: boxy.atlasSize)]
-
-proc findSkylinePosition(boxy: Boxy, width, height: int): (bool, int, int) =
-  ## Find the best position for a rectangle in the skyline packing
-  ## Returns (found, x, y)
-  var
-    bestY = boxy.atlasSize + 1
-    bestX = 0
-    bestIndex = -1
-    bestWidth = boxy.atlasSize + 1
-
-  for i in 0 ..< boxy.skyline.len:
-    let node = boxy.skyline[i]
-    if node.x + width > boxy.atlasSize:
-      break
-
-    var
-      y = node.y
-      widthLeft = width
-      j = i
-
-    # Check if rectangle fits by checking skyline nodes it would span
-    while widthLeft > 0 and j < boxy.skyline.len:
-      let currentNode = boxy.skyline[j]
-      y = max(y, currentNode.y)
-      if y + height > boxy.atlasSize:
-        break  # Doesn't fit vertically
-
-      let nodeWidth = if j + 1 < boxy.skyline.len:
-        min(currentNode.width, boxy.skyline[j + 1].x - currentNode.x)
-      else:
-        currentNode.width
-
-      widthLeft -= nodeWidth
-      inc j
-
-    if widthLeft <= 0 and y + height <= boxy.atlasSize:
-      # Found a valid position
-      if y < bestY or (y == bestY and node.x < bestX):
-        bestY = y
-        bestX = node.x
-        bestIndex = i
-        bestWidth = width
-
-  if bestIndex >= 0:
-    return (true, bestX, bestY)
-  else:
-    return (false, 0, 0)
-
-proc addToSkyline(boxy: Boxy, x, y, width, height: int) =
-  ## Add a rectangle to the skyline
-  var newSkyline: seq[SkylineNode]
-
-  # Add nodes before the rectangle
-  for node in boxy.skyline:
-    if node.x + node.width <= x:
-      newSkyline.add(node)
-    elif node.x < x:
-      var truncated = node
-      truncated.width = x - node.x
-      newSkyline.add(truncated)
-      break
-
-  # Add the new rectangle node
-  newSkyline.add(SkylineNode(x: x, y: y + height, width: width))
-
-  # Add nodes after the rectangle
-  for node in boxy.skyline:
-    if node.x >= x + width:
-      newSkyline.add(node)
-    elif node.x + node.width > x + width:
-      var truncated = node
-      truncated.x = x + width
-      truncated.width = node.x + node.width - (x + width)
-      newSkyline.add(truncated)
-
-  # Merge adjacent nodes with same height
-  var mergedSkyline: seq[SkylineNode]
-  for node in newSkyline:
-    if mergedSkyline.len > 0 and mergedSkyline[^1].y == node.y:
-      mergedSkyline[^1].width += node.width
-    else:
-      mergedSkyline.add(node)
-
-  boxy.skyline = mergedSkyline
 
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
-  boxy.initSkyline()
+  boxy.allocator.reset()
 
 proc newBoxy*(
   atlasSize = 512,
   tileSize = 32,  # Kept for compatibility but unused
   quadsPerBatch = 1024
 ): Boxy =
-  ## Creates a new Boxy.
+  ## Creates a new Boxy with a specified allocator.
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
@@ -258,7 +166,7 @@ proc newBoxy*(
   result.mats = newSeq[Mat3]()
 
   result.atlasTexture = result.createAtlasTexture(atlasSize)
-  result.initSkyline()
+  result.allocator = newSkylineAllocator(atlasSize)
 
   result.layerNum = -1
 
@@ -431,10 +339,8 @@ proc grow(boxy: Boxy) =
   )
   boxy.atlasTexture = newAtlas
 
-  # Update skyline for new size
-  # Find the rightmost skyline node and extend it
-  if boxy.skyline.len > 0:
-    boxy.skyline[^1].width = boxy.atlasSize - boxy.skyline[^1].x
+  # Update allocator for new size
+  boxy.allocator.grow(boxy.atlasSize)
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
@@ -472,18 +378,16 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   else:
     imageInfo.isOneColor = false
 
-    # Try to pack the image using skyline algorithm
+    # Try to pack the image using the allocator
     var packed = false
     var x, y: int
 
     while not packed:
-      let (found, packX, packY) = boxy.findSkylinePosition(image.width, image.height)
-      if found:
-        x = packX
-        y = packY
+      let allocation = boxy.allocator.allocate(image.width, image.height)
+      if allocation.success:
+        x = allocation.x
+        y = allocation.y
         packed = true
-        # Add to skyline
-        boxy.addToSkyline(x, y, image.width, image.height)
       else:
         # Need to grow the atlas
         boxy.grow()
@@ -499,7 +403,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
     )
 
     # Note: For simplicity, we're not implementing mipmaps in this version
-    # The skyline packing would need to handle multiple mipmap levels
+    # The allocator would need to handle multiple mipmap levels
     # which adds complexity
 
   boxy.entries[key] = imageInfo
@@ -580,20 +484,28 @@ proc drawRect*(
     # Draw a solid color rectangle
     # We'll use a 1x1 white pixel area for solid colors
     # First ensure we have a white pixel in the atlas
-    if boxy.skyline.len == 1 and boxy.skyline[0].y == 0:
-      # Atlas is empty, add a 1x1 white pixel
+    if not boxy.entries.hasKey("__white_pixel__"):
+      # Add a 1x1 white pixel to the atlas
       let white = newImage(1, 1)
       white.fill(color(1, 1, 1, 1))
-      updateSubImage(boxy.atlasTexture, 0, 0, white)
-      boxy.addToSkyline(0, 0, 1, 1)
+      let allocation = boxy.allocator.allocate(1, 1)
+      if allocation.success:
+        updateSubImage(boxy.atlasTexture, allocation.x, allocation.y, white)
+        boxy.entries["__white_pixel__"] = ImageInfo(
+          size: ivec2(1, 1),
+          atlasPos: ivec2(allocation.x.int32, allocation.y.int32),
+          isOneColor: false
+        )
 
-    boxy.drawUvRect(
-      rect.xy,
-      rect.xy + rect.wh,
-      vec2(0.5, 0.5),  # Center of the 1x1 white pixel
-      vec2(0.5, 0.5),
-      color
-    )
+    let whitePixel = boxy.entries.getOrDefault("__white_pixel__")
+    if whitePixel.size.x > 0:
+      boxy.drawUvRect(
+        rect.xy,
+        rect.xy + rect.wh,
+        vec2(whitePixel.atlasPos.x.float32 + 0.5, whitePixel.atlasPos.y.float32 + 0.5),
+        vec2(whitePixel.atlasPos.x.float32 + 0.5, whitePixel.atlasPos.y.float32 + 0.5),
+        color
+      )
 
 proc readyTmpTexture(boxy: Boxy) =
   ## Makes sure boxy.tmpTexture is ready to be used.
