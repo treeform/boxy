@@ -403,10 +403,6 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
       image
     )
 
-    # Note: For simplicity, we're not implementing mipmaps in this version
-    # The allocator would need to handle multiple mipmap levels
-    # which adds complexity
-
   boxy.entries[key] = imageInfo
 
 proc getImageSize*(boxy: Boxy, key: string): IVec2 =
