@@ -11,3 +11,4 @@ nimcache
 .*
 *.dylib
 *.dll
+*.out

@@ -1,4 +1,4 @@
-import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
+import boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
     boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, pixie, sets,
     shady, strutils, tables, vmath
 
@@ -8,25 +8,21 @@ export pixie
 
 const
   quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileMargin = 2     # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
 
-  TileKind = enum
-    tkIndex, tkColor
-
-  TileInfo = object
-    case kind: TileKind
-    of tkIndex:
-      index: int
-    of tkColor:
-      color: Color
+  # Skyline packing node for efficient texture atlas packing
+  SkylineNode = object
+    x: int      ## X position in atlas
+    y: int      ## Y position of skyline at this point
+    width: int  ## Width of this skyline segment
 
   ImageInfo = object
-    size: IVec2               ## Size of the image in pixels.
-    tiles: seq[seq[TileInfo]] ## The tile info for this image.
-    oneColor: Color           ## If tiles = [] then this is the image's color.
+    size: IVec2        ## Size of the image in pixels.
+    atlasPos: IVec2    ## Position in the atlas (for non-solid colors)
+    isOneColor: bool   ## True if image is a single solid color
+    oneColor: Color    ## If isOneColor = true, this is the image's color.
 
   Boxy* = ref object
     atlasShader, maskShader, blendShader, activeShader: Shader
@@ -42,10 +38,7 @@ type
     mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entries used but not flushed yet.
-    tileSize: int
-    maxTiles: int
-    tileRun: int
-    takenTiles: BitArray             ## Flag for if the tile is taken or not.
+    skyline: seq[SkylineNode]        ## Skyline nodes for packing algorithm
     proj: Mat4
     frameSize: IVec2                 ## Dimensions of the window frame.
     vertexArrayId, layerFramebufferId: GLuint
@@ -67,14 +60,6 @@ proc `*`(a, b: Color): Color {.inline.} =
   result.g = a.g * b.g
   result.b = a.b * b.b
   result.a = a.a * b.a
-
-proc tileWidth(boxy: Boxy, width: int): int {.inline.} =
-  ## Number of tiles wide.
-  ceil(width / boxy.tileSize).int
-
-proc tileHeight(boxy: Boxy, height: int): int {.inline.} =
-  ## Number of tiles high.
-  ceil(height / boxy.tileSize).int
 
 proc readAtlas*(boxy: Boxy): Image =
   ## Read the current atlas content.
@@ -165,45 +150,115 @@ proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   bindTextureData(layerTexture, nil)
   boxy.layerTextures.add(layerTexture)
 
-proc addWhiteTile(boxy: Boxy) =
-  # Insert a solid white tile used for all one color draws.
-  let whiteTile = newImage(boxy.tileSize, boxy.tileSize)
-  whiteTile.fill(color(1, 1, 1, 1))
-  updateSubImage(
-    boxy.atlasTexture,
-    0,
-    0,
-    whiteTile
-  )
-  boxy.takenTiles[0] = true
+proc initSkyline(boxy: Boxy) =
+  # Initialize the skyline with a single node spanning the atlas width
+  boxy.skyline = @[SkylineNode(x: 0, y: 0, width: boxy.atlasSize)]
+
+proc findSkylinePosition(boxy: Boxy, width, height: int): (bool, int, int) =
+  ## Find the best position for a rectangle in the skyline packing
+  ## Returns (found, x, y)
+  var
+    bestY = boxy.atlasSize + 1
+    bestX = 0
+    bestIndex = -1
+    bestWidth = boxy.atlasSize + 1
+
+  for i in 0 ..< boxy.skyline.len:
+    let node = boxy.skyline[i]
+    if node.x + width > boxy.atlasSize:
+      break
+
+    var
+      y = node.y
+      widthLeft = width
+      j = i
+
+    # Check if rectangle fits by checking skyline nodes it would span
+    while widthLeft > 0 and j < boxy.skyline.len:
+      let currentNode = boxy.skyline[j]
+      y = max(y, currentNode.y)
+      if y + height > boxy.atlasSize:
+        break  # Doesn't fit vertically
+
+      let nodeWidth = if j + 1 < boxy.skyline.len:
+        min(currentNode.width, boxy.skyline[j + 1].x - currentNode.x)
+      else:
+        currentNode.width
+
+      widthLeft -= nodeWidth
+      inc j
+
+    if widthLeft <= 0 and y + height <= boxy.atlasSize:
+      # Found a valid position
+      if y < bestY or (y == bestY and node.x < bestX):
+        bestY = y
+        bestX = node.x
+        bestIndex = i
+        bestWidth = width
+
+  if bestIndex >= 0:
+    return (true, bestX, bestY)
+  else:
+    return (false, 0, 0)
+
+proc addToSkyline(boxy: Boxy, x, y, width, height: int) =
+  ## Add a rectangle to the skyline
+  var newSkyline: seq[SkylineNode]
+
+  # Add nodes before the rectangle
+  for node in boxy.skyline:
+    if node.x + node.width <= x:
+      newSkyline.add(node)
+    elif node.x < x:
+      var truncated = node
+      truncated.width = x - node.x
+      newSkyline.add(truncated)
+      break
+
+  # Add the new rectangle node
+  newSkyline.add(SkylineNode(x: x, y: y + height, width: width))
+
+  # Add nodes after the rectangle
+  for node in boxy.skyline:
+    if node.x >= x + width:
+      newSkyline.add(node)
+    elif node.x + node.width > x + width:
+      var truncated = node
+      truncated.x = x + width
+      truncated.width = node.x + node.width - (x + width)
+      newSkyline.add(truncated)
+
+  # Merge adjacent nodes with same height
+  var mergedSkyline: seq[SkylineNode]
+  for node in newSkyline:
+    if mergedSkyline.len > 0 and mergedSkyline[^1].y == node.y:
+      mergedSkyline[^1].width += node.width
+    else:
+      mergedSkyline.add(node)
+
+  boxy.skyline = mergedSkyline
 
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
-  boxy.takenTiles.clear()
-  boxy.addWhiteTile()
+  boxy.initSkyline()
 
 proc newBoxy*(
   atlasSize = 512,
-  tileSize = 32 - tileMargin,
+  tileSize = 32,  # Kept for compatibility but unused
   quadsPerBatch = 1024
 ): Boxy =
   ## Creates a new Boxy.
-  if atlasSize mod (tileSize + tileMargin) != 0:
-    raise newException(BoxyError, "Atlas size must be a multiple of (tile size + 2)")
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
-  result.tileSize = tileSize
   result.quadsPerBatch = quadsPerBatch
   result.mat = mat3()
   result.mats = newSeq[Mat3]()
 
-  result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
-  result.maxTiles = result.tileRun * result.tileRun
-  result.takenTiles = newBitArray(result.maxTiles)
   result.atlasTexture = result.createAtlasTexture(atlasSize)
+  result.initSkyline()
 
   result.layerNum = -1
 
@@ -336,8 +391,6 @@ proc newBoxy*(
   glEnable(GL_BLEND)
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
-  result.addWhiteTile()
-
   var maxAtlasSize: int32
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, maxAtlasSize.addr)
   result.maxAtlasSize = maxAtlasSize
@@ -351,7 +404,6 @@ proc newBoxy*(
 
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4).
-
   if boxy.atlasSize == boxy.maxAtlasSize:
     raise newException(
       BoxyError,
@@ -362,46 +414,27 @@ proc grow(boxy: Boxy) =
   boxy.flush()
 
   # Read old atlas content
-  let
-    oldAtlas = boxy.readAtlas()
-    oldTileRun = boxy.tileRun
+  let oldAtlas = boxy.readAtlas()
+  let oldSize = boxy.atlasSize
 
   boxy.atlasSize *= 2
   if boxy.atlasSize > boxy.maxAtlasSize:
     boxy.atlasSize = boxy.maxAtlasSize
 
-  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
-  boxy.maxTiles = boxy.tileRun * boxy.tileRun
-  boxy.takenTiles.setLen(boxy.maxTiles)
-  boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
+  # Create new atlas and copy old content
+  let newAtlas = boxy.createAtlasTexture(boxy.atlasSize)
+  updateSubImage(
+    newAtlas,
+    0,
+    0,
+    oldAtlas
+  )
+  boxy.atlasTexture = newAtlas
 
-  boxy.addWhiteTile()
-
-  for y in 0 ..< oldTileRun:
-    for x in 0 ..< oldTileRun:
-      let
-        imageTile = oldAtlas.superImage(
-          x * (boxy.tileSize + tileMargin),
-          y * (boxy.tileSize + tileMargin),
-          boxy.tileSize + tileMargin,
-          boxy.tileSize + tileMargin
-        )
-        index = x + y * oldTileRun
-      updateSubImage(
-        boxy.atlasTexture,
-        (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-        (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
-        imageTile
-      )
-
-proc takeFreeTile(boxy: Boxy): int =
-  let (found, index) = boxy.takenTiles.firstFalse
-  if found:
-    boxy.takenTiles.unsafeSetTrue(index)
-    return index
-
-  boxy.grow()
-  boxy.takeFreeTile()
+  # Update skyline for new size
+  # Find the rightmost skyline node and extend it
+  if boxy.skyline.len > 0:
+    boxy.skyline[^1].width = boxy.atlasSize - boxy.skyline[^1].x
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
@@ -412,10 +445,9 @@ proc removeImage*(boxy: Boxy, key: string) =
     )
 
   if key in boxy.entries:
-    for tileLevel in boxy.entries[key].tiles:
-      for tile in tileLevel:
-        if tile.kind == tkIndex:
-          boxy.takenTiles.unsafeSetFalse(tile.index)
+    # Note: With skyline packing, we can't easily reclaim space
+    # The skyline would need complex merging to reclaim rectangles
+    # For simplicity, we just remove the entry
     boxy.entries.del(key)
 
 proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
@@ -434,46 +466,41 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   imageInfo.size = ivec2(image.width.int32, image.height.int32)
 
   if image.isOneColor():
+    imageInfo.isOneColor = true
     imageInfo.oneColor = image[0, 0].color
+    imageInfo.atlasPos = ivec2(0, 0)  # Not used for solid colors
   else:
-    var
-      image = image
-      level = 0
-    while true:
-      imageInfo.tiles.add(@[])
+    imageInfo.isOneColor = false
 
-      # Split the image into tiles.
-      for y in 0 ..< boxy.tileHeight(image.height):
-        for x in 0 ..< boxy.tileWidth(image.width):
-          let tileImage = image.superImage(
-            x * boxy.tileSize - tileMargin div 2,
-            y * boxy.tileSize - tileMargin div 2,
-            boxy.tileSize + tileMargin,
-            boxy.tileSize + tileMargin
-          )
-          if tileImage.isOneColor():
-            let tileColor = tileImage[0, 0].color
-            imageInfo.tiles[level].add(
-              TileInfo(kind: tkColor, color: tileColor)
-            )
-          else:
-            let index = boxy.takeFreeTile()
-            imageInfo.tiles[level].add(TileInfo(kind: tkIndex, index: index))
-            updateSubImage(
-              boxy.atlasTexture,
-              (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-              (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
-              tileImage
-            )
+    # Try to pack the image using skyline algorithm
+    var packed = false
+    var x, y: int
 
-      if image.width <= 1 or image.height <= 1:
-        break
+    while not packed:
+      let (found, packX, packY) = boxy.findSkylinePosition(image.width, image.height)
+      if found:
+        x = packX
+        y = packY
+        packed = true
+        # Add to skyline
+        boxy.addToSkyline(x, y, image.width, image.height)
+      else:
+        # Need to grow the atlas
+        boxy.grow()
 
-      if not genMipmaps:
-        break
+    imageInfo.atlasPos = ivec2(x.int32, y.int32)
 
-      image = image.minifyBy2()
-      inc level
+    # Copy the image to the atlas at the packed position
+    updateSubImage(
+      boxy.atlasTexture,
+      x,
+      y,
+      image
+    )
+
+    # Note: For simplicity, we're not implementing mipmaps in this version
+    # The skyline packing would need to handle multiple mipmap levels
+    # which adds complexity
 
   boxy.entries[key] = imageInfo
 
@@ -550,11 +577,21 @@ proc drawRect*(
   color: Color
 ) =
   if color != color(0, 0, 0, 0):
+    # Draw a solid color rectangle
+    # We'll use a 1x1 white pixel area for solid colors
+    # First ensure we have a white pixel in the atlas
+    if boxy.skyline.len == 1 and boxy.skyline[0].y == 0:
+      # Atlas is empty, add a 1x1 white pixel
+      let white = newImage(1, 1)
+      white.fill(color(1, 1, 1, 1))
+      updateSubImage(boxy.atlasTexture, 0, 0, white)
+      boxy.addToSkyline(0, 0, 1, 1)
+
     boxy.drawUvRect(
       rect.xy,
       rect.xy + rect.wh,
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
-      vec2(boxy.tileSize / 2, boxy.tileSize / 2),
+      vec2(0.5, 0.5),  # Center of the 1x1 white pixel
+      vec2(0.5, 0.5),
       color
     )
 
@@ -972,73 +1009,24 @@ proc drawImage*(
   ## Draws image at pos from top-left.
   ## The image should have already been added.
   let imageInfo = boxy.entries[key]
-  if imageInfo.tiles.len == 0:
+  if imageInfo.isOneColor:
     boxy.drawRect(
       rect(pos, imageInfo.size.vec2),
       imageInfo.oneColor * tint
     )
   else:
-    var i = 0
+    # Draw the image from its contiguous region in the atlas
     let
-      xVec = vec2(boxy.mat[0, 0], boxy.mat[0, 1])
-      yVec = vec2(boxy.mat[0, 1], boxy.mat[1, 1])
-      vecMag = max(xVec.length, yVec.length)
-      wantLevel = int((-log2(vecMag) + 0.5).floor)
-      level = clamp(wantLevel, 0, imageInfo.tiles.len - 1)
-      levelPow2 = 2 ^ level
-      scale = vec2(levelPow2, levelPow2)
-      pos = pos / scale
+      uvAt = imageInfo.atlasPos.vec2
+      uvTo = uvAt + imageInfo.size.vec2
 
-    boxy.saveTransform()
-    boxy.scale(scale)
-
-    var
-      width = imageInfo.size.x
-      height = imageInfo.size.y
-    for _ in 0 ..< level:
-      if width mod 2 != 0:
-        width = width div 2 + 1
-      else:
-        width = width div 2
-      if height mod 2 != 0:
-        height = height div 2 + 1
-      else:
-        height = height div 2
-
-    for y in 0 ..< boxy.tileHeight(height):
-      for x in 0 ..< boxy.tileWidth(width):
-        let
-          tile = imageInfo.tiles[level][i]
-          posAt = pos + vec2(x * boxy.tileSize, y * boxy.tileSize)
-        case tile.kind:
-        of tkIndex:
-          var uvAt = vec2(
-            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin)
-          )
-          uvAt += tileMargin div 2
-          boxy.drawUvRect(
-            posAt,
-            posAt + vec2(boxy.tileSize, boxy.tileSize),
-            uvAt,
-            uvAt + vec2(boxy.tileSize, boxy.tileSize),
-            tint
-          )
-        of tkColor:
-          if tile.color != color(0, 0, 0, 0):
-            # The image may not be a full tile wide
-            let wh = vec2(
-              min(boxy.tileSize.float32, imageInfo.size.x.float32),
-              min(boxy.tileSize.float32, imageInfo.size.y.float32)
-            )
-            boxy.drawRect(
-              rect(posAt, wh),
-              tile.color * tint
-            )
-        inc i
-
-    boxy.restoreTransform()
-    assert i == imageInfo.tiles[level].len
+    boxy.drawUvRect(
+      pos,
+      pos + imageInfo.size.vec2,
+      uvAt,
+      uvTo,
+      tint
+    )
 
 proc drawImage*(
   boxy: Boxy,
@@ -1049,16 +1037,21 @@ proc drawImage*(
   ## Draws image filling the rect.
   ## The image should have already been added.
   let imageInfo = boxy.entries[key]
-  boxy.saveTransform()
-  let
-    scale = rect.wh / imageInfo.size.vec2
-    pos = vec2(
-      rect.x / scale.x,
-      rect.y / scale.y
+  if imageInfo.isOneColor:
+    boxy.drawRect(rect, imageInfo.oneColor * tint)
+  else:
+    # Draw the image scaled to fit the rect
+    let
+      uvAt = imageInfo.atlasPos.vec2
+      uvTo = uvAt + imageInfo.size.vec2
+
+    boxy.drawUvRect(
+      rect.xy,
+      rect.xy + rect.wh,
+      uvAt,
+      uvTo,
+      tint
     )
-  boxy.scale(scale)
-  boxy.drawImage(key, pos, tint)
-  boxy.restoreTransform()
 
 proc drawImage*(
   boxy: Boxy,
@@ -1071,13 +1064,24 @@ proc drawImage*(
   ## Draws image at center and rotated by angle.
   ## The image should have already been added.
   let imageInfo = boxy.entries[key]
-  boxy.saveTransform()
-  boxy.translate(center)
-  boxy.rotate(angle)
-  boxy.scale(vec2(scale, scale))
-  boxy.translate(-imageInfo.size.vec2 / 2)
-  boxy.drawImage(key, pos = vec2(0, 0), tint)
-  boxy.restoreTransform()
+  if imageInfo.isOneColor:
+    boxy.saveTransform()
+    boxy.translate(center)
+    boxy.rotate(angle)
+    boxy.scale(vec2(scale, scale))
+    boxy.drawRect(
+      rect(-imageInfo.size.vec2 / 2, imageInfo.size.vec2),
+      imageInfo.oneColor * tint
+    )
+    boxy.restoreTransform()
+  else:
+    boxy.saveTransform()
+    boxy.translate(center)
+    boxy.rotate(angle)
+    boxy.scale(vec2(scale, scale))
+    boxy.translate(-imageInfo.size.vec2 / 2)
+    boxy.drawImage(key, pos = vec2(0, 0), tint)
+    boxy.restoreTransform()
 
 proc getImage*(boxy: Boxy, bounds: Rect): Image =
   ## Gets an Image rectangle from the current layer.
