@@ -127,8 +127,8 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.internalFormat = GL_RGBA8
   result.minFilter = minLinear
   result.magFilter = magLinear
-  result.backingImage = newImage(size, size)
-  result.backingImage.fill(color(0, 0, 0, 0))
+  #result.backingImage = newImage(size, size)
+  #result.backingImage.fill(color(0, 0, 0, 0))
   bindTextureData(result, nil)
 
 proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =

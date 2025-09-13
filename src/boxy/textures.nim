@@ -29,7 +29,6 @@ type
     wrapS*, wrapT*: Wrap
     genMipmap*: bool
     textureId*: GLuint
-    backingImage*: Image
 
 proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
   ## Binds data to a texture buffer.
@@ -94,7 +93,7 @@ proc newTexture*(image: Image): Texture =
   result.genMipmap = false
   result.minFilter = minLinear
   result.magFilter = magLinear
-  result.backingImage = image.copy()
+  #result.backingImage = image.copy()
   bindTextureData(result, image.data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
@@ -111,12 +110,12 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     `type` = GL_UNSIGNED_BYTE,
     pixels = image.data[0].addr
   )
-  if level == 0:
-    texture.backingImage.draw(
-      image,
-      translate(vec2(x.float32, y.float32)),
-      OverwriteBlend
-    )
+  # if level == 0:
+  #   texture.backingImage.draw(
+  #     image,
+  #     translate(vec2(x.float32, y.float32)),
+  #     OverwriteBlend
+  #   )
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   ## Update a small part of texture with a new image.
@@ -138,7 +137,11 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
 
 proc readImage*(texture: Texture): Image =
   ## Reads the data of the texture back.
-  return texture.backingImage
+
+  let image = newImage(texture.width, texture.height)
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data[0].addr)
+  return image
 
 proc writeFile*(texture: Texture, path: string) =
   ## Reads the data of the texture and writes it to file.
