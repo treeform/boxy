@@ -17,12 +17,14 @@ type
   SkylineAllocator* = ref object
     atlasSize*: int
     skyline: seq[SkylineNode]
+    margin*: int  ## Margin to add around each image
 
 # Skyline allocator implementation
-proc newSkylineAllocator*(atlasSize: int): SkylineAllocator =
-  ## Create a new skyline allocator
+proc newSkylineAllocator*(atlasSize: int, margin: int = 0): SkylineAllocator =
+  ## Create a new skyline allocator with optional margin
   result = SkylineAllocator()
   result.atlasSize = atlasSize
+  result.margin = margin
   result.skyline = @[SkylineNode(x: 0, y: 0, width: atlasSize)]
 
 proc reset*(allocator: SkylineAllocator) =
@@ -120,10 +122,22 @@ proc addToSkyline(allocator: SkylineAllocator, x, y, width, height: int) =
   allocator.skyline = mergedSkyline
 
 proc allocate*(allocator: SkylineAllocator, width, height: int): AllocationResult =
-  ## Allocate a rectangle using skyline algorithm
-  let (found, x, y) = allocator.findSkylinePosition(width, height)
+  ## Allocate a rectangle using skyline algorithm with margin
+  # Add margin to the requested size
+  let
+    paddedWidth = width + allocator.margin * 2
+    paddedHeight = height + allocator.margin * 2
+  
+  let (found, x, y) = allocator.findSkylinePosition(paddedWidth, paddedHeight)
   if found:
-    allocator.addToSkyline(x, y, width, height)
-    return AllocationResult(success: true, x: x, y: y, width: width, height: height)
+    allocator.addToSkyline(x, y, paddedWidth, paddedHeight)
+    # Return the actual position offset by margin
+    return AllocationResult(
+      success: true, 
+      x: x + allocator.margin, 
+      y: y + allocator.margin, 
+      width: width, 
+      height: height
+    )
   else:
     return AllocationResult(success: false)

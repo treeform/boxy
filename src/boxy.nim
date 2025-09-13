@@ -153,9 +153,11 @@ proc clearAtlas*(boxy: Boxy) =
 proc newBoxy*(
   atlasSize = 512,
   tileSize = 32,  # Kept for compatibility but unused
-  quadsPerBatch = 1024
+  quadsPerBatch = 1024,
+  margin = 1
 ): Boxy =
   ## Creates a new Boxy with a specified allocator.
+  ## margin: pixels of padding around each image in the atlas
   if quadsPerBatch > quadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
 
@@ -166,7 +168,7 @@ proc newBoxy*(
   result.mats = newSeq[Mat3]()
 
   result.atlasTexture = result.createAtlasTexture(atlasSize)
-  result.allocator = newSkylineAllocator(atlasSize)
+  result.allocator = newSkylineAllocator(atlasSize, margin)
 
   result.layerNum = -1
 

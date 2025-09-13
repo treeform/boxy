@@ -91,7 +91,7 @@ let window = newWindow("Atlas Packing Test", ivec2(800, 600))
 makeContextCurrent(window)
 loadExtensions()
 
-let ctx = newBoxy(atlasSize = 512)
+let ctx = newBoxy(atlasSize = 512, margin = 2)  # Add 2 pixel margin around each image
 
 # Create tmp directory
 if not dirExists("tmp"):
