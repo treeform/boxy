@@ -127,16 +127,16 @@ proc allocate*(allocator: SkylineAllocator, width, height: int): AllocationResul
   let
     paddedWidth = width + allocator.margin * 2
     paddedHeight = height + allocator.margin * 2
-  
+
   let (found, x, y) = allocator.findSkylinePosition(paddedWidth, paddedHeight)
   if found:
     allocator.addToSkyline(x, y, paddedWidth, paddedHeight)
     # Return the actual position offset by margin
     return AllocationResult(
-      success: true, 
-      x: x + allocator.margin, 
-      y: y + allocator.margin, 
-      width: width, 
+      success: true,
+      x: x + allocator.margin,
+      y: y + allocator.margin,
+      width: width,
       height: height
     )
   else:

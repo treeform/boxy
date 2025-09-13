@@ -152,7 +152,6 @@ proc clearAtlas*(boxy: Boxy) =
 
 proc newBoxy*(
   atlasSize = 512,
-  tileSize = 32,  # Kept for compatibility but unused
   quadsPerBatch = 1024,
   margin = 1
 ): Boxy =
