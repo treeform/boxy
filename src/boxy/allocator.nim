@@ -1,45 +1,40 @@
-# No imports needed for now
 
 type
-  # Result of allocation attempt
   AllocationResult* = object
     success*: bool
     x*, y*: int
     width*, height*: int
 
-  # Skyline packing node
   SkylineNode* = object
-    x*: int      ## X position in atlas
-    y*: int      ## Y position of skyline at this point
-    width*: int  ## Width of this skyline segment
+    x*: int      ## X position in atlas.
+    y*: int      ## Y position of skyline at this point.
+    width*: int  ## Width of this skyline segment.
 
-  # Skyline allocator implementation
   SkylineAllocator* = ref object
     atlasSize*: int
     skyline: seq[SkylineNode]
-    margin*: int  ## Margin to add around each image
+    margin*: int  ## Margin to add around each image.
 
-# Skyline allocator implementation
 proc newSkylineAllocator*(atlasSize: int, margin: int = 0): SkylineAllocator =
-  ## Create a new skyline allocator with optional margin
+  ## Create a new skyline allocator with optional margin.
   result = SkylineAllocator()
   result.atlasSize = atlasSize
   result.margin = margin
   result.skyline = @[SkylineNode(x: 0, y: 0, width: atlasSize)]
 
 proc reset*(allocator: SkylineAllocator) =
-  ## Reset skyline to initial state
+  ## Reset skyline to initial state.
   allocator.skyline = @[SkylineNode(x: 0, y: 0, width: allocator.atlasSize)]
 
 proc grow*(allocator: SkylineAllocator, newSize: int) =
-  ## Grow the skyline allocator
+  ## Grow the skyline allocator.
   allocator.atlasSize = newSize
   if allocator.skyline.len > 0:
     allocator.skyline[^1].width = allocator.atlasSize - allocator.skyline[^1].x
 
 proc findSkylinePosition(allocator: SkylineAllocator, width, height: int): (bool, int, int) =
-  ## Find the best position for a rectangle in the skyline packing
-  ## Returns (found, x, y)
+  ## Find the best position for a rectangle in the skyline packing.
+  ## Returns (found, x, y).
   var
     bestY = allocator.atlasSize + 1
     bestX = 0
@@ -56,12 +51,12 @@ proc findSkylinePosition(allocator: SkylineAllocator, width, height: int): (bool
       widthLeft = width
       j = i
 
-    # Check if rectangle fits by checking skyline nodes it would span
+    # Check if rectangle fits by checking skyline nodes it would span.
     while widthLeft > 0 and j < allocator.skyline.len:
       let currentNode = allocator.skyline[j]
       y = max(y, currentNode.y)
       if y + height > allocator.atlasSize:
-        break  # Doesn't fit vertically
+        break  # Doesn't fit vertically.
 
       let nodeWidth = if j + 1 < allocator.skyline.len:
         min(currentNode.width, allocator.skyline[j + 1].x - currentNode.x)
@@ -72,7 +67,7 @@ proc findSkylinePosition(allocator: SkylineAllocator, width, height: int): (bool
       inc j
 
     if widthLeft <= 0 and y + height <= allocator.atlasSize:
-      # Found a valid position
+      # Found a valid position.
       if y < bestY or (y == bestY and node.x < bestX):
         bestY = y
         bestX = node.x
@@ -85,10 +80,10 @@ proc findSkylinePosition(allocator: SkylineAllocator, width, height: int): (bool
     return (false, 0, 0)
 
 proc addToSkyline(allocator: SkylineAllocator, x, y, width, height: int) =
-  ## Add a rectangle to the skyline
+  ## Add a rectangle to the skyline.
   var newSkyline: seq[SkylineNode]
 
-  # Add nodes before the rectangle
+  # Add nodes before the rectangle.
   for node in allocator.skyline:
     if node.x + node.width <= x:
       newSkyline.add(node)
@@ -98,10 +93,10 @@ proc addToSkyline(allocator: SkylineAllocator, x, y, width, height: int) =
       newSkyline.add(truncated)
       break
 
-  # Add the new rectangle node
+  # Add the new rectangle node.
   newSkyline.add(SkylineNode(x: x, y: y + height, width: width))
 
-  # Add nodes after the rectangle
+  # Add nodes after the rectangle.
   for node in allocator.skyline:
     if node.x >= x + width:
       newSkyline.add(node)
@@ -111,7 +106,7 @@ proc addToSkyline(allocator: SkylineAllocator, x, y, width, height: int) =
       truncated.width = node.x + node.width - (x + width)
       newSkyline.add(truncated)
 
-  # Merge adjacent nodes with same height
+  # Merge adjacent nodes with same height.
   var mergedSkyline: seq[SkylineNode]
   for node in newSkyline:
     if mergedSkyline.len > 0 and mergedSkyline[^1].y == node.y:
@@ -122,8 +117,7 @@ proc addToSkyline(allocator: SkylineAllocator, x, y, width, height: int) =
   allocator.skyline = mergedSkyline
 
 proc allocate*(allocator: SkylineAllocator, width, height: int): AllocationResult =
-  ## Allocate a rectangle using skyline algorithm with margin
-  # Add margin to the requested size
+  ## Allocate a rectangle using skyline algorithm with margin.
   let
     paddedWidth = width + allocator.margin * 2
     paddedHeight = height + allocator.margin * 2
@@ -131,7 +125,7 @@ proc allocate*(allocator: SkylineAllocator, width, height: int): AllocationResul
   let (found, x, y) = allocator.findSkylinePosition(paddedWidth, paddedHeight)
   if found:
     allocator.addToSkyline(x, y, paddedWidth, paddedHeight)
-    # Return the actual position offset by margin
+    # Return the actual position offset by margin.
     return AllocationResult(
       success: true,
       x: x + allocator.margin,
