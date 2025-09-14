@@ -5,10 +5,10 @@ import boxy/allocator, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
 export atlasVert, atlasMain, maskMain
 
 export pixie
-export SkylineAllocator, AllocationResult
 
 const
-  quadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
+  QuadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
+  TileMargin = 2    ## Margin to add around each tile in the atlas.
 
 type
   BoxyError* = object of ValueError
@@ -153,13 +153,12 @@ proc clearAtlas*(boxy: Boxy) =
 
 proc newBoxy*(
   atlasSize = 512,
-  quadsPerBatch = 1024,
-  margin = 1
+  quadsPerBatch = 1024
 ): Boxy =
   ## Creates a new Boxy with a specified allocator.
   ## margin: pixels of padding around each image in the atlas
-  if quadsPerBatch > quadLimit:
-    raise newException(BoxyError, "Quads per batch cannot exceed " & $quadLimit)
+  if quadsPerBatch > QuadLimit:
+    raise newException(BoxyError, "Quads per batch cannot exceed " & $QuadLimit)
 
   result = Boxy()
   result.atlasSize = atlasSize
@@ -168,7 +167,7 @@ proc newBoxy*(
   result.mats = newSeq[Mat3]()
 
   result.atlasTexture = result.createAtlasTexture(atlasSize)
-  result.allocator = newSkylineAllocator(atlasSize, margin)
+  result.allocator = newSkylineAllocator(atlasSize, TileMargin)
 
   result.layerNum = -1
 

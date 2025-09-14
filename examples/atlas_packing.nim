@@ -1,15 +1,15 @@
 import boxy, boxy/textures, opengl, windy, os, random, math, pixie
 
-# Test the skyline allocator with randomly generated images
+# Test the boxy atlas with randomly generated images.
 
 randomize()
 
 proc randomColor(): Color =
-  ## Generate a random color
+  ## Generate a random color.
   color(rand(1.0), rand(1.0), rand(1.0), 1.0)
 
 proc drawStar(image: Image, center: Vec2, radius: float32, points: int, color: Color) =
-  ## Draw a star with N points
+  ## Draw a star with N points.
   let
     outerRadius = radius
     innerRadius = radius * 0.4
@@ -50,7 +50,8 @@ proc generateRandomImage(minSize, maxSize: int): Image =
       maxRadius = min(width, height).float32 * 0.3
 
     case rand(0..3):
-    of 0:  # Rectangle
+    of 0:
+      # Rectangle.
       let
         w = rand(width.float32 * 0.2..width.float32 * 0.7)
         h = rand(height.float32 * 0.2..height.float32 * 0.7)
@@ -60,13 +61,15 @@ proc generateRandomImage(minSize, maxSize: int): Image =
       path.rect(x, y, w, h)
       image.fillPath(path, shapeColor)
 
-    of 1:  # Circle
+    of 1:
+      # Circle.
       let radius = rand(maxRadius * 0.5..maxRadius)
       var path = newPath()
       path.circle(centerX, centerY, radius)
       image.fillPath(path, shapeColor)
 
-    of 2:  # Triangle
+    of 2:
+      # Triangle.
       var path = newPath()
       let size = rand(maxRadius * 0.5..maxRadius)
       path.moveTo(centerX, centerY - size)
@@ -75,7 +78,8 @@ proc generateRandomImage(minSize, maxSize: int): Image =
       path.closePath()
       image.fillPath(path, shapeColor)
 
-    of 3:  # Star with random points
+    of 3:
+      # Star with random points
       let
         points = rand(3..8)
         radius = rand(maxRadius * 0.5..maxRadius)
@@ -86,21 +90,16 @@ proc generateRandomImage(minSize, maxSize: int): Image =
 
   return image
 
-# Initialize
-let window = newWindow("Test Atlas", ivec2(800, 600))
+let window = newWindow("Atlas Packing", ivec2(1000, 1000))
 makeContextCurrent(window)
 loadExtensions()
 
-let ctx = newBoxy(atlasSize = 512, margin = 2)  # Add 2 pixel margin around each image
+let ctx = newBoxy(atlasSize = 512)  # Add 2 pixel margin around each image
 
-# Create tmp directory
 if not dirExists("tmp"):
   createDir("tmp")
 
 echo "Generating random images and packing them..."
-echo "Atlas will be saved every 20 images to tmp/atlas_N.png"
-echo "Testing GPU-based atlas growth when space runs out..."
-echo ""
 
 var
   imageCount = 0
@@ -134,24 +133,12 @@ for i in 1..totalImages:
 
     let filename = "tmp/atlas_" & $i & ".png"
     ctx.atlasTexture.writeFile(filename)
-    echo "  -> Saved ", filename
-    echo ""
+    echo "  Wrote ", filename
 
-echo "\nFinal statistics:"
-echo "  Total images packed: ", imageCount
-echo "  Atlas size: 512x512 (initial)"
-echo "  Atlas files saved in tmp/ directory"
-echo ""
-echo "You can view the progression of the packing algorithm by looking at:"
-for i in countup(saveInterval, totalImages, saveInterval):
-  echo "  - tmp/atlas_", i, ".png"
 
-# Quick render loop to display the final result
 var frameCount = 0
 window.onCloseRequest = proc() =
   quit()
-
-echo "\nShowing packed images in window (close window to exit)..."
 
 while not window.closeRequested:
   pollEvents()
@@ -165,13 +152,13 @@ while not window.closeRequested:
     maxHeight = 0.0
     cols = 0
 
-  for i in 1..min(50, totalImages):  # Show first 50 images
+  for i in 1 ..< totalImages:  # Show first 50 images
     let key = "img_" & $i
     if ctx.contains(key):
       let size = ctx.getImageSize(key)
 
       # Wrap to next row if needed
-      if x + size.x.float32 > 780:
+      if x + size.x.float32 > window.size.x.float32:
         x = 10
         y += maxHeight + 10
         maxHeight = 0
@@ -184,12 +171,15 @@ while not window.closeRequested:
       inc cols
 
       # Stop if we're getting too far down
-      if y > 550:
+      if y > window.size.y.float32:
         break
 
   ctx.endFrame()
 
+  # On F4 key, write the atlas to a file.
+  if window.buttonPressed[KeyF4]:
+    echo "Writing atlas to tmp/atlas.png"
+    ctx.readAtlas().writeFile("tmp/atlas.png")
+
   window.swapBuffers()
   inc frameCount
-
-echo "Test completed!"
