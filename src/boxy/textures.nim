@@ -93,7 +93,6 @@ proc newTexture*(image: Image): Texture =
   result.genMipmap = false
   result.minFilter = minLinear
   result.magFilter = magLinear
-  #result.backingImage = image.copy()
   bindTextureData(result, image.data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
@@ -110,12 +109,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     `type` = GL_UNSIGNED_BYTE,
     pixels = image.data[0].addr
   )
-  # if level == 0:
-  #   texture.backingImage.draw(
-  #     image,
-  #     translate(vec2(x.float32, y.float32)),
-  #     OverwriteBlend
-  #   )
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   ## Update a small part of texture with a new image.

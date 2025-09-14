@@ -34,7 +34,7 @@ type
     mats: seq[Mat3]                  ## The matrix stack.
     entries: Table[string, ImageInfo]
     entriesBuffered: HashSet[string] ## Entries used but not flushed yet.
-    allocator*: SkylineAllocator            ## Texture atlas allocator (pluggable)
+    allocator*: SkylineAllocator            ## Texture atlas allocator.
     proj: Mat4
     frameSize: IVec2                 ## Dimensions of the window frame.
     vertexArrayId, layerFramebufferId: GLuint
@@ -128,8 +128,6 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.internalFormat = GL_RGBA8
   result.minFilter = minLinear
   result.magFilter = magLinear
-  #result.backingImage = newImage(size, size)
-  #result.backingImage.fill(color(0, 0, 0, 0))
   bindTextureData(result, nil)
 
 proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
