@@ -51,5 +51,10 @@ window.onFrame = proc() =
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
 
+  # On F4 key, write the atlas to a file.
+  if window.buttonPressed[KeyF4]:
+    echo "Writing atlas to tmp/atlas.png"
+    bxy.readAtlas().writeFile("tmp/atlas.png")
+
 while not window.closeRequested:
   pollEvents()
