@@ -155,8 +155,7 @@ proc newBoxy*(
   atlasSize = 512,
   quadsPerBatch = 1024
 ): Boxy =
-  ## Creates a new Boxy with a specified allocator.
-  ## margin: pixels of padding around each image in the atlas
+  ## Creates a new Boxy with a specified atlas size and quads per batch.
   if quadsPerBatch > QuadLimit:
     raise newException(BoxyError, "Quads per batch cannot exceed " & $QuadLimit)
 
