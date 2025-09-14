@@ -100,7 +100,7 @@ proc createHex(size: float32, middle, top, bottom, htmlColor: string): Image =
   image.fillText(arrangement, mat * translate(vec2(13, 23)))
   return image
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Hexmap", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 

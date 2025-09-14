@@ -1,6 +1,6 @@
 import boxy, opengl, windy
 
-let window = newWindow("Boxy Blur", ivec2(1280, 800))
+let window = newWindow("Blur", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 

@@ -87,7 +87,7 @@ proc generateRandomImage(minSize, maxSize: int): Image =
   return image
 
 # Initialize
-let window = newWindow("Atlas Packing Test", ivec2(800, 600))
+let window = newWindow("Test Atlas", ivec2(800, 600))
 makeContextCurrent(window)
 loadExtensions()
 

@@ -1,6 +1,6 @@
 import boxy, opengl, times, windy
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Text Dynamic", ivec2(1280, 800))
 makeContextCurrent(window)
 
 loadExtensions()

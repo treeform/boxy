@@ -7,7 +7,7 @@ proc display() {.cdecl.} # Forward declaration
 glutInit()
 glutInitDisplayMode(GLUT_DOUBLE)
 glutInitWindowSize(windowSize.x, windowSize.y)
-discard glutCreateWindow("GLUT + Boxy")
+discard glutCreateWindow("Basic Glut")
 glutDisplayFunc(display)
 loadExtensions()
 
