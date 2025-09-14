@@ -1,4 +1,4 @@
-import buffers, opengl, pixie
+import buffers, opengl, pixie, vmath
 
 type
   MinFilter* = enum
@@ -133,6 +133,49 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     image = image.minifyBy2()
     x = x div 2
     y = y div 2
+    inc level
+
+proc clearSubImage*(texture: Texture, x, y, width, height: int, level: int = 0) =
+  ## Clears a rectangular region of the texture to transparent black.
+  ## Uses a more compatible approach that works with older OpenGL versions.
+  let clearImage = newImage(width, height)
+  clearImage.fill(color(0, 0, 0, 0))  # Transparent black
+
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
+  glTexSubImage2D(
+    GL_TEXTURE_2D,
+    level = level.GLint,
+    xoffset = x.GLint,
+    yoffset = y.GLint,
+    width = width.GLint,
+    height = height.GLint,
+    format = GL_RGBA,
+    `type` = GL_UNSIGNED_BYTE,
+    pixels = clearImage.data[0].addr
+  )
+
+proc clearSubImage*(texture: Texture, x, y: int, size: IVec2) =
+  ## Clears a rectangular region across all mipmap levels.
+  var
+    curX = x
+    curY = y
+    curWidth = size.x
+    curHeight = size.y
+    level = 0
+
+  while true:
+    texture.clearSubImage(curX, curY, curWidth, curHeight, level)
+
+    if curWidth <= 1 or curHeight <= 1:
+      break
+    if not texture.genMipmap:
+      break
+
+    # Scale down for next mipmap level
+    curX = curX div 2
+    curY = curY div 2
+    curWidth = max(1, curWidth div 2)
+    curHeight = max(1, curHeight div 2)
     inc level
 
 proc readImage*(texture: Texture): Image =

@@ -15,6 +15,7 @@ type
 
   ImageInfo = object
     size: IVec2        ## Size of the image in pixels.
+    cap: IVec2         ## Capacity of the image in pixels (for growing)
     atlasPos: IVec2    ## Position in the atlas (for non-solid colors)
     isOneColor: bool   ## True if image is a single solid color
     oneColor: Color    ## If isOneColor = true, this is the image's color.
@@ -323,9 +324,12 @@ proc removeImage*(boxy: Boxy, key: string) =
     )
 
   if key in boxy.entries:
-    # Note: With skyline packing, we can't easily reclaim space
-    # The skyline would need complex merging to reclaim rectangles
-    # For simplicity, we just remove the entry
+    # Clear the image from the atlas
+    boxy.atlasTexture.clearSubImage(
+      boxy.entries[key].atlasPos.x,
+      boxy.entries[key].atlasPos.y,
+      boxy.entries[key].cap
+    )
     boxy.entries.del(key)
 
 proc grow(boxy: Boxy) =
@@ -461,7 +465,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
   var reusing = false
   if key in boxy.entries:
     imageInfo = boxy.entries[key]
-    if imageInfo.size.x >= image.width and imageInfo.size.y >= image.height:
+    if imageInfo.cap.x >= image.width and imageInfo.cap.y >= image.height:
       reusing = true
 
   if not reusing:
@@ -471,6 +475,7 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
     imageInfo = ImageInfo()
     boxy.entriesBuffered.incl(key)
     imageInfo.size = ivec2(image.width.int32, image.height.int32)
+    imageInfo.cap = imageInfo.size
     imageInfo.isOneColor = false
 
     # Try to pack the image using the allocator
@@ -487,17 +492,38 @@ proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
         boxy.grow()
     imageInfo.atlasPos = ivec2(x.int32, y.int32)
 
-  # Update the image info size
-  imageInfo.size = ivec2(image.width.int32, image.height.int32)
-  # Copy the image to the atlas at the packed position
-  updateSubImage(
-    boxy.atlasTexture,
-    imageInfo.atlasPos.x,
-    imageInfo.atlasPos.y,
-    image
-  )
+    # Update the image info size
+    imageInfo.size = ivec2(image.width.int32, image.height.int32)
+    # Copy the image to the atlas at the packed position
+    updateSubImage(
+      boxy.atlasTexture,
+      imageInfo.atlasPos.x,
+      imageInfo.atlasPos.y,
+      image
+    )
 
-  boxy.entries[key] = imageInfo
+    boxy.entries[key] = imageInfo
+
+  else:
+    # Update the image info size
+    imageInfo.size = ivec2(image.width.int32, image.height.int32)
+    if imageInfo.cap != imageInfo.size:
+      # Got to clear the margin around the image.
+      boxy.atlasTexture.clearSubImage(
+        imageInfo.atlasPos.x,
+        imageInfo.atlasPos.y,
+        imageInfo.cap
+      )
+
+    # Copy the image to the atlas at the packed position
+    updateSubImage(
+      boxy.atlasTexture,
+      imageInfo.atlasPos.x,
+      imageInfo.atlasPos.y,
+      image
+    )
+
+    boxy.entries[key] = imageInfo
 
 proc getImageSize*(boxy: Boxy, key: string): IVec2 =
   ## Return the size of an inserted image.
