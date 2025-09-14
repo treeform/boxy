@@ -90,8 +90,8 @@ proc newTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
-  result.genMipmap = false
-  result.minFilter = minLinear
+  result.genMipmap = true
+  result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
   bindTextureData(result, image.data[0].addr)
 

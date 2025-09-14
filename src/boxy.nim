@@ -9,6 +9,7 @@ export pixie
 const
   QuadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
   TileMargin = 2    ## Margin to add around each tile in the atlas.
+  WhiteTileKey = "_white_tile_"
 
 type
   BoxyError* = object of ValueError
@@ -144,10 +145,11 @@ proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   bindTextureData(layerTexture, nil)
   boxy.layerTextures.add(layerTexture)
 
-
+proc addWhiteTile(boxy: Boxy)
 proc clearAtlas*(boxy: Boxy) =
   boxy.entries.clear()
   boxy.allocator.reset()
+  boxy.addWhiteTile()
 
 proc newBoxy*(
   atlasSize = 512,
@@ -309,6 +311,8 @@ proc newBoxy*(
       $result.maxAtlasSize
     )
 
+  result.addWhiteTile()
+
 # Forward declaration
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color)
 
@@ -439,7 +443,7 @@ proc grow(boxy: Boxy) =
   # Delete the old atlas texture
   glDeleteTextures(1, oldAtlasTexture.textureId.addr)
 
-proc addImage*(boxy: Boxy, key: string, image: Image, genMipmaps = true) =
+proc addImage*(boxy: Boxy, key: string, image: Image) =
   if key in boxy.entriesBuffered:
     raise newException(
       BoxyError,
@@ -589,6 +593,21 @@ proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color) =
 
   boxy.drawQuad(posQuad, uvQuad, tints)
 
+proc addWhiteTile(boxy: Boxy) =
+  # Add a 16x16 white pixel to the atlas
+  let white = newImage(16, 16)
+  white.fill(color(1, 1, 1, 1))
+  let allocation = boxy.allocator.allocate(1, 1)
+  if allocation.success:
+    # We need to use the old updateSubImage to avoid one color by pass.
+    updateSubImage(boxy.atlasTexture, allocation.x, allocation.y, white)
+    boxy.entries[WhiteTileKey] = ImageInfo(
+      size: ivec2(16, 16),
+      cap: ivec2(16, 16),
+      atlasPos: ivec2(allocation.x.int32, allocation.y.int32),
+      isOneColor: false
+    )
+
 proc drawRect*(
   boxy: Boxy,
   rect: Rect,
@@ -596,22 +615,7 @@ proc drawRect*(
 ) =
   if color != color(0, 0, 0, 0):
     # Draw a solid color rectangle
-    # We'll use a 1x1 white pixel area for solid colors
-    # First ensure we have a white pixel in the atlas
-    if not boxy.entries.hasKey("__white_pixel__"):
-      # Add a 1x1 white pixel to the atlas
-      let white = newImage(1, 1)
-      white.fill(color(1, 1, 1, 1))
-      let allocation = boxy.allocator.allocate(1, 1)
-      if allocation.success:
-        updateSubImage(boxy.atlasTexture, allocation.x, allocation.y, white)
-        boxy.entries["__white_pixel__"] = ImageInfo(
-          size: ivec2(1, 1),
-          atlasPos: ivec2(allocation.x.int32, allocation.y.int32),
-          isOneColor: false
-        )
-
-    let whitePixel = boxy.entries.getOrDefault("__white_pixel__")
+    let whitePixel = boxy.entries[WhiteTileKey]
     if whitePixel.size.x > 0:
       boxy.drawUvRect(
         rect.xy,
