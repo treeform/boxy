@@ -131,9 +131,9 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
 proc clearSubImage*(texture: Texture, x, y, width, height: int, level: int = 0) =
   ## Clears a rectangular region of the texture to transparent black.
   ## Uses a more compatible approach that works with older OpenGL versions.
+  if width <= 0 or height <= 0:
+    return
   let clearImage = newImage(width, height)
-  clearImage.fill(color(0, 0, 0, 0))  # Transparent black
-
   glBindTexture(GL_TEXTURE_2D, texture.textureId)
   glTexSubImage2D(
     GL_TEXTURE_2D,
@@ -149,6 +149,8 @@ proc clearSubImage*(texture: Texture, x, y, width, height: int, level: int = 0) 
 
 proc clearSubImage*(texture: Texture, x, y: int, size: IVec2) =
   ## Clears a rectangular region across all mipmap levels.
+  if size.x <= 0 or size.y <= 0:
+    return
   var
     curX = x
     curY = y
