@@ -1,6 +1,7 @@
 import boxy, opengl, windy
 
-let window = newWindow("Transparent", ivec2(1280, 800), style = Transparent)
+let window = newWindow("Transparent", ivec2(1280, 800), transparent = true)
+window.style = Transparent
 makeContextCurrent(window)
 loadExtensions()
 
