@@ -25,10 +25,18 @@
   <div class="document" id="documentId">
     <div class="container">
       <h1 class="title">Index</h1>
-      Modules: <a href="boxy.html">boxy</a>, <a href="boxy/blends.html">boxy/blends</a>, <a href="boxy/blurs.html">boxy/blurs</a>, <a href="boxy/buffers.html">boxy/buffers</a>, <a href="boxy/shaders.html">boxy/shaders</a>, <a href="boxy/spreads.html">boxy/spreads</a>, <a href="boxy/textures.html">boxy/textures</a>.<br/><p /><h2>API symbols</h2>
+      Modules: <a href="boxy.html">boxy</a>, <a href="boxy/allocator.html">boxy/allocator</a>, <a href="boxy/blends.html">boxy/blends</a>, <a href="boxy/blurs.html">boxy/blurs</a>, <a href="boxy/buffers.html">boxy/buffers</a>, <a href="boxy/shaders.html">boxy/shaders</a>, <a href="boxy/spreads.html">boxy/spreads</a>, <a href="boxy/textures.html">boxy/textures</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="addImage" href="#addImage"><span>addImage:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="boxy: proc addImage(boxy: Boxy; key: string; image: Image; genMipmaps = true)" href="boxy.html#addImage%2CBoxy%2Cstring%2CImage">boxy: proc addImage(boxy: Boxy; key: string; image: Image; genMipmaps = true)</a></li>
+          data-doc-search-tag="boxy: proc addImage(boxy: Boxy; key: string; image: Image)" href="boxy.html#addImage%2CBoxy%2Cstring%2CImage">boxy: proc addImage(boxy: Boxy; key: string; image: Image)</a></li>
+          </ul></dd>
+<dt><a name="allocate" href="#allocate"><span>allocate:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: proc allocate(allocator: SkylineAllocator; width, height: int): AllocationResult" href="boxy/allocator.html#allocate%2CSkylineAllocator%2Cint%2Cint">allocator: proc allocate(allocator: SkylineAllocator; width, height: int): AllocationResult</a></li>
+          </ul></dd>
+<dt><a name="AllocationResult" href="#AllocationResult"><span>AllocationResult:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: object AllocationResult" href="boxy/allocator.html#AllocationResult">allocator: object AllocationResult</a></li>
           </ul></dd>
 <dt><a name="applyTransform" href="#applyTransform"><span>applyTransform:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -138,6 +146,12 @@
 <li><a class="reference external"
           data-doc-search-tag="boxy: proc clearAtlas(boxy: Boxy)" href="boxy.html#clearAtlas%2CBoxy">boxy: proc clearAtlas(boxy: Boxy)</a></li>
           </ul></dd>
+<dt><a name="clearSubImage" href="#clearSubImage"><span>clearSubImage:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="textures: proc clearSubImage(texture: Texture; x, y, width, height: int; level: int = 0)" href="boxy/textures.html#clearSubImage%2CTexture%2Cint%2Cint%2Cint%2Cint%2Cint">textures: proc clearSubImage(texture: Texture; x, y, width, height: int; level: int = 0)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="textures: proc clearSubImage(texture: Texture; x, y: int; size: IVec2)" href="boxy/textures.html#clearSubImage%2CTexture%2Cint%2Cint%2CIVec2">textures: proc clearSubImage(texture: Texture; x, y: int; size: IVec2)</a></li>
+          </ul></dd>
 <dt><a name="clearTransform" href="#clearTransform"><span>clearTransform:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="boxy: proc clearTransform(boxy: Boxy)" href="boxy.html#clearTransform%2CBoxy">boxy: proc clearTransform(boxy: Boxy)</a></li>
@@ -218,6 +232,10 @@
 <li><a class="reference external"
           data-doc-search-tag="blends: var gl_Position" href="boxy/blends.html#gl_Position">blends: var gl_Position</a></li>
           </ul></dd>
+<dt><a name="grow" href="#grow"><span>grow:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: proc grow(allocator: SkylineAllocator; newSize: int)" href="boxy/allocator.html#grow%2CSkylineAllocator%2Cint">allocator: proc grow(allocator: SkylineAllocator; newSize: int)</a></li>
+          </ul></dd>
 <dt><a name="hasUniform" href="#hasUniform"><span>hasUniform:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="shaders: proc hasUniform(shader: Shader; name: string): bool" href="boxy/shaders.html#hasUniform%2CShader%2Cstring">shaders: proc hasUniform(shader: Shader; name: string): bool</a></li>
@@ -276,7 +294,7 @@
           </ul></dd>
 <dt><a name="newBoxy" href="#newBoxy"><span>newBoxy:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="boxy: proc newBoxy(atlasSize = 512; tileSize = 32 - 2; quadsPerBatch = 1024): Boxy" href="boxy.html#newBoxy%2Cint%2Cint">boxy: proc newBoxy(atlasSize = 512; tileSize = 32 - 2; quadsPerBatch = 1024): Boxy</a></li>
+          data-doc-search-tag="boxy: proc newBoxy(atlasSize = 512; quadsPerBatch = 1024): Boxy" href="boxy.html#newBoxy%2Cint%2Cint">boxy: proc newBoxy(atlasSize = 512; quadsPerBatch = 1024): Boxy</a></li>
           </ul></dd>
 <dt><a name="newShader" href="#newShader"><span>newShader:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -293,6 +311,10 @@
           data-doc-search-tag="shaders: template newShaderStatic(computePath: string): Shader" href="boxy/shaders.html#newShaderStatic.t%2Cstring">shaders: template newShaderStatic(computePath: string): Shader</a></li>
           <li><a class="reference external"
           data-doc-search-tag="shaders: template newShaderStatic(vertPath, fragPath: string): Shader" href="boxy/shaders.html#newShaderStatic.t%2Cstring%2Cstring">shaders: template newShaderStatic(vertPath, fragPath: string): Shader</a></li>
+          </ul></dd>
+<dt><a name="newSkylineAllocator" href="#newSkylineAllocator"><span>newSkylineAllocator:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: proc newSkylineAllocator(atlasSize: int; margin: int = 0): SkylineAllocator" href="boxy/allocator.html#newSkylineAllocator%2Cint%2Cint">allocator: proc newSkylineAllocator(atlasSize: int; margin: int = 0): SkylineAllocator</a></li>
           </ul></dd>
 <dt><a name="newTexture" href="#newTexture"><span>newTexture:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -319,6 +341,10 @@
 <dt><a name="removeImage" href="#removeImage"><span>removeImage:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="boxy: proc removeImage(boxy: Boxy; key: string)" href="boxy.html#removeImage%2CBoxy%2Cstring">boxy: proc removeImage(boxy: Boxy; key: string)</a></li>
+          </ul></dd>
+<dt><a name="reset" href="#reset"><span>reset:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: proc reset(allocator: SkylineAllocator)" href="boxy/allocator.html#reset%2CSkylineAllocator">allocator: proc reset(allocator: SkylineAllocator)</a></li>
           </ul></dd>
 <dt><a name="restoreTransform" href="#restoreTransform"><span>restoreTransform:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -365,6 +391,14 @@
 <dt><a name="size" href="#size"><span>size:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="buffers: proc size(componentType: GLenum): Positive" href="boxy/buffers.html#size%2CGLenum">buffers: proc size(componentType: GLenum): Positive</a></li>
+          </ul></dd>
+<dt><a name="SkylineAllocator" href="#SkylineAllocator"><span>SkylineAllocator:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: type SkylineAllocator" href="boxy/allocator.html#SkylineAllocator">allocator: type SkylineAllocator</a></li>
+          </ul></dd>
+<dt><a name="SkylineNode" href="#SkylineNode"><span>SkylineNode:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="allocator: object SkylineNode" href="boxy/allocator.html#SkylineNode">allocator: object SkylineNode</a></li>
           </ul></dd>
 <dt><a name="spreadXMain" href="#spreadXMain"><span>spreadXMain:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -420,7 +454,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-11 23:39:38 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-17 21:28:35 UTC</small>
       </div>
     </div>
   </div>

@@ -1,0 +1,8 @@
+nimTitle	allocator	boxy/allocator.html	module src/boxy/allocator		0
+nim	AllocationResult	boxy/allocator.html#AllocationResult	object AllocationResult		3
+nim	SkylineNode	boxy/allocator.html#SkylineNode	object SkylineNode		8
+nim	SkylineAllocator	boxy/allocator.html#SkylineAllocator	type SkylineAllocator		13
+nim	newSkylineAllocator	boxy/allocator.html#newSkylineAllocator,int,int	proc newSkylineAllocator(atlasSize: int; margin: int = 0): SkylineAllocator		18
+nim	reset	boxy/allocator.html#reset,SkylineAllocator	proc reset(allocator: SkylineAllocator)		25
+nim	grow	boxy/allocator.html#grow,SkylineAllocator,int	proc grow(allocator: SkylineAllocator; newSize: int)		29
+nim	allocate	boxy/allocator.html#allocate,SkylineAllocator,int,int	proc allocate(allocator: SkylineAllocator; width, height: int): AllocationResult		119
