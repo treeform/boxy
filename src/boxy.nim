@@ -127,8 +127,9 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
-  result.minFilter = minLinear
+  result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
+  result.genMipmap = true
   bindTextureData(result, nil)
 
 proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
@@ -420,10 +421,13 @@ proc grow(boxy: Boxy) =
   boxy.flush()
 
   # Restore framebuffer binding
-  if boxy.layerNum >= 0:
-    glBindFramebuffer(GL_FRAMEBUFFER, boxy.layerFramebufferId)
-  else:
-    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+  glBindFramebuffer(
+    GL_FRAMEBUFFER,
+    if boxy.layerNum >= 0:
+      boxy.layerFramebufferId
+    else:
+      0
+  )
 
   # Clean up the temporary framebuffer
   glDeleteFramebuffers(1, growFramebufferId.addr)

@@ -12,7 +12,7 @@ discard glSetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4)
 discard glSetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1)
 
 let window = createWindow(
-  "Basic Sdl2",
+  "Basic SDL2",
   100,
   100,
   windowSize.x,
