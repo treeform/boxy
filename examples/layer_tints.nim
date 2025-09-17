@@ -1,6 +1,6 @@
 import boxy, opengl, windy
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Layer Tints", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 

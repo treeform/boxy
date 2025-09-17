@@ -14,8 +14,8 @@ proc display(window: Window, bxy: Boxy) =
   inc i
 
 let
-  window1 = newWindow("Windy1 + Boxy", ivec2(1280, 800))
-  window2 = newWindow("Windy2 + Boxy", ivec2(1280, 800))
+  window1 = newWindow("Multiple Windows 1", ivec2(1280, 800))
+  window2 = newWindow("Multiple Windows 2", ivec2(1280, 800))
 
 var
   dirty1: bool

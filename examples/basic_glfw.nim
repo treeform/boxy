@@ -12,7 +12,7 @@ windowHint(RESIZABLE, false.cint)
 windowHint(CONTEXT_VERSION_MAJOR, 4)
 windowHint(CONTEXT_VERSION_MINOR, 1)
 
-let window = createWindow(windowSize.x, windowSize.y, "GLFW + Boxy", nil, nil)
+let window = createWindow(windowSize.x, windowSize.y, "Basic Glfw", nil, nil)
 makeContextCurrent(window)
 
 loadExtensions()

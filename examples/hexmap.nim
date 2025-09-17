@@ -100,7 +100,7 @@ proc createHex(size: float32, middle, top, bottom, htmlColor: string): Image =
   image.fillText(arrangement, mat * translate(vec2(13, 23)))
   return image
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Hexmap", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 
@@ -232,6 +232,11 @@ window.onFrame = proc() =
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc frame
+
+  # On F4 key, write the atlas to a file.
+  if window.buttonPressed[KeyF4]:
+    echo "Writing atlas to tmp/atlas.png"
+    bxy.readAtlas().writeFile("tmp/atlas.png")
 
 while not window.closeRequested:
   pollEvents()

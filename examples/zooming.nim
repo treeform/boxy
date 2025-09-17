@@ -1,6 +1,6 @@
 import boxy, opengl, windy
 
-let window = newWindow("Windy + Boxy", ivec2(1280, 800))
+let window = newWindow("Zooming", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 
@@ -8,8 +8,6 @@ let bxy = newBoxy()
 
 # Load the image.
 bxy.addImage("greece", readImage("examples/data/greece.png"))
-
-# bxy.readAtlas().writeFile("atlas.png")
 
 var frame: int
 var scale: float32 = 0.7

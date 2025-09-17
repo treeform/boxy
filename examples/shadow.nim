@@ -1,6 +1,6 @@
 import boxy, opengl, windy
 
-let window = newWindow("Boxy Shadow", ivec2(1280, 800))
+let window = newWindow("Shadow", ivec2(1280, 800))
 makeContextCurrent(window)
 loadExtensions()
 

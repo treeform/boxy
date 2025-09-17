@@ -1,4 +1,4 @@
-import buffers, opengl, pixie
+import buffers, opengl, pixie, vmath
 
 type
   MinFilter* = enum
@@ -29,7 +29,6 @@ type
     wrapS*, wrapT*: Wrap
     genMipmap*: bool
     textureId*: GLuint
-    backingImage*: Image
 
 proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
   ## Binds data to a texture buffer.
@@ -91,10 +90,9 @@ proc newTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
-  result.genMipmap = false
-  result.minFilter = minLinear
+  result.genMipmap = true
+  result.minFilter = minLinearMipmapLinear
   result.magFilter = magLinear
-  result.backingImage = image.copy()
   bindTextureData(result, image.data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
@@ -111,12 +109,6 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     `type` = GL_UNSIGNED_BYTE,
     pixels = image.data[0].addr
   )
-  if level == 0:
-    texture.backingImage.draw(
-      image,
-      translate(vec2(x.float32, y.float32)),
-      OverwriteBlend
-    )
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
   ## Update a small part of texture with a new image.
@@ -136,9 +128,58 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     y = y div 2
     inc level
 
+proc clearSubImage*(texture: Texture, x, y, width, height: int, level: int = 0) =
+  ## Clears a rectangular region of the texture to transparent black.
+  ## Uses a more compatible approach that works with older OpenGL versions.
+  if width <= 0 or height <= 0:
+    return
+  let clearImage = newImage(width, height)
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
+  glTexSubImage2D(
+    GL_TEXTURE_2D,
+    level = level.GLint,
+    xoffset = x.GLint,
+    yoffset = y.GLint,
+    width = width.GLint,
+    height = height.GLint,
+    format = GL_RGBA,
+    `type` = GL_UNSIGNED_BYTE,
+    pixels = clearImage.data[0].addr
+  )
+
+proc clearSubImage*(texture: Texture, x, y: int, size: IVec2) =
+  ## Clears a rectangular region across all mipmap levels.
+  if size.x <= 0 or size.y <= 0:
+    return
+  var
+    curX = x
+    curY = y
+    curWidth = size.x
+    curHeight = size.y
+    level = 0
+
+  while true:
+    texture.clearSubImage(curX, curY, curWidth, curHeight, level)
+
+    if curWidth <= 1 or curHeight <= 1:
+      break
+    if not texture.genMipmap:
+      break
+
+    # Scale down for next mipmap level
+    curX = curX div 2
+    curY = curY div 2
+    curWidth = max(1, curWidth div 2)
+    curHeight = max(1, curHeight div 2)
+    inc level
+
 proc readImage*(texture: Texture): Image =
   ## Reads the data of the texture back.
-  return texture.backingImage
+
+  let image = newImage(texture.width, texture.height)
+  glBindTexture(GL_TEXTURE_2D, texture.textureId)
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data[0].addr)
+  return image
 
 proc writeFile*(texture: Texture, path: string) =
   ## Reads the data of the texture and writes it to file.
