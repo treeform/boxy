@@ -1,19 +1,10 @@
 import buffers, opengl, pixie, vmath
 
 type
-  MinFilter* = enum
-    minDefault,
-    minNearest = GL_NEAREST,
-    minLinear = GL_LINEAR,
-    minNearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
-    minLinearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
-    minNearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
-    minLinearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR
-
-  MagFilter* = enum
-    magDefault,
-    magNearest = GL_NEAREST,
-    magLinear = GL_LINEAR
+  Filter* = enum
+    filterDefault,
+    filterNearest = GL_NEAREST,
+    filterLinear = GL_LINEAR
 
   Wrap* = enum
     wDefault,
@@ -24,10 +15,11 @@ type
   Texture* = ref object
     width*, height*: int32
     componentType*, format*, internalFormat*: GLenum
-    minFilter*: MinFilter
-    magFilter*: MagFilter
-    wrapS*, wrapT*: Wrap
-    genMipmap*: bool
+    magFilter*: Filter
+    minFilter*: Filter
+    mipFilter*: Filter
+    wrapS*, wrapT*, wrapR*: Wrap
+    useMipmap*: bool
     textureId*: GLuint
 
 proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
@@ -62,20 +54,38 @@ proc bindTextureData*(texture: Texture, data: pointer) =
     pixels = data
   )
 
-  if texture.magFilter != magDefault:
-    glTexParameteri(
+  if texture.magFilter != filterDefault:
+    glTexParameteri( # default is GL_LINEAR
       GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture.magFilter.GLint
     )
-  if texture.minFilter != minDefault:
-    glTexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture.minFilter.GLint
+  if not texture.useMipmap:
+    glTexParameteri( # default is GL_NEAREST_MIPMAP_LINEAR, but we don't use mipmaps
+      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+      if texture.minFilter == filterDefault: GL_NEAREST
+      else: texture.minFilter.GLint
     )
+  elif texture.minFilter != filterDefault or texture.mipFilter != filterDefault:
+    glTexParameteri( # default is GL_NEAREST_MIPMAP_LINEAR
+      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+      case texture.minFilter:
+      of filterNearest, filterDefault:
+        case texture.mipFilter:
+        of filterNearest: GL_NEAREST_MIPMAP_NEAREST
+        else: GL_NEAREST_MIPMAP_LINEAR
+      else:
+        case texture.mipFilter:
+        of filterNearest: GL_LINEAR_MIPMAP_NEAREST
+        else: GL_LINEAR_MIPMAP_LINEAR
+    )
+
   if texture.wrapS != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texture.wrapS.GLint)
   if texture.wrapT != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texture.wrapT.GLint)
+  if texture.wrapR != wDefault:
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, texture.wrapR.GLint)
 
-  if texture.genMipmap:
+  if texture.useMipmap:
     glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
@@ -90,9 +100,10 @@ proc newTexture*(image: Image): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = image.getFormat()
   result.internalFormat = GL_RGBA8
-  result.genMipmap = true
-  result.minFilter = minLinearMipmapLinear
-  result.magFilter = magLinear
+  result.useMipmap = true
+  result.magFilter = filterLinear
+  result.minFilter = filterLinear
+  result.mipFilter = filterLinear
   bindTextureData(result, image.data[0].addr)
 
 proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
@@ -121,7 +132,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     texture.updateSubImage(x, y, image, level)
     if image.width <= 1 or image.height <= 1:
       break
-    if not texture.genMipmap:
+    if not texture.useMipmap:
       break
     image = image.minifyBy2()
     x = x div 2
@@ -163,7 +174,7 @@ proc clearSubImage*(texture: Texture, x, y: int, size: IVec2) =
 
     if curWidth <= 1 or curHeight <= 1:
       break
-    if not texture.genMipmap:
+    if not texture.useMipmap:
       break
 
     # Scale down for next mipmap level

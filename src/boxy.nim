@@ -127,9 +127,10 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.componentType = GL_UNSIGNED_BYTE
   result.format = GL_RGBA
   result.internalFormat = GL_RGBA8
-  result.minFilter = minLinearMipmapLinear
-  result.magFilter = magLinear
-  result.genMipmap = true
+  result.magFilter = filterLinear
+  result.minFilter = filterLinear
+  result.mipFilter = filterLinear
+  result.useMipmap = true
   bindTextureData(result, nil)
 
 proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
@@ -141,8 +142,8 @@ proc addLayerTexture(boxy: Boxy, frameSize = ivec2(1, 1)) =
   layerTexture.componentType = GL_UNSIGNED_BYTE
   layerTexture.format = GL_RGBA
   layerTexture.internalFormat = GL_RGBA8
-  layerTexture.minFilter = minLinear
-  layerTexture.magFilter = magLinear
+  layerTexture.magFilter = filterLinear
+  layerTexture.minFilter = filterLinear
   bindTextureData(layerTexture, nil)
   boxy.layerTextures.add(layerTexture)
 
@@ -638,8 +639,8 @@ proc readyTmpTexture(boxy: Boxy) =
     boxy.tmpTexture.componentType = GL_UNSIGNED_BYTE
     boxy.tmpTexture.format = GL_RGBA
     boxy.tmpTexture.internalFormat = GL_RGBA8
-    boxy.tmpTexture.minFilter = minLinear
-    boxy.tmpTexture.magFilter = magLinear
+    boxy.tmpTexture.magFilter = filterLinear
+    boxy.tmpTexture.minFilter = filterLinear
   # Resize extra blend texture if needed
   if boxy.tmpTexture.width != boxy.frameSize.x.int32 or
     boxy.tmpTexture.height != boxy.frameSize.y.int32:
