@@ -1,5 +1,6 @@
 import boxy, opengl, windy
 
+# You can close the window by clicking on it as it does not have a title bar.
 let window = newWindow("Transparent", ivec2(1280, 800), style = Transparent)
 makeContextCurrent(window)
 loadExtensions()
