@@ -8,7 +8,7 @@ export pixie
 
 const
   QuadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  TileMargin = 2    ## Margin to add around each tile in the atlas.
+  TileMargin = 16    ## Margin to add around each tile in the atlas.
   WhiteTileKey = "_white_tile_"
 
 type
