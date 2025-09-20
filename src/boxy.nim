@@ -326,12 +326,6 @@ proc removeImage*(boxy: Boxy, key: string) =
     )
 
   if key in boxy.entries:
-    # Clear the image from the atlas
-    boxy.atlasTexture.clearSubImage(
-      boxy.entries[key].atlasPos.x,
-      boxy.entries[key].atlasPos.y,
-      boxy.entries[key].cap
-    )
     boxy.entries.del(key)
 
 proc grow(boxy: Boxy) =
@@ -371,12 +365,8 @@ proc grow(boxy: Boxy) =
     0
   )
 
-  # Clear the new atlas
-  glViewport(0, 0, newAtlasSize.GLint, newAtlasSize.GLint)
-  glClearColor(0, 0, 0, 0)
-  glClear(GL_COLOR_BUFFER_BIT)
-
   # Set up for drawing to the new atlas
+  glViewport(0, 0, newAtlasSize.GLint, newAtlasSize.GLint)
   let savedProj = boxy.proj
   let savedMat = boxy.mat
   let savedMats = boxy.mats
