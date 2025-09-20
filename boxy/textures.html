@@ -58,19 +58,16 @@
   <details open>
     <summary><a class="reference reference-toplevel" href="#7" id="57">Types</a></summary>
     <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#MagFilter" title="MagFilter = enum
-  magDefault, magNearest = 9728, magLinear = 9729">MagFilter</a></li>
-<li><a class="reference" href="#MinFilter" title="MinFilter = enum
-  minDefault, minNearest = 9728, minLinear = 9729,
-  minNearestMipmapNearest = 9984, minLinearMipmapNearest = 9985,
-  minNearestMipmapLinear = 9986, minLinearMipmapLinear = 9987">MinFilter</a></li>
+      <li><a class="reference" href="#Filter" title="Filter = enum
+  filterDefault, filterNearest = 9728, filterLinear = 9729">Filter</a></li>
 <li><a class="reference" href="#Texture" title="Texture = ref object
   width*, height*: int32
   componentType*, format*, internalFormat*: GLenum
-  minFilter*: MinFilter
-  magFilter*: MagFilter
-  wrapS*, wrapT*: Wrap
-  genMipmap*: bool
+  magFilter*: Filter
+  minFilter*: Filter
+  mipFilter*: Filter
+  wrapS*, wrapT*, wrapR*: Wrap
+  useMipmap*: bool
   textureId*: GLuint">Texture</a></li>
 <li><a class="reference" href="#Wrap" title="Wrap = enum
   wDefault, wRepeat = 10497, wClampToEdge = 33071, wMirroredRepeat = 33648">Wrap</a></li>
@@ -136,22 +133,9 @@
 <div class="section" id="7">
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
-    <div id="MagFilter">
-  <dt><pre><a href="textures.html#MagFilter"><span class="Identifier">MagFilter</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">magDefault</span><span class="Other">,</span> <span class="Identifier">magNearest</span> <span class="Other">=</span> <span class="DecNumber">9728</span><span class="Other">,</span> <span class="Identifier">magLinear</span> <span class="Other">=</span> <span class="DecNumber">9729</span></pre></dt>
-  <dd>
-    
-    
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L13" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L13" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
-
-  </dd>
-</div>
-<div id="MinFilter">
-  <dt><pre><a href="textures.html#MinFilter"><span class="Identifier">MinFilter</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">minDefault</span><span class="Other">,</span> <span class="Identifier">minNearest</span> <span class="Other">=</span> <span class="DecNumber">9728</span><span class="Other">,</span> <span class="Identifier">minLinear</span> <span class="Other">=</span> <span class="DecNumber">9729</span><span class="Other">,</span>
-  <span class="Identifier">minNearestMipmapNearest</span> <span class="Other">=</span> <span class="DecNumber">9984</span><span class="Other">,</span> <span class="Identifier">minLinearMipmapNearest</span> <span class="Other">=</span> <span class="DecNumber">9985</span><span class="Other">,</span>
-  <span class="Identifier">minNearestMipmapLinear</span> <span class="Other">=</span> <span class="DecNumber">9986</span><span class="Other">,</span> <span class="Identifier">minLinearMipmapLinear</span> <span class="Other">=</span> <span class="DecNumber">9987</span></pre></dt>
+    <div id="Filter">
+  <dt><pre><a href="textures.html#Filter"><span class="Identifier">Filter</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <span class="Identifier">filterDefault</span><span class="Other">,</span> <span class="Identifier">filterNearest</span> <span class="Other">=</span> <span class="DecNumber">9728</span><span class="Other">,</span> <span class="Identifier">filterLinear</span> <span class="Other">=</span> <span class="DecNumber">9729</span></pre></dt>
   <dd>
     
     
@@ -164,16 +148,17 @@
   <dt><pre><a href="textures.html#Texture"><span class="Identifier">Texture</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">width</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">height</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int32</span>
   <span class="Identifier">componentType</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">format</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">internalFormat</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">GLenum</span>
-  <span class="Identifier">minFilter</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#MinFilter"><span class="Identifier">MinFilter</span></a>
-  <span class="Identifier">magFilter</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#MagFilter"><span class="Identifier">MagFilter</span></a>
-  <span class="Identifier">wrapS</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">wrapT</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#Wrap"><span class="Identifier">Wrap</span></a>
-  <span class="Identifier">genMipmap</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
+  <span class="Identifier">magFilter</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#Filter"><span class="Identifier">Filter</span></a>
+  <span class="Identifier">minFilter</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#Filter"><span class="Identifier">Filter</span></a>
+  <span class="Identifier">mipFilter</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#Filter"><span class="Identifier">Filter</span></a>
+  <span class="Identifier">wrapS</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">wrapT</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">wrapR</span><span class="Operator">*</span><span class="Other">:</span> <a href="textures.html#Wrap"><span class="Identifier">Wrap</span></a>
+  <span class="Identifier">useMipmap</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">textureId</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">GLuint</span></pre></dt>
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L24" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L24" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L15" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L15" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -183,8 +168,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L18" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L18" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L9" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L9" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -201,8 +186,8 @@
   <dd>
     
     Binds data to a texture buffer.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L33" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L33" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L25" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L25" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -215,8 +200,8 @@
   <dd>
     
     Binds the data to a texture.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L47" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L47" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L39" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L39" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -229,8 +214,8 @@
   <dd>
     
     Clears a rectangular region of the texture to transparent black. Uses a more compatible approach that works with older OpenGL versions.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L131" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L131" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L142" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L142" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -240,8 +225,8 @@
   <dd>
     
     Clears a rectangular region across all mipmap levels.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L150" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L150" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L161" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L161" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -254,8 +239,8 @@
   <dd>
     
     Creates a new texture.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L85" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L85" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L95" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L95" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -268,8 +253,8 @@
   <dd>
     
     Reads the data of the texture back.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L176" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L176" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L187" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L187" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -282,8 +267,8 @@
   <dd>
     
     Update a small part of texture with a new image.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L113" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L113" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L124" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L124" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -293,8 +278,8 @@
   <dd>
     
     Update a small part of a texture image.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L98" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L98" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L109" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L109" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -307,8 +292,8 @@
   <dd>
     
     Reads the data of the texture and writes it to file.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L184" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L184" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L195" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L195" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -324,7 +309,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-20 20:10:29 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-09-20 20:34:23 UTC</small>
       </div>
     </div>
   </div>

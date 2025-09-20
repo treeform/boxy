@@ -1,30 +1,22 @@
 nimTitle	textures	boxy/textures.html	module src/boxy/textures		0
-nim	minDefault	boxy/textures.html#minDefault	MinFilter.minDefault		4
-nim	minNearest	boxy/textures.html#minNearest	MinFilter.minNearest		4
-nim	minLinear	boxy/textures.html#minLinear	MinFilter.minLinear		4
-nim	minNearestMipmapNearest	boxy/textures.html#minNearestMipmapNearest	MinFilter.minNearestMipmapNearest		4
-nim	minLinearMipmapNearest	boxy/textures.html#minLinearMipmapNearest	MinFilter.minLinearMipmapNearest		4
-nim	minNearestMipmapLinear	boxy/textures.html#minNearestMipmapLinear	MinFilter.minNearestMipmapLinear		4
-nim	minLinearMipmapLinear	boxy/textures.html#minLinearMipmapLinear	MinFilter.minLinearMipmapLinear		4
-nim	MinFilter	boxy/textures.html#MinFilter	enum MinFilter		4
-nim	magDefault	boxy/textures.html#magDefault	MagFilter.magDefault		13
-nim	magNearest	boxy/textures.html#magNearest	MagFilter.magNearest		13
-nim	magLinear	boxy/textures.html#magLinear	MagFilter.magLinear		13
-nim	MagFilter	boxy/textures.html#MagFilter	enum MagFilter		13
-nim	wDefault	boxy/textures.html#wDefault	Wrap.wDefault		18
-nim	wRepeat	boxy/textures.html#wRepeat	Wrap.wRepeat		18
-nim	wClampToEdge	boxy/textures.html#wClampToEdge	Wrap.wClampToEdge		18
-nim	wMirroredRepeat	boxy/textures.html#wMirroredRepeat	Wrap.wMirroredRepeat		18
-nim	Wrap	boxy/textures.html#Wrap	enum Wrap		18
-nim	Texture	boxy/textures.html#Texture	type Texture		24
-nim	bindTextureBufferData	boxy/textures.html#bindTextureBufferData,Texture,Buffer,pointer	proc bindTextureBufferData(texture: Texture; buffer: Buffer; data: pointer)		33
-nim	bindTextureData	boxy/textures.html#bindTextureData,Texture,pointer	proc bindTextureData(texture: Texture; data: pointer)		47
-nim	newTexture	boxy/textures.html#newTexture,Image	proc newTexture(image: Image): Texture		85
-nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image,int	proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)		98
-nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image	proc updateSubImage(texture: Texture; x, y: int; image: Image)		113
-nim	clearSubImage	boxy/textures.html#clearSubImage,Texture,int,int,int,int,int	proc clearSubImage(texture: Texture; x, y, width, height: int; level: int = 0)		131
-nim	clearSubImage	boxy/textures.html#clearSubImage,Texture,int,int,IVec2	proc clearSubImage(texture: Texture; x, y: int; size: IVec2)		150
-nim	readImage	boxy/textures.html#readImage,Texture	proc readImage(texture: Texture): Image		176
-nim	writeFile	boxy/textures.html#writeFile,Texture,string	proc writeFile(texture: Texture; path: string)		184
-nimgrp	clearsubimage	boxy/textures.html#clearSubImage-procs-all	proc		131
-nimgrp	updatesubimage	boxy/textures.html#updateSubImage-procs-all	proc		98
+nim	filterDefault	boxy/textures.html#filterDefault	Filter.filterDefault		4
+nim	filterNearest	boxy/textures.html#filterNearest	Filter.filterNearest		4
+nim	filterLinear	boxy/textures.html#filterLinear	Filter.filterLinear		4
+nim	Filter	boxy/textures.html#Filter	enum Filter		4
+nim	wDefault	boxy/textures.html#wDefault	Wrap.wDefault		9
+nim	wRepeat	boxy/textures.html#wRepeat	Wrap.wRepeat		9
+nim	wClampToEdge	boxy/textures.html#wClampToEdge	Wrap.wClampToEdge		9
+nim	wMirroredRepeat	boxy/textures.html#wMirroredRepeat	Wrap.wMirroredRepeat		9
+nim	Wrap	boxy/textures.html#Wrap	enum Wrap		9
+nim	Texture	boxy/textures.html#Texture	type Texture		15
+nim	bindTextureBufferData	boxy/textures.html#bindTextureBufferData,Texture,Buffer,pointer	proc bindTextureBufferData(texture: Texture; buffer: Buffer; data: pointer)		25
+nim	bindTextureData	boxy/textures.html#bindTextureData,Texture,pointer	proc bindTextureData(texture: Texture; data: pointer)		39
+nim	newTexture	boxy/textures.html#newTexture,Image	proc newTexture(image: Image): Texture		95
+nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image,int	proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)		109
+nim	updateSubImage	boxy/textures.html#updateSubImage,Texture,int,int,Image	proc updateSubImage(texture: Texture; x, y: int; image: Image)		124
+nim	clearSubImage	boxy/textures.html#clearSubImage,Texture,int,int,int,int,int	proc clearSubImage(texture: Texture; x, y, width, height: int; level: int = 0)		142
+nim	clearSubImage	boxy/textures.html#clearSubImage,Texture,int,int,IVec2	proc clearSubImage(texture: Texture; x, y: int; size: IVec2)		161
+nim	readImage	boxy/textures.html#readImage,Texture	proc readImage(texture: Texture): Image		187
+nim	writeFile	boxy/textures.html#writeFile,Texture,string	proc writeFile(texture: Texture; path: string)		195
+nimgrp	clearsubimage	boxy/textures.html#clearSubImage-procs-all	proc		142
+nimgrp	updatesubimage	boxy/textures.html#updateSubImage-procs-all	proc		109
