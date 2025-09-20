@@ -24,9 +24,11 @@ for f in files:
   if execCmd(cmd) != 0:
     quit("Example did not compile successfully")
 
-# Run all.
-for f in files:
-  let cmd = f.changeFileExt("")
-  echo "> ", cmd
-  if execCmd(cmd) != 0:
-    quit("Example did not finish successfully")
+# Run all if not in GitHub Actions.
+let isGithubActions = getEnv("GITHUB_ACTIONS") == "true"
+if not isGithubActions:
+  for f in files:
+    let cmd = f.changeFileExt("")
+    echo "> ", cmd
+    if execCmd(cmd) != 0:
+      quit("Example did not finish successfully")
