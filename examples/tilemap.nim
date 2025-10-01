@@ -199,18 +199,18 @@ window.onFrame = proc() =
   else:
     zoomVel *= 0.9
 
-  let oldMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom*zoom, zoom*zoom))
+  let oldMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom, zoom))
   zoom += zoomVel
-  zoom = clamp(zoom, 0.1, 20.0)
-  let newMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom*zoom, zoom*zoom))
+  zoom = clamp(zoom, 0.01, 50.0)
+  let newMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom, zoom))
   let newAt = newMat.inverse() * window.mousePos.vec2
   let oldAt = oldMat.inverse() * window.mousePos.vec2
-  pos -= (oldAt - newAt).xy * (zoom*zoom)
+  pos -= (oldAt - newAt).xy * (zoom)
 
   # Create MVP matrix
   let projection = ortho(0.0f, window.size.x.float32, window.size.y.float32, 0.0f, -1.0f, 1.0f)
   let view = translate(vec3(pos.x, pos.y, 0.0f)) *
-             scale(vec3(zoom*zoom * MAP_SIZE.float32/2, zoom*zoom * MAP_SIZE.float32/2, 1.0f))
+             scale(vec3(zoom * MAP_SIZE.float32/2, zoom * MAP_SIZE.float32/2, 1.0f))
   let mvp = projection * view
 
   # Use our custom shader
