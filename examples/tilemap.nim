@@ -72,15 +72,16 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST.GLint)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE.GLint)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE.GLint)
 
-# Create tile atlas texture
+# Create tile atlas texture, mipmapped.
 var atlasTexture: GLuint
 glGenTextures(1, atlasTexture.addr)
 glBindTexture(GL_TEXTURE_2D, atlasTexture)
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA.GLint, tileAtlas.width.GLint, tileAtlas.height.GLint, 0, GL_RGBA, GL_UNSIGNED_BYTE, tileAtlas.data[0].addr)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST.GLint)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR.GLint)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST.GLint)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE.GLint)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE.GLint)
+glGenerateMipmap(GL_TEXTURE_2D)
 
 # Vertex shader source (OpenGL 4.1)
 const vertexShaderSource = """
