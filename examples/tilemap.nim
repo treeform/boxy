@@ -1,6 +1,6 @@
 
 # Tilemap Example - Renders a huge tilemap using OpenGL 4.1 shaders
-# 
+#
 # Features:
 # - 1024x1024 tilemap (over 1 million tiles!)
 # - Uses a 16x16 tile atlas (256 unique tiles)
@@ -22,7 +22,7 @@ loadExtensions()
 let bxy = newBoxy()
 
 # Load tile atlas (16x16 = 256 tiles)
-let tileAtlas = readImage("data/testTexture.png")
+let tileAtlas = readImage("examples/data/testTexture.png")
 bxy.addImage("tileAtlas", tileAtlas)
 
 var vel: Vec2
@@ -40,25 +40,27 @@ var tileIndexData: seq[uint8] = newSeq[uint8](MAP_SIZE * MAP_SIZE)
 randomize()
 
 # Generate random tilemap if file doesn't exist or is invalid
-echo "Generating random tilemap..."
+echo "Generating random tilemap... this will take a few seconds..."
 for i in 0 ..< tileIndexData.len:
   # Create some patterns for more interesting visuals
   let x = i mod MAP_SIZE
   let y = i div MAP_SIZE
 
   if x >= MAP_SIZE div 2 and y >= MAP_SIZE div 2:
-    tileIndexData[i] = 255
+    tileIndexData[i] = rand(192..255).uint8
   elif x < MAP_SIZE div 2 and y >= MAP_SIZE div 2:
-    tileIndexData[i] = 128
+    tileIndexData[i] = rand(128..192).uint8
   elif x >= MAP_SIZE div 2 and y < MAP_SIZE div 2:
-    tileIndexData[i] = 64
+    tileIndexData[i] = rand(64..128).uint8
   elif x < MAP_SIZE div 2 and y < MAP_SIZE div 2:
-    tileIndexData[i] = 192
+    tileIndexData[i] = rand(0..64).uint8
 
   # Border tiles
   let borderSize = 8
   if x < borderSize or y < borderSize or x > MAP_SIZE - borderSize or y > MAP_SIZE - borderSize:
     tileIndexData[i] = 0
+
+echo "Done generating tilemap"
 
 # Create OpenGL texture for tile indices
 var indexTexture: GLuint
@@ -113,19 +115,19 @@ uniform float uTileSize;
 void main() {
     // Sample the tile index from the index texture
     float tileIndex = texture(uIndexTexture, TexCoord).r * 255.0;
-    
+
     // Convert tile index to atlas coordinates
     float tilesPerRow = uAtlasSize.x / uTileSize;
     float tileX = mod(tileIndex, tilesPerRow);
     float tileY = floor(tileIndex / tilesPerRow);
-    
+
     // Get position within the current tile (0-1 range)
     vec2 tilePos = fract(TexCoord * uMapSize);
-    
+
     // Calculate final texture coordinates in the atlas
     vec2 atlasCoord = (vec2(tileX, tileY) + tilePos) * uTileSize / uAtlasSize;
-    
-    FragColor = texture(uTileAtlas, atlasCoord);
+
+    FragColor = texture(uTileAtlas, vec2(atlasCoord.x, 1.0 - atlasCoord.y));
 }
 """
 
@@ -198,7 +200,7 @@ window.onFrame = proc() =
 
   let oldMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom*zoom, zoom*zoom))
   zoom += zoomVel
-  zoom = clamp(zoom, 0.01, 20.0)
+  zoom = clamp(zoom, 0.1, 20.0)
   let newMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom*zoom, zoom*zoom))
   let newAt = newMat.inverse() * window.mousePos.vec2
   let oldAt = oldMat.inverse() * window.mousePos.vec2
@@ -206,30 +208,30 @@ window.onFrame = proc() =
 
   # Create MVP matrix
   let projection = ortho(0.0f, window.size.x.float32, window.size.y.float32, 0.0f, -1.0f, 1.0f)
-  let view = translate(vec3(pos.x, pos.y, 0.0f)) * 
+  let view = translate(vec3(pos.x, pos.y, 0.0f)) *
              scale(vec3(zoom*zoom * MAP_SIZE.float32/2, zoom*zoom * MAP_SIZE.float32/2, 1.0f))
   let mvp = projection * view
 
   # Use our custom shader
   glUseProgram(shader.programId)
-  
+
   # Set uniforms
   shader.setUniform("uMVP", mvp)
   shader.setUniform("uMapSize", vec2(MAP_SIZE.float32, MAP_SIZE.float32))
   shader.setUniform("uAtlasSize", vec2(tileAtlas.width.float32, tileAtlas.height.float32))
   shader.setUniform("uTileSize", 16.0f)  # Each tile is 16x16 pixels
-  
+
   shader.bindUniforms()
 
   # Bind textures
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, indexTexture)
   shader.setUniform("uIndexTexture", 0)
-  
+
   glActiveTexture(GL_TEXTURE1)
   glBindTexture(GL_TEXTURE_2D, atlasTexture)
   shader.setUniform("uTileAtlas", 1)
-  
+
   shader.bindUniforms()
 
   # Draw the quad
@@ -239,7 +241,7 @@ window.onFrame = proc() =
 
   # End this frame, flushing the draw commands.
   bxy.endFrame()
- 
+
   # Swap buffers displaying the new Boxy frame.
   window.swapBuffers()
   inc frame
