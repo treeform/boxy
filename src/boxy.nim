@@ -88,7 +88,10 @@ proc drawVertexArray(boxy: Boxy) =
   )
   boxy.quadCount = 0
 
-proc uploadImages(boxy: Boxy, uploadImagesGenMips: bool) =
+proc uploadImages(boxy: Boxy, uploadImagesGenMips = boxy.atlasTexture.useMipmap) =
+  if boxy.pendingLocations.len == 0:
+    return
+
   for i in 0 ..< boxy.pendingLocations.len:
     let pos = boxy.pendingLocations[i]
     updateSubImage(boxy.atlasTexture, pos.x, pos.y, boxy.pendingImages[i], false)
@@ -107,11 +110,9 @@ proc flush*(boxy: Boxy, useAtlas: bool = true, uploadImagesGenMips: bool = true)
   if boxy.quadCount == 0:
     return
 
-  if boxy.pendingLocations.len > 0:
-    boxy.uploadImages(uploadImagesGenMips)
-
   boxy.entriesBuffered.clear()
   boxy.upload()
+  boxy.uploadImages()
 
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
@@ -368,7 +369,8 @@ proc grow(boxy: Boxy) =
       $boxy.maxAtlasSize
     )
 
-  boxy.flush(uploadImagesGenMips = false)
+  boxy.flush()
+  boxy.uploadImages(false)
 
   let oldAtlasTexture = boxy.atlasTexture
   let oldEntries = boxy.entries
