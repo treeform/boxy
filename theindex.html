@@ -72,7 +72,7 @@
           </ul></dd>
 <dt><a name="bindTextureData" href="#bindTextureData"><span>bindTextureData:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="textures: proc bindTextureData(texture: Texture; data: pointer)" href="boxy/textures.html#bindTextureData%2CTexture%2Cpointer">textures: proc bindTextureData(texture: Texture; data: pointer)</a></li>
+          data-doc-search-tag="textures: proc bindTextureData(texture: Texture; data: pointer; useMipmap = texture.useMipmap)" href="boxy/textures.html#bindTextureData%2CTexture%2Cpointer%2Cbool">textures: proc bindTextureData(texture: Texture; data: pointer; useMipmap = texture.useMipmap)</a></li>
           </ul></dd>
 <dt><a name="bindUniformBuffer" href="#bindUniformBuffer"><span>bindUniformBuffer:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -220,7 +220,7 @@
           </ul></dd>
 <dt><a name="flush" href="#flush"><span>flush:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="boxy: proc flush(boxy: Boxy; useAtlas: bool = true)" href="boxy.html#flush%2CBoxy%2Cbool">boxy: proc flush(boxy: Boxy; useAtlas: bool = true)</a></li>
+          data-doc-search-tag="boxy: proc flush(boxy: Boxy; useAtlas: bool = true; uploadImagesGenMips: bool = true)" href="boxy.html#flush%2CBoxy%2Cbool%2Cbool">boxy: proc flush(boxy: Boxy; useAtlas: bool = true; uploadImagesGenMips: bool = true)</a></li>
           </ul></dd>
 <dt><a name="fromScreen" href="#fromScreen"><span>fromScreen:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -390,7 +390,9 @@
           </ul></dd>
 <dt><a name="updateSubImage" href="#updateSubImage"><span>updateSubImage:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="textures: proc updateSubImage(texture: Texture; x, y: int; image: Image)" href="boxy/textures.html#updateSubImage%2CTexture%2Cint%2Cint%2CImage">textures: proc updateSubImage(texture: Texture; x, y: int; image: Image)</a></li>
+          data-doc-search-tag="textures: proc updateSubImage(texture: Texture; x, y: int; image: Image;
+               mip = texture.useMipmap)" href="boxy/textures.html#updateSubImage%2CTexture%2Cint%2Cint%2CImage%2Cbool">textures: proc updateSubImage(texture: Texture; x, y: int; image: Image;
+               mip = texture.useMipmap)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="textures: proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)" href="boxy/textures.html#updateSubImage%2CTexture%2Cint%2Cint%2CImage%2Cint">textures: proc updateSubImage(texture: Texture; x, y: int; image: Image; level: int)</a></li>
           </ul></dd>
@@ -422,7 +424,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-01 05:11:42 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-03 17:48:54 UTC</small>
       </div>
     </div>
   </div>

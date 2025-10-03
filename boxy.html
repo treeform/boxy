@@ -134,7 +134,7 @@
 
 </ul>
 <ul class="simple nested-toc-section">flush
-  <li><a class="reference" href="#flush%2CBoxy%2Cbool" title="flush(boxy: Boxy; useAtlas: bool = true)">flush(boxy: Boxy; useAtlas: bool = true)</a></li>
+  <li><a class="reference" href="#flush%2CBoxy%2Cbool%2Cbool" title="flush(boxy: Boxy; useAtlas: bool = true; uploadImagesGenMips: bool = true)">flush(boxy: Boxy; useAtlas: bool = true; uploadImagesGenMips: bool = true)</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">fromScreen
@@ -277,8 +277,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L458" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L458" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L482" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L482" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -290,8 +290,8 @@
   <dd>
     
     Applies transform to the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L982" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L982" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L989" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L989" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -304,8 +304,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L964" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L964" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L971" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L971" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -315,8 +315,8 @@
   <dd>
     
     Starts a new frame.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L941" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L941" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L948" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L948" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -325,12 +325,12 @@
 <div id="blurEffect-procs-all">
   <div id="blurEffect,Boxy,float32">
   <dt><pre><span class="Keyword">proc</span> <a href="#blurEffect%2CBoxy%2Cfloat32"><span class="Identifier">blurEffect</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">radius</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Blurs the current layer
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L860" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L860" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L867" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L867" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -343,8 +343,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L159" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L159" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L179" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L179" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -356,8 +356,8 @@
   <dd>
     
     Clears transform and transform stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1018" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1018" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1025" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1025" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -370,8 +370,8 @@
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L77" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L77" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L79" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L79" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -379,13 +379,13 @@
 </div>
 <div id="copyLowerToCurrent-procs-all">
   <div id="copyLowerToCurrent,Boxy">
-  <dt><pre><span class="Keyword">proc</span> <a href="#copyLowerToCurrent%2CBoxy"><span class="Identifier">copyLowerToCurrent</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-                                      <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">proc</span> <a href="#copyLowerToCurrent%2CBoxy"><span class="Identifier">copyLowerToCurrent</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span>
+    <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Copies the immediately lower layer texture into the current layer. Requires that at least one lower layer exists and a current layer is active.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L766" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L766" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L773" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L773" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -395,34 +395,34 @@
   <div id="drawImage,Boxy,string,Vec2,float32,float32">
   <dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CVec2%2Cfloat32%2Cfloat32"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">center</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span> <span class="Identifier">angle</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">;</span>
                <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">scale</span><span class="Other">:</span> <span class="Identifier">float32</span> <span class="Other">=</span> <span class="FloatNumber">1.0</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Draws image at center and rotated by angle. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1085" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1085" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1092" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1092" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="drawImage,Boxy,string,Vec2">
   <dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CVec2"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">pos</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span> <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Draws image at pos from top-left. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1032" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1032" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1039" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1039" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 <div id="drawImage,Boxy,string,Rect">
   <dt><pre><span class="Keyword">proc</span> <a href="#drawImage%2CBoxy%2Cstring%2CRect"><span class="Identifier">drawImage</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span> <span class="Identifier">rect</span><span class="Other">:</span> <span class="Identifier">Rect</span><span class="Other">;</span> <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Draws image filling the rect. The image should have already been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1060" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1060" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1067" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1067" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -431,12 +431,12 @@
 <div id="drawRect-procs-all">
   <div id="drawRect,Boxy,Rect,Color">
   <dt><pre><span class="Keyword">proc</span> <a href="#drawRect%2CBoxy%2CRect%2CColor"><span class="Identifier">drawRect</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">rect</span><span class="Other">:</span> <span class="Identifier">Rect</span><span class="Other">;</span> <span class="Identifier">color</span><span class="Other">:</span> <span class="Identifier">Color</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">KeyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L623" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L623" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L630" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L630" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -446,12 +446,12 @@
   <div id="dropShadowEffect,Boxy,Color,Vec2,float32,float32">
   <dt><pre><span class="Keyword">proc</span> <a href="#dropShadowEffect%2CBoxy%2CColor%2CVec2%2Cfloat32%2Cfloat32"><span class="Identifier">dropShadowEffect</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">tint</span><span class="Other">:</span> <span class="Identifier">Color</span><span class="Other">;</span> <span class="Identifier">offset</span><span class="Other">:</span> <span class="Identifier">Vec2</span><span class="Other">;</span>
                       <span class="Identifier">radius</span><span class="Other">,</span> <span class="Identifier">spread</span><span class="Other">:</span> <span class="Identifier">float32</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Drop shadows the current layer
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L872" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L872" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L879" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L879" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -459,27 +459,27 @@
 </div>
 <div id="endFrame-procs-all">
   <div id="endFrame,Boxy">
-  <dt><pre><span class="Keyword">proc</span> <a href="#endFrame%2CBoxy"><span class="Identifier">endFrame</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
-                            <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">proc</span> <a href="#endFrame%2CBoxy"><span class="Identifier">endFrame</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
+                            <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Ends a frame.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L972" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L972" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L979" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L979" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 
 </div>
 <div id="flush-procs-all">
-  <div id="flush,Boxy,bool">
-  <dt><pre><span class="Keyword">proc</span> <a href="#flush%2CBoxy%2Cbool"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">useAtlas</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">true</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
-    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <div id="flush,Boxy,bool,bool">
+  <dt><pre><span class="Keyword">proc</span> <a href="#flush%2CBoxy%2Cbool%2Cbool"><span class="Identifier">flush</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">useAtlas</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">true</span><span class="Other">;</span> <span class="Identifier">uploadImagesGenMips</span><span class="Other">:</span> <span class="Identifier">bool</span> <span class="Other">=</span> <span class="Identifier">true</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Flips - draws current buffer and starts a new one.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L89" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L89" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L108" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L108" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -492,8 +492,8 @@
   <dd>
     
     Takes a point from screen and translates it to point inside the current transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1023" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1023" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1030" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1030" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -506,8 +506,8 @@
   <dd>
     
     Gets an Image rectangle from the current layer. Note: This is very costly because it transfers GPU data to CPU. It's not recommended to use this in a game loop.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1115" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1115" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1122" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1122" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -520,8 +520,8 @@
   <dd>
     
     Return the size of an inserted image.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L541" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L541" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L547" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L547" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -533,8 +533,8 @@
   <dd>
     
     Gets the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L990" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L990" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L997" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L997" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -547,8 +547,8 @@
   <dd>
     
     Creates a new Boxy with a specified atlas size and quads per batch.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L164" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L164" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L184" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L184" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -558,12 +558,12 @@
   <div id="popLayer,Boxy,BlendMode">
   <dt><pre><span class="Keyword">proc</span> <a href="#popLayer%2CBoxy%2CBlendMode"><span class="Identifier">popLayer</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">;</span> <span class="Identifier">tint</span> <span class="Other">=</span> <span class="Identifier">color</span><span class="Other">(</span><span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">,</span> <span class="DecNumber">1</span><span class="Other">)</span><span class="Other">;</span>
               <span class="Identifier">blendMode</span><span class="Other">:</span> <span class="Identifier">BlendMode</span> <span class="Other">=</span> <span class="Identifier">NormalBlend</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Pops the layer and draws with tint and blend.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L680" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L680" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L687" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L687" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -571,13 +571,13 @@
 </div>
 <div id="pushLayer-procs-all">
   <div id="pushLayer,Boxy">
-  <dt><pre><span class="Keyword">proc</span> <a href="#pushLayer%2CBoxy"><span class="Identifier">pushLayer</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
-                             <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <dt><pre><span class="Keyword">proc</span> <a href="#pushLayer%2CBoxy"><span class="Identifier">pushLayer</span></a><span class="Other">(</span><span class="Identifier">boxy</span><span class="Other">:</span> <a href="boxy.html#Boxy"><span class="Identifier">Boxy</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">BoxyError</span><span class="Other">,</span> <span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
+                             <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Starts drawing into a new layer.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L665" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L665" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L672" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L672" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -590,8 +590,8 @@
   <dd>
     
     Read the current atlas content.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L63" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L63" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L65" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L65" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -604,8 +604,8 @@
   <dd>
     
     Removes an image, does nothing if the image has not been added.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L322" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L322" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L342" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L342" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -617,8 +617,8 @@
   <dd>
     
     Pops a transform off the stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1014" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1014" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1021" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1021" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -630,8 +630,8 @@
   <dd>
     
     Rotates the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L998" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L998" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1005" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1005" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -643,8 +643,8 @@
   <dd>
     
     Pushes a transform onto the stack.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1010" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1010" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1017" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1017" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -657,8 +657,8 @@
   <dd>
     
     Scales the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1006" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1006" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1013" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1013" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -667,8 +667,8 @@
   <dd>
     
     Scales the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1002" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1002" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1009" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1009" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -680,8 +680,8 @@
   <dd>
     
     Sets the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L986" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L986" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L993" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L993" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -694,8 +694,8 @@
   <dd>
     
     Takes a point from current transform and translates it to screen.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1027" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1027" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1034" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1034" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -707,8 +707,8 @@
   <dd>
     
     Translate the internal transform.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L994" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L994" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy.nim#L1001" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy.nim#L1001" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -730,7 +730,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-01 05:11:42 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-03 17:48:54 UTC</small>
       </div>
     </div>
   </div>

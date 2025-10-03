@@ -84,7 +84,7 @@
 
 </ul>
 <ul class="simple nested-toc-section">bindTextureData
-  <li><a class="reference" href="#bindTextureData%2CTexture%2Cpointer" title="bindTextureData(texture: Texture; data: pointer)">bindTextureData(texture: Texture; data: pointer)</a></li>
+  <li><a class="reference" href="#bindTextureData%2CTexture%2Cpointer%2Cbool" title="bindTextureData(texture: Texture; data: pointer; useMipmap = texture.useMipmap)">bindTextureData(texture: Texture; data: pointer; useMipmap = texture.useMipmap)</a></li>
 
 </ul>
 <ul class="simple nested-toc-section">clearSubImage
@@ -101,7 +101,9 @@
 
 </ul>
 <ul class="simple nested-toc-section">updateSubImage
-  <li><a class="reference" href="#updateSubImage%2CTexture%2Cint%2Cint%2CImage" title="updateSubImage(texture: Texture; x, y: int; image: Image)">updateSubImage(texture: Texture; x, y: int; image: Image)</a></li>
+  <li><a class="reference" href="#updateSubImage%2CTexture%2Cint%2Cint%2CImage%2Cbool" title="updateSubImage(texture: Texture; x, y: int; image: Image;
+               mip = texture.useMipmap)">updateSubImage(texture: Texture; x, y: int; image: Image;
+               mip = texture.useMipmap)</a></li>
 <li><a class="reference" href="#updateSubImage%2CTexture%2Cint%2Cint%2CImage%2Cint" title="updateSubImage(texture: Texture; x, y: int; image: Image; level: int)">updateSubImage(texture: Texture; x, y: int; image: Image; level: int)</a></li>
 
 </ul>
@@ -194,8 +196,9 @@
 
 </div>
 <div id="bindTextureData-procs-all">
-  <div id="bindTextureData,Texture,pointer">
-  <dt><pre><span class="Keyword">proc</span> <a href="#bindTextureData%2CTexture%2Cpointer"><span class="Identifier">bindTextureData</span></a><span class="Other">(</span><span class="Identifier">texture</span><span class="Other">:</span> <a href="textures.html#Texture"><span class="Identifier">Texture</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">]</span><span class="Other">,</span>
+  <div id="bindTextureData,Texture,pointer,bool">
+  <dt><pre><span class="Keyword">proc</span> <a href="#bindTextureData%2CTexture%2Cpointer%2Cbool"><span class="Identifier">bindTextureData</span></a><span class="Other">(</span><span class="Identifier">texture</span><span class="Other">:</span> <a href="textures.html#Texture"><span class="Identifier">Texture</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">;</span>
+                     <span class="Identifier">useMipmap</span> <span class="Other">=</span> <span class="Identifier">texture</span><span class="Other">.</span><span class="Identifier">useMipmap</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -214,8 +217,8 @@
   <dd>
     
     Clears a rectangular region of the texture to transparent black. Uses a more compatible approach that works with older OpenGL versions.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L142" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L142" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L140" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L140" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -225,8 +228,8 @@
   <dd>
     
     Clears a rectangular region across all mipmap levels.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L161" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L161" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L159" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L159" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -253,17 +256,18 @@
   <dd>
     
     Reads the data of the texture back.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L187" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L187" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L185" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L185" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
 
 </div>
 <div id="updateSubImage-procs-all">
-  <div id="updateSubImage,Texture,int,int,Image">
-  <dt><pre><span class="Keyword">proc</span> <a href="#updateSubImage%2CTexture%2Cint%2Cint%2CImage"><span class="Identifier">updateSubImage</span></a><span class="Other">(</span><span class="Identifier">texture</span><span class="Other">:</span> <a href="textures.html#Texture"><span class="Identifier">Texture</span></a><span class="Other">;</span> <span class="Identifier">x</span><span class="Other">,</span> <span class="Identifier">y</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">image</span><span class="Other">:</span> <span class="Identifier">Image</span><span class="Other">)</span> {.
-    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+  <div id="updateSubImage,Texture,int,int,Image,bool">
+  <dt><pre><span class="Keyword">proc</span> <a href="#updateSubImage%2CTexture%2Cint%2Cint%2CImage%2Cbool"><span class="Identifier">updateSubImage</span></a><span class="Other">(</span><span class="Identifier">texture</span><span class="Other">:</span> <a href="textures.html#Texture"><span class="Identifier">Texture</span></a><span class="Other">;</span> <span class="Identifier">x</span><span class="Other">,</span> <span class="Identifier">y</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">;</span> <span class="Identifier">image</span><span class="Other">:</span> <span class="Identifier">Image</span><span class="Other">;</span>
+                    <span class="Identifier">mip</span> <span class="Other">=</span> <span class="Identifier">texture</span><span class="Other">.</span><span class="Identifier">useMipmap</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">PixieError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
     Update a small part of texture with a new image.
@@ -292,8 +296,8 @@
   <dd>
     
     Reads the data of the texture and writes it to file.
-    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L195" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
-<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L195" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
+    <a href="https://github.com/treeform/boxy/tree/master/src/boxy/textures.nim#L193" class="link-seesrc" target="_blank">Source</a>&nbsp;&nbsp;
+<a href="https://github.com/treeform/boxy/edit/devel/src/boxy/textures.nim#L193" class="link-seesrc" target="_blank" >Edit</a>&nbsp;&nbsp;
 
   </dd>
 </div>
@@ -309,7 +313,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-01 05:11:42 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2025-10-03 17:48:53 UTC</small>
       </div>
     </div>
   </div>
