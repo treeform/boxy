@@ -26,6 +26,8 @@ type
     blurXShader, blurYShader: Shader
     spreadXShader, spreadYShader: Shader
     atlasTexture*, tmpTexture: Texture
+    pendingImages: seq[Image]
+    pendingLocations: seq[IVec2]
     tmpFramebuffer: GLuint
     layerNum: int                    ## Index into layer textures for writing.
     layerTextures: seq[Texture]      ## Layers array for pushing and popping.
@@ -86,13 +88,31 @@ proc drawVertexArray(boxy: Boxy) =
   )
   boxy.quadCount = 0
 
-proc flush*(boxy: Boxy, useAtlas: bool = true) =
+proc uploadImages(boxy: Boxy) =
+  if boxy.pendingLocations.len == 0:
+    return
+
+  for i in 0 ..< boxy.pendingLocations.len:
+    let pos = boxy.pendingLocations[i]
+    updateSubImage(boxy.atlasTexture, pos.x, pos.y, boxy.pendingImages[i], false)
+
+  if boxy.atlasTexture.useMipmap:
+    # Aggressive mipmap generation, but faster than CPU scaling, batching makes it worthwhile
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+  boxy.pendingLocations.setLen(0)
+  boxy.pendingImages.setLen(0)
+
+proc flush*(boxy: Boxy, useAtlas: bool = true, uploadImagesGenMips: bool = true) =
   ## Flips - draws current buffer and starts a new one.
   if boxy.quadCount == 0:
     return
 
   boxy.entriesBuffered.clear()
   boxy.upload()
+  boxy.uploadImages()
 
   glActiveTexture(GL_TEXTURE0)
   glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
@@ -134,7 +154,7 @@ proc createAtlasTexture(boxy: Boxy, size: int): Texture =
   result.minFilter = filterLinear
   result.mipFilter = filterLinear
   result.useMipmap = true
-  bindTextureData(result, nil)
+  bindTextureData(result, nil, false)
 
 proc addLayerTexture(boxy: Boxy) =
   # Must be >0 for framebuffer creation below
@@ -350,8 +370,8 @@ proc grow(boxy: Boxy) =
     )
 
   boxy.flush()
+  boxy.uploadImages()
 
-  let oldSize = boxy.atlasSize
   let oldAtlasTexture = boxy.atlasTexture
   let oldEntries = boxy.entries
   let oldAllocator = boxy.allocator
@@ -425,6 +445,10 @@ proc grow(boxy: Boxy) =
 
   # Flush the draw calls to copy all images
   boxy.flush()
+
+  glActiveTexture(GL_TEXTURE0)
+  glBindTexture(GL_TEXTURE_2D, newAtlasTexture.textureId)
+  glGenerateMipmap(GL_TEXTURE_2D)
 
   # Restore framebuffer binding
   glBindFramebuffer(
@@ -504,39 +528,21 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
         # Need to grow the atlas
         boxy.grow()
     imageInfo.atlasPos = ivec2(x.int32, y.int32)
-
-    # Update the image info size
-    imageInfo.size = ivec2(image.width.int32, image.height.int32)
-    # Copy the image to the atlas at the packed position
-    updateSubImage(
-      boxy.atlasTexture,
+  elif imageInfo.cap != imageInfo.size:
+    # Got to clear the margin around the image.
+    boxy.atlasTexture.clearSubImage(
       imageInfo.atlasPos.x,
       imageInfo.atlasPos.y,
-      image
+      imageInfo.cap
     )
 
-    boxy.entries[key] = imageInfo
+  # Update the image info
+  imageInfo.size = ivec2(image.width.int32, image.height.int32)
+  boxy.entries[key] = imageInfo
 
-  else:
-    # Update the image info size
-    imageInfo.size = ivec2(image.width.int32, image.height.int32)
-    if imageInfo.cap != imageInfo.size:
-      # Got to clear the margin around the image.
-      boxy.atlasTexture.clearSubImage(
-        imageInfo.atlasPos.x,
-        imageInfo.atlasPos.y,
-        imageInfo.cap
-      )
-
-    # Copy the image to the atlas at the packed position
-    updateSubImage(
-      boxy.atlasTexture,
-      imageInfo.atlasPos.x,
-      imageInfo.atlasPos.y,
-      image
-    )
-
-    boxy.entries[key] = imageInfo
+  # Schedule mipmap generation for the image, batched to flush boundaries
+  boxy.pendingLocations.add(imageInfo.atlasPos)
+  boxy.pendingImages.add(image)
 
 proc getImageSize*(boxy: Boxy, key: string): IVec2 =
   ## Return the size of an inserted image.
@@ -612,13 +618,14 @@ proc addWhiteTile(boxy: Boxy) =
   let allocation = boxy.allocator.allocate(1, 1)
   if allocation.success:
     # We need to use the old updateSubImage to avoid one color by pass.
-    updateSubImage(boxy.atlasTexture, allocation.x, allocation.y, white)
     boxy.entries[WhiteTileKey] = ImageInfo(
       size: ivec2(16, 16),
       cap: ivec2(16, 16),
       atlasPos: ivec2(allocation.x.int32, allocation.y.int32),
       isOneColor: false
     )
+    boxy.pendingLocations.add(ivec2(allocation.x.int32, allocation.y.int32))
+    boxy.pendingImages.add(white)
 
 proc drawRect*(
   boxy: Boxy,

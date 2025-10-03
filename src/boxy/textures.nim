@@ -36,7 +36,7 @@ proc bindTextureBufferData*(texture: Texture, buffer: Buffer, data: pointer) =
     buffer.bufferId
   )
 
-proc bindTextureData*(texture: Texture, data: pointer) =
+proc bindTextureData*(texture: Texture, data: pointer, useMipmap = texture.useMipmap) =
   ## Binds the data to a texture.
   if texture.textureId == 0:
     glGenTextures(1, texture.textureId.addr)
@@ -85,7 +85,7 @@ proc bindTextureData*(texture: Texture, data: pointer) =
   if texture.wrapR != wDefault:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, texture.wrapR.GLint)
 
-  if texture.useMipmap:
+  if useMipmap:
     glGenerateMipmap(GL_TEXTURE_2D)
 
 func getFormat(image: Image): GLenum =
@@ -121,7 +121,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image, level: int) =
     pixels = image.data[0].addr
   )
 
-proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
+proc updateSubImage*(texture: Texture, x, y: int, image: Image, mip = texture.useMipmap) =
   ## Update a small part of texture with a new image.
   var
     x = x
@@ -130,9 +130,7 @@ proc updateSubImage*(texture: Texture, x, y: int, image: Image) =
     level = 0
   while true:
     texture.updateSubImage(x, y, image, level)
-    if image.width <= 1 or image.height <= 1:
-      break
-    if not texture.useMipmap:
+    if not mip or image.width <= 1 or image.height <= 1:
       break
     image = image.minifyBy2()
     x = x div 2
