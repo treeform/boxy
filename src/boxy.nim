@@ -88,7 +88,7 @@ proc drawVertexArray(boxy: Boxy) =
   )
   boxy.quadCount = 0
 
-proc uploadImages(boxy: Boxy, uploadImagesGenMips = boxy.atlasTexture.useMipmap) =
+proc uploadImages(boxy: Boxy) =
   if boxy.pendingLocations.len == 0:
     return
 
@@ -96,7 +96,7 @@ proc uploadImages(boxy: Boxy, uploadImagesGenMips = boxy.atlasTexture.useMipmap)
     let pos = boxy.pendingLocations[i]
     updateSubImage(boxy.atlasTexture, pos.x, pos.y, boxy.pendingImages[i], false)
 
-  if uploadImagesGenMips:
+  if boxy.atlasTexture.useMipmap:
     # Aggressive mipmap generation, but faster than CPU scaling, batching makes it worthwhile
     glActiveTexture(GL_TEXTURE0)
     glBindTexture(GL_TEXTURE_2D, boxy.atlasTexture.textureId)
@@ -370,7 +370,7 @@ proc grow(boxy: Boxy) =
     )
 
   boxy.flush()
-  boxy.uploadImages(false)
+  boxy.uploadImages()
 
   let oldAtlasTexture = boxy.atlasTexture
   let oldEntries = boxy.entries
