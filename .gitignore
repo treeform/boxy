@@ -5,6 +5,10 @@
 
 # normal ignores:
 *.exe
+*.wasm
+*.html
+*.js
+*.data
 nimcache
 *.pdb
 *.ilk
@@ -12,4 +16,4 @@ nimcache
 *.dylib
 *.dll
 *.out
-tmp/*
+tmp/
