@@ -94,12 +94,38 @@ emrun examples/basic_windy.html
 
 ## Examples
 
-<img src="docs/spinner.png">
+You can use boxy with industry standard windowing libraries like [GLFW](https://github.com/treeform/boxy/blob/master/examples/basic_glfw.nim) and [SDL2](https://github.com/treeform/boxy/blob/master/examples/basic_sdl2.nim).
 
-[Spinner](https://github.com/treeform/boxy/blob/master/examples/basic_windy.nim)
+
+<img src="docs/basic_windy.png">
+
+But the preferred way is to use Boxy with my own Nim native windowing library [Windy](https://github.com/treeform/boxy/blob/master/examples/basic_windy.nim).
+
+<img src="docs/hexmap.png">
+
+[Hexmap](https://github.com/treeform/boxy/blob/master/examples/hexmap.nim)
+
+
+<img src="docs/bigbang.png">
+
+[Bigbang](https://github.com/treeform/boxy/blob/master/examples/bigbang.nim)
+
+<img src="docs/blending.png">
+
+[Blending](https://github.com/treeform/boxy/blob/master/examples/blending.nim)
+
+
+<img src="docs/blur.png">
+
+[Blur](https://github.com/treeform/boxy/blob/master/examples/blur.nim)
 
 <img src="docs/masking.png">
 
 [Masking](https://github.com/treeform/boxy/blob/master/examples/masking.nim)
+
+<img src="docs/shadow.png">
+
+[Shadow](https://github.com/treeform/boxy/blob/master/examples/shadow.nim)
+
 
 [Check out more examples here.](https://github.com/treeform/boxy/tree/master/examples)
