@@ -72,6 +72,26 @@ while not window.closeRequested:
   pollEvents()
 ```
 
+## Emscripten
+
+Boxy can be compiled to WebAssembly using Emscripten. See the [Emscripten tutorial](https://github.com/treeform/nim_emscripten_tutorial) for more information on how Emscripten works with Nim and things you need to know.
+
+To compile any of the examples:
+```sh
+nim c -d:emscripten examples/basic_windy.nim
+```
+
+This will generate:
+* HTML shell: `examples/basic_windy.html`
+* Preloaded data: `examples/basic_windy.data`
+* JavaScript: `examples/basic_windy.js`
+* WebAssembly: `examples/basic_windy.wasm`
+
+Then run the compiled HTML file:
+```sh
+emrun examples/basic_windy.html
+```
+
 ## Examples
 
 <img src="docs/spinner.png">
