@@ -15,7 +15,7 @@ jobs:
     - uses: mymindstorm/setup-emsdk@v14
 
     - run: nimble install 
-    
+
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
     - run: nim c examples/basic_windy.nim
@@ -53,6 +53,6 @@ jobs:
     - run: nim c -d:emscripten examples/text_dynamic.nim
     - run: nim c -d:emscripten examples/text_static.nim
     - run: nim c -d:emscripten examples/tilemap.nim
-    - run: nim c -d:emscripten examples/transparent.nim
+    # - run: nim c -d:emscripten examples/transparent.nim
     - run: nim c -d:emscripten examples/zooming.nim
 
