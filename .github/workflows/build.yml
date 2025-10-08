@@ -14,6 +14,8 @@ jobs:
     - uses: treeform/setup-nim-action@v2
     - uses: mymindstorm/setup-emsdk@v14
 
+    - run: nimble install 
+    
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
     - run: nim c examples/basic_windy.nim
