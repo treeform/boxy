@@ -11,8 +11,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: jiro4989/setup-nim-action@v2
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - uses: treeform/setup-nim-action@v2
     - run: nimble test -y
     - run: nimble test --gc:orc -y
