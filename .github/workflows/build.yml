@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - uses: treeform/setup-nim-action@v2
-    - run: nimble test -y
+    - uses: mymindstorm/setup-emsdk@v14
 
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
