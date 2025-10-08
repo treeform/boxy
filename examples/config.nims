@@ -23,6 +23,7 @@ when defined(emscripten):
   --exceptions:goto
   --define:noSignalHandler
   --debugger:native
+  --define:release
   --define:noAutoGLerrorCheck
 
   # Pass this to Emscripten linker to generate html file scaffold for us.
