@@ -13,4 +13,44 @@ jobs:
     - uses: actions/checkout@v5
     - uses: treeform/setup-nim-action@v2
     - run: nimble test -y
-    - run: nimble test --gc:orc -y
+
+    - run: nim c examples/animated_gif.nim
+    - run: nim c examples/atlas_packing.nim
+    - run: nim c examples/basic_windy.nim
+    - run: nim c examples/bigbang.nim
+    - run: nim c examples/blending.nim
+    - run: nim c examples/blur.nim
+    - run: nim c examples/heart.nim
+    - run: nim c examples/hexmap.nim
+    - run: nim c examples/layers.nim
+    - run: nim c examples/layer_as_image.nim
+    - run: nim c examples/layer_tints.nim
+    - run: nim c examples/masking.nim
+    - run: nim c examples/multiple_windows.nim
+    - run: nim c examples/shadow.nim
+    - run: nim c examples/text_dynamic.nim
+    - run: nim c examples/text_static.nim
+    - run: nim c examples/tilemap.nim
+    - run: nim c examples/transparent.nim
+    - run: nim c examples/zooming.nim
+
+    - run: nim c -d:emscripten examples/animated_gif.nim
+    - run: nim c -d:emscripten examples/atlas_packing.nim
+    - run: nim c -d:emscripten examples/basic_windy.nim
+    - run: nim c -d:emscripten examples/bigbang.nim
+    - run: nim c -d:emscripten examples/blending.nim
+    - run: nim c -d:emscripten examples/blur.nim
+    - run: nim c -d:emscripten examples/heart.nim
+    - run: nim c -d:emscripten examples/hexmap.nim
+    - run: nim c -d:emscripten examples/layers.nim
+    - run: nim c -d:emscripten examples/layer_as_image.nim
+    - run: nim c -d:emscripten examples/layer_tints.nim
+    - run: nim c -d:emscripten examples/masking.nim
+    - run: nim c -d:emscripten examples/multiple_windows.nim
+    - run: nim c -d:emscripten examples/shadow.nim
+    - run: nim c -d:emscripten examples/text_dynamic.nim
+    - run: nim c -d:emscripten examples/text_static.nim
+    - run: nim c -d:emscripten examples/tilemap.nim
+    - run: nim c -d:emscripten examples/transparent.nim
+    - run: nim c -d:emscripten examples/zooming.nim
+
