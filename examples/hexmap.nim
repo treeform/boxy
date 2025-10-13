@@ -1,5 +1,7 @@
 
-import boxy, opengl, pixie, random, re, windy
+import
+  std/[strutils, random],
+  boxy, opengl, pixie, windy
 
 randomize()
 
@@ -14,12 +16,7 @@ const
 
   colors = @["#F35624", "#00E9B1", "#B9B3B1"]
 
-let words = """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla sit amet nisi ipsum. Nullam nisi erat, cursus at nisi ac, semper feugiat dolor. Morbi mattis nibh diam, eget pretium nisi facilisis et. Nullam eget pellentesque eros, nec pretium mauris. Sed ullamcorper turpis luctus magna porttitor, eget bibendum lacus commodo. Morbi pretium dapibus nisi ut dignissim. Sed blandit vulputate orci ac fermentum. Suspendisse at turpis vitae dolor gravida efficitur nec vitae est. Duis aliquam nibh ac mauris maximus, rutrum mattis augue imperdiet.
-Ut diam ante, imperdiet ut viverra ut, vestibulum quis urna. Aenean at tincidunt nisi. Curabitur at nunc non augue condimentum tincidunt ac non dui. Cras laoreet aliquam metus nec vulputate. Vivamus at augue consequat, consequat mi vel, sagittis odio. Vestibulum in erat eget magna pellentesque vestibulum. Sed et justo at neque mattis lacinia a sed dui. Cras eu felis at risus venenatis efficitur.
-Cras libero neque, placerat vel diam eu, volutpat porttitor magna. Donec id orci orci. Nulla in commodo lorem. Cras pharetra dignissim dolor id porta. Duis consequat hendrerit urna, id varius quam ornare vel. Vestibulum pellentesque consequat ornare. Aliquam volutpat metus in magna mattis, vitae fermentum tellus viverra. Etiam sagittis congue eros, ut cursus nisi tincidunt a. Integer posuere viverra sapien, non sodales est cursus quis. Pellentesque lacinia mollis interdum. Phasellus maximus lacus magna, eu dapibus diam semper nec. Maecenas iaculis commodo justo non fermentum. Donec sit amet ultrices justo. Duis fermentum eleifend nisl, a efficitur nibh aliquam facilisis. Donec a finibus quam.
-Curabitur egestas quam est, vel elementum turpis ornare et. Duis porttitor efficitur viverra. Cras egestas, metus sit amet venenatis ultricies, neque mi convallis augue, eu euismod tellus dolor eget nunc. Nunc vel felis nunc. Vestibulum euismod ligula id ligula rutrum, quis vestibulum tortor facilisis. Mauris vel tincidunt lectus. Duis vulputate ex urna, tempor placerat nibh tempor non. Curabitur dictum lacus sit amet tellus aliquet condimentum. In eu tincidunt ante, at mollis nisl. Maecenas non enim ut sem varius vestibulum. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis mauris ligula, pellentesque et nisi in, vestibulum tristique justo. Cras ut tristique enim. Aliquam iaculis id tortor et venenatis. Mauris lacinia libero pellentesque risus euismod accumsan. Duis placerat semper porttitor.
-Quisque dui nulla, rutrum sed eros id, tempus luctus lectus. Sed mollis ante bibendum nibh elementum pellentesque. In a commodo nulla. Proin tincidunt, sapien at pretium accumsan, sem tortor placerat velit, commodo vestibulum est purus sit amet purus. Fusce sed enim ultricies, rutrum diam sodales, egestas lacus. Ut volutpat quam ac bibendum convallis. Suspendisse fermentum malesuada augue, a lobortis tellus gravida et. Mauris id odio sapien. Cras mollis, lacus id tincidunt euismod, magna risus posuere augue, quis consequat nisi odio nec massa.""".split(re"\s+")
+let words = """lorem ipsum dolor sit amet consectetur adipiscing elit nulla sit amet nisi ipsum nullam nisi erat cursus at nisi ac semper feugiat dolor morbi mattis nibh diam eget pretium nisi facilisis et nullam eget pellentesque eros nec pretium mauris sed ullamcorper turpis luctus magna porttitor, eget bibendum lacus commodo. Morbi pretium dapibus nisi ut dignissim. Sed blandit vulputate orci ac fermentum suspendisse""".split(" ")
 
 proc genText(a, b: int): string =
   for i in 0 ..< rand(a .. b):

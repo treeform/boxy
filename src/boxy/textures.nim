@@ -184,11 +184,16 @@ proc clearSubImage*(texture: Texture, x, y: int, size: IVec2) =
 
 proc readImage*(texture: Texture): Image =
   ## Reads the data of the texture back.
-
-  let image = newImage(texture.width, texture.height)
-  glBindTexture(GL_TEXTURE_2D, texture.textureId)
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data[0].addr)
-  return image
+  when defined(emscripten):
+    raise newException(
+      Exception,
+      "readImage is not supported on emscripten due to security reasons"
+    )
+  else:
+    let image = newImage(texture.width, texture.height)
+    glBindTexture(GL_TEXTURE_2D, texture.textureId)
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data[0].addr)
+    return image
 
 proc writeFile*(texture: Texture, path: string) =
   ## Reads the data of the texture and writes it to file.
