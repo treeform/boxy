@@ -195,7 +195,7 @@ window.onFrame = proc() =
   pos += vel
 
   if window.scrollDelta.y != 0:
-    zoomVel = window.scrollDelta.y * 0.03
+    zoomVel = window.scrollDelta.y * 0.01
   else:
     zoomVel *= 0.9
 
