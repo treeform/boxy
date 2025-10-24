@@ -125,10 +125,21 @@ void main() {
     // Get position within the current tile (0-1 range)
     vec2 tilePos = fract(TexCoord * uMapSize);
 
-    // Calculate final texture coordinates in the atlas
-    vec2 atlasCoord = (vec2(tileX, tileY) + tilePos) * uTileSize / uAtlasSize;
+    // Clamp tilePos to (0.5 .. uTileSize - 0.5) range.
+    vec2 rangeLower = vec2(1.0, 1.0)/uTileSize;
+    vec2 rangeUpper = vec2(uTileSize - 1.0, uTileSize - 1.0)/uTileSize;
+    vec2 tilePosClamped = clamp(tilePos, rangeLower, rangeUpper);
 
-    FragColor = texture(uTileAtlas, vec2(atlasCoord.x, 1.0 - atlasCoord.y));
+    // Calculate final texture coordinates in the atlas
+    vec2 atlasCoord = (vec2(tileX, tileY) + tilePosClamped) * uTileSize / uAtlasSize;
+    FragColor = texture(uTileAtlas, atlasCoord);
+
+    // Debug: Draw if over the clamp range (0.5 .. uTileSize - 0.5)
+    // Note: tilePos is 0..1, so we need to convert to 0..uTileSize range.
+    vec2 tilePosPixel = tilePos * uTileSize;
+    if (tilePosPixel.x < 1.0 || tilePosPixel.x > uTileSize - 1.0 || tilePosPixel.y < 1.0 || tilePosPixel.y > uTileSize - 1.0) {
+      // FragColor *= vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }
 """
 
@@ -201,7 +212,7 @@ window.onFrame = proc() =
 
   let oldMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom, zoom))
   zoom += zoomVel
-  zoom = clamp(zoom, 0.01, 50.0)
+  zoom = clamp(zoom, 0.01, 100.0)
   let newMat = translate(vec2(pos.x, pos.y)) * scale(vec2(zoom, zoom))
   let newAt = newMat.inverse() * window.mousePos.vec2
   let oldAt = oldMat.inverse() * window.mousePos.vec2
