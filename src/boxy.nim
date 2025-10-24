@@ -336,6 +336,27 @@ proc newBoxy*(
 
   result.addWhiteTile()
 
+proc enterRawOpenGLMode*(boxy: Boxy) =
+  ## Used to run other OpenGL code while using boxy.
+  boxy.flush()
+
+proc exitRawOpenGLMode*(boxy: Boxy) =
+  ## Exits raw OpenGL mode, and restores boxy's state.
+  glBindVertexArray(boxy.vertexArrayId)
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boxy.indices.buffer.bufferId)
+  boxy.activeShader.bindAttrib("vertexPos", boxy.positions.buffer)
+  boxy.activeShader.bindAttrib("vertexColor", boxy.colors.buffer)
+  boxy.activeShader.bindAttrib("vertexUv", boxy.uvs.buffer)
+  glBindFramebuffer(
+    GL_FRAMEBUFFER,
+    if boxy.layerNum >= 0:
+      boxy.layerFramebuffers[boxy.layerNum]
+    else:
+      0
+  )
+  glEnable(GL_BLEND)
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+
 # Forward declaration
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color)
 
