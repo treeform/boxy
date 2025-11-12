@@ -16,7 +16,7 @@ jobs:
     - uses: treeform/setup-nim-action@v3
     - uses: mymindstorm/setup-emsdk@v14
 
-    - run: nimby install boxy.nimble
+    - run: nimby install -g boxy.nimble
 
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
