@@ -15,9 +15,7 @@ jobs:
     - uses: actions/checkout@v5
     - uses: treeform/setup-nim-action@v3
 
-    - run: cd ..
-    - run: nimby install boxy/boxy.nimble
-    - run: cd boxy
+    - run: cd .. && nimby install boxy/boxy.nimble
 
     - uses: mymindstorm/setup-emsdk@v14
 
