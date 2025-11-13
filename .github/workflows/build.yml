@@ -17,6 +17,7 @@ jobs:
 
     - name: Install Head Nimby
       run: |
+        rm -rf nimby
         git clone https://github.com/treeform/nimby.git
         cd nimby
         nim c src/nimby.nim
