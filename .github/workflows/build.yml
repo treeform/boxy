@@ -15,6 +15,14 @@ jobs:
     - uses: actions/checkout@v5
     - uses: treeform/setup-nim-action@v4
 
+    - name: Install Head Nimby
+      run: |
+        git clone https://github.com/treeform/nimby.git
+        cd nimby
+        nim c src/nimby.nim
+        cp src/nimby /home/runner/.nimby/nim/bin/nimby
+        nimby -v
+
     - run: nimby install -g boxy.nimble
 
     - uses: mymindstorm/setup-emsdk@v14
