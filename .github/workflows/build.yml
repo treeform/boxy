@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: treeform/setup-nim-action@v2
+    - uses: treeform/setup-nim-action@v3
     - uses: mymindstorm/setup-emsdk@v14
 
-    - run: nimble install 
+    - run: nimby sync -g nimby.lock
 
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
@@ -57,4 +57,3 @@ jobs:
     - run: nim c -d:emscripten examples/tilemap.nim
     # - run: nim c -d:emscripten examples/transparent.nim
     - run: nim c -d:emscripten examples/zooming.nim
-
