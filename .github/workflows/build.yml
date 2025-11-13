@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: treeform/setup-nim-action@v3
+    - uses: treeform/setup-nim-action@v4
 
     - run: cd .. && nimby install -g boxy/boxy.nimble
 
