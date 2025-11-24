@@ -8,7 +8,6 @@ export pixie
 
 const
   QuadLimit = 10_921 # 6 indices per quad, ensure indices stay in uint16 range
-  tileMargin = 2     # 1 pixel on both sides of the tile.
 
 type
   BoxyError* = object of ValueError
@@ -47,6 +46,7 @@ type
     tileSize: int
     maxTiles: int
     tileRun: int
+    tileMargin: int
     takenTiles: BitArray             ## Flag for if the tile is taken or not.
     proj: Mat4
     frameSize: IVec2                 ## Dimensions of the window frame.
@@ -172,6 +172,8 @@ proc clearAtlas*(boxy: Boxy) =
 
 proc newBoxy*(
   atlasSize = 512,
+  tileSize = 32,
+  tileMargin = 2,
   quadsPerBatch = 1024
 ): Boxy =
   ## Creates a new Boxy with a specified atlas size and quads per batch.
@@ -186,10 +188,11 @@ proc newBoxy*(
 
   result.atlasTexture = result.createAtlasTexture(atlasSize)
   # Tile system initialization
-  result.tileSize = 32 - tileMargin
-  if result.atlasSize mod (result.tileSize + tileMargin) != 0:
+  result.tileMargin = tileMargin
+  result.tileSize = tileSize - result.tileMargin
+  if result.atlasSize mod (result.tileSize + result.tileMargin) != 0:
     raise newException(BoxyError, "Atlas size must be a multiple of (tile size + 2)")
-  result.tileRun = result.atlasSize div (result.tileSize + tileMargin)
+  result.tileRun = result.atlasSize div (result.tileSize + result.tileMargin)
   result.maxTiles = result.tileRun * result.tileRun
   result.takenTiles = newBitArray(result.maxTiles)
 
@@ -406,7 +409,7 @@ proc grow(boxy: Boxy) =
   if boxy.atlasSize > boxy.maxAtlasSize:
     boxy.atlasSize = boxy.maxAtlasSize
 
-  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + tileMargin)
+  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + boxy.tileMargin)
   boxy.maxTiles = boxy.tileRun * boxy.tileRun
   boxy.takenTiles.setLen(boxy.maxTiles)
   boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
@@ -417,16 +420,16 @@ proc grow(boxy: Boxy) =
     for x in 0 ..< oldTileRun:
       let
         imageTile = oldAtlas.superImage(
-          x * (boxy.tileSize + tileMargin),
-          y * (boxy.tileSize + tileMargin),
-          boxy.tileSize + tileMargin,
-          boxy.tileSize + tileMargin
+          x * (boxy.tileSize + boxy.tileMargin),
+          y * (boxy.tileSize + boxy.tileMargin),
+          boxy.tileSize + boxy.tileMargin,
+          boxy.tileSize + boxy.tileMargin
         )
         index = x + y * oldTileRun
       updateSubImage(
         boxy.atlasTexture,
-        (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-        (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
+        (index mod boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
+        (index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
         imageTile
       )
 
@@ -465,10 +468,10 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
       for y in 0 ..< (ceil(img.height / boxy.tileSize).int):
         for x in 0 ..< (ceil(img.width / boxy.tileSize).int):
           let tileImage = img.superImage(
-            x * boxy.tileSize - tileMargin div 2,
-            y * boxy.tileSize - tileMargin div 2,
-            boxy.tileSize + tileMargin,
-            boxy.tileSize + tileMargin
+            x * boxy.tileSize - boxy.tileMargin div 2,
+            y * boxy.tileSize - boxy.tileMargin div 2,
+            boxy.tileSize + boxy.tileMargin,
+            boxy.tileSize + boxy.tileMargin
           )
           if tileImage.isOneColor():
             let tileColor = tileImage[0, 0].color
@@ -480,8 +483,8 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
             imageInfo.tiles[level].add(TileInfo(kind: tkIndex, index: index))
             updateSubImage(
               boxy.atlasTexture,
-              (index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-              (index div boxy.tileRun) * (boxy.tileSize + tileMargin),
+              (index mod boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
+              (index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
               tileImage
             )
 
@@ -1028,10 +1031,10 @@ proc drawImage*(
         case tile.kind:
         of tkIndex:
           var uvAt = vec2(
-            (tile.index mod boxy.tileRun) * (boxy.tileSize + tileMargin),
-            (tile.index div boxy.tileRun) * (boxy.tileSize + tileMargin)
+            (tile.index mod boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
+            (tile.index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin)
           )
-          uvAt += tileMargin div 2
+          uvAt += vec2(boxy.tileMargin div 2, boxy.tileMargin div 2)
           boxy.drawUvRect(
             posAt,
             posAt + vec2(boxy.tileSize, boxy.tileSize),
