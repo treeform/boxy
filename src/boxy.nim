@@ -335,8 +335,21 @@ proc enterRawOpenGLMode*(boxy: Boxy) =
   ## Used to run other OpenGL code while using boxy.
   boxy.flush()
 
+  glEnable(GL_DEPTH_TEST)
+  glDepthMask(GL_TRUE)
+  glEnable(GL_MULTISAMPLE)
+  glEnable(GL_CULL_FACE)
+  glCullFace(GL_BACK)
+  glFrontFace(GL_CCW)
+
 proc exitRawOpenGLMode*(boxy: Boxy) =
   ## Exits raw OpenGL mode, and restores boxy's state.
+  
+  glDisable(GL_DEPTH_TEST)
+  glDepthMask(GL_FALSE)
+  glDisable(GL_MULTISAMPLE)
+  glDisable(GL_CULL_FACE)
+
   glBindVertexArray(boxy.vertexArrayId)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boxy.indices.buffer.bufferId)
   boxy.activeShader.bindAttrib("vertexPos", boxy.positions.buffer)
