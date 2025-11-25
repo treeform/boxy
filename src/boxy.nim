@@ -1,6 +1,7 @@
-import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, pixie, sets,
-    shady, strutils, tables, vmath
+import
+  std/[algorithm, sequtils, sets, strutils, tables],
+  bitty, shady, vmath, bumpy, chroma, hashes, opengl, pixie,
+  boxy/[blends, blurs, buffers, shaders, spreads, textures]
 
 export atlasVert, atlasMain, maskMain
 
@@ -383,6 +384,14 @@ proc clearColor(boxy: Boxy) =
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4) and repositions tiles.
   if boxy.atlasSize == boxy.maxAtlasSize:
+    var images = boxy.entries.pairs().toSeq()
+    images.sort(proc(a, b: (string, ImageInfo)): int = cmp(-a[1].size.x * a[1].size.y, -b[1].size.x * b[1].size.y))
+    var i = 0
+    for image in images:
+      echo "  Image ", image[0], " size: ", image[1].size.x, "x", image[1].size.y
+      inc i
+    when not defined(emscripten):
+      boxy.atlasTexture.writeFile("tmp/atlas.png")
     raise newException(
       BoxyError,
       "Can't grow boxy atlas texture, max supported size reached: " &
@@ -494,7 +503,7 @@ proc takeFreeTile(boxy: Boxy): int =
   boxy.grow()
   boxy.takeFreeTile()
 
-proc addImage*(boxy: Boxy, key: string, image: Image) =
+proc addImage*(boxy: Boxy, key: string, image: Image, mipmaps: bool = true) =
   if key in boxy.entriesBuffered:
     raise newException(
       BoxyError,
@@ -541,6 +550,8 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
               (index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
               tileImage
             )
+      if not mipmaps:
+        break
 
       if img.width <= 1 or img.height <= 1:
         break
