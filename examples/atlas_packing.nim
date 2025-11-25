@@ -88,13 +88,19 @@ proc generateRandomImage(minSize, maxSize: int): Image =
     else:
       discard
 
+    # Add debug grid to the image
+    # for x in 0 ..< width:
+    #   for y in 0 ..< height:
+    #     if x mod 10 == 0 and y mod 10 == 0:
+    #       image.unsafe[x, y] = color(1, 1, 1, 1).rgbx()
+
   return image
 
 let window = newWindow("Atlas Packing", ivec2(1000, 1000))
 makeContextCurrent(window)
 loadExtensions()
 
-let ctx = newBoxy(atlasSize = 512)  # Add 2 pixel margin around each image
+let ctx = newBoxy(atlasSize = 128)  # Add 2 pixel margin around each image
 
 if not dirExists("tmp"):
   createDir("tmp")
@@ -122,7 +128,7 @@ for i in 1..totalImages:
   ctx.addImage(key, img)
   inc imageCount
 
-  echo "Added image ", i, " (", img.width, "x", img.height, ")"
+  # echo "Added image ", i, " (", img.width, "x", img.height, ")"
 
   # Save atlas periodically
   if (i < 40) or (i mod saveInterval == 0) or (i == totalImages):
@@ -131,9 +137,10 @@ for i in 1..totalImages:
     ctx.drawImage(key, vec2(0, 0))
     ctx.endFrame()
 
-    let filename = "tmp/atlas_" & $i & ".png"
-    ctx.atlasTexture.writeFile(filename)
-    echo "  Wrote ", filename
+    # when not defined(emscripten):
+    #   let filename = "tmp/atlas_" & $i & ".png"
+    #   ctx.atlasTexture.writeFile(filename)
+    #   echo "  Wrote ", filename
 
 
 var frameCount = 0

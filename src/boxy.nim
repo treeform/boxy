@@ -1,6 +1,7 @@
-import bitty, boxy/blends, boxy/blurs, boxy/buffers, boxy/shaders,
-    boxy/spreads, boxy/textures, bumpy, chroma, hashes, opengl, pixie, sets,
-    shady, strutils, tables, vmath
+import
+  std/[algorithm, sequtils, sets, strutils, tables],
+  bitty, shady, vmath, bumpy, chroma, hashes, opengl, pixie,
+  boxy/[blends, blurs, buffers, shaders, spreads, textures]
 
 export atlasVert, atlasMain, maskMain
 
@@ -22,7 +23,7 @@ type
     of tkColor:
       color: Color
 
-  ImageInfo = object
+  ImageInfo = ref object
     size: IVec2               ## Size of the image in pixels.
     tiles: seq[seq[TileInfo]] ## The tile info for this image.
     oneColor: Color           ## If tiles = [] then this is the image's color.
@@ -358,6 +359,8 @@ proc exitRawOpenGLMode*(boxy: Boxy) =
 
 # Forward declaration
 proc drawUvRect(boxy: Boxy, at, to, uvAt, uvTo: Vec2, tint: Color)
+proc saveTransform*(boxy: Boxy)
+proc restoreTransform*(boxy: Boxy)
 
 proc removeImage*(boxy: Boxy, key: string) =
   ## Removes an image, does nothing if the image has not been added.
@@ -381,6 +384,14 @@ proc clearColor(boxy: Boxy) =
 proc grow(boxy: Boxy) =
   ## Grows the atlas size by 2 (growing area by 4) and repositions tiles.
   if boxy.atlasSize == boxy.maxAtlasSize:
+    var images = boxy.entries.pairs().toSeq()
+    images.sort(proc(a, b: (string, ImageInfo)): int = cmp(-a[1].size.x * a[1].size.y, -b[1].size.x * b[1].size.y))
+    var i = 0
+    for image in images:
+      echo "  Image ", image[0], " size: ", image[1].size.x, "x", image[1].size.y
+      inc i
+    when not defined(emscripten):
+      boxy.atlasTexture.writeFile("tmp/atlas.png")
     raise newException(
       BoxyError,
       "Can't grow boxy atlas texture, max supported size reached: " &
@@ -388,38 +399,101 @@ proc grow(boxy: Boxy) =
     )
 
   boxy.flush()
-  # Read old atlas content
+
   let
-    oldAtlas = boxy.readAtlas()
+    oldAtlasSize = boxy.atlasSize
+    newAtlasSize = oldAtlasSize * 2
     oldTileRun = boxy.tileRun
+    newTileRun = newAtlasSize div (boxy.tileSize + boxy.tileMargin)
 
-  boxy.atlasSize *= 2
-  if boxy.atlasSize > boxy.maxAtlasSize:
-    boxy.atlasSize = boxy.maxAtlasSize
+  # Create new atlas texture
+  let newAtlasTexture = boxy.createAtlasTexture(newAtlasSize)
 
-  boxy.tileRun = boxy.atlasSize div (boxy.tileSize + boxy.tileMargin)
-  boxy.maxTiles = boxy.tileRun * boxy.tileRun
-  boxy.takenTiles.setLen(boxy.maxTiles)
-  boxy.atlasTexture = boxy.createAtlasTexture(boxy.atlasSize)
+  # Create framebuffer for new atlas
+  var newFramebuffer: GLuint
+  glGenFramebuffers(1, newFramebuffer.addr)
+  boxy.drawToTexture(newAtlasTexture, newFramebuffer)
 
-  boxy.addWhiteTile()
+  # Save state
+  let
+    savedFramebuffer = if boxy.layerNum >= 0:
+      boxy.layerFramebuffers[boxy.layerNum]
+    else:
+      0.GLuint
+    savedProj = boxy.proj
+    savedShader = boxy.activeShader
 
-  for y in 0 ..< oldTileRun:
-    for x in 0 ..< oldTileRun:
-      let
-        imageTile = oldAtlas.superImage(
-          x * (boxy.tileSize + boxy.tileMargin),
-          y * (boxy.tileSize + boxy.tileMargin),
-          boxy.tileSize + boxy.tileMargin,
-          boxy.tileSize + boxy.tileMargin
-        )
-        index = x + y * oldTileRun
-      updateSubImage(
-        boxy.atlasTexture,
-        (index mod boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
-        (index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
-        imageTile
-      )
+  # Setup drawing to new atlas
+  glBindFramebuffer(GL_FRAMEBUFFER, newFramebuffer)
+  glViewport(0, 0, newAtlasSize.int32, newAtlasSize.int32)
+
+  # Clear new atlas
+  glClearColor(0, 0, 0, 0)
+  glClear(GL_COLOR_BUFFER_BIT)
+
+  # Setup projection for new atlas
+  boxy.proj = ortho(0.float32, newAtlasSize.float32, newAtlasSize.float32, 0, -1000, 1000)
+
+  # Use atlas shader
+  boxy.activeShader = boxy.atlasShader
+
+  # Disable blending for copy
+  glDisable(GL_BLEND)
+
+  # Draw old atlas into new atlas
+  boxy.saveTransform()
+  boxy.mat = mat3()
+
+  boxy.drawUvRect(
+    at = vec2(0, newAtlasSize),
+    to = vec2(oldAtlasSize, oldAtlasSize),
+    uvAt = vec2(0, 0),
+    uvTo = vec2(oldAtlasSize, oldAtlasSize),
+    tint = color(1, 1, 1, 1)
+  )
+
+  boxy.flush()
+
+  boxy.restoreTransform()
+
+  # Restore state
+  glEnable(GL_BLEND)
+  # If layerNum is -1, savedFramebuffer is 0.
+  glBindFramebuffer(GL_FRAMEBUFFER, savedFramebuffer)
+  glViewport(0, 0, boxy.frameSize.x, boxy.frameSize.y)
+  boxy.proj = savedProj
+  boxy.activeShader = savedShader
+
+  # Clean up temporary framebuffer
+  glDeleteFramebuffers(1, newFramebuffer.addr)
+
+  # Delete old atlas texture
+  glDeleteTextures(1, boxy.atlasTexture.textureId.addr)
+
+  # Update boxy
+  boxy.atlasTexture = newAtlasTexture
+  boxy.atlasSize = newAtlasSize
+  boxy.tileRun = newTileRun
+  boxy.maxTiles = newTileRun * newTileRun
+
+  # Rebuild takenTiles and update entries
+  var newTakenTiles = newBitArray(boxy.maxTiles)
+  newTakenTiles[0] = true # White tile
+
+  for key, imageInfo in boxy.entries.mpairs:
+    for level in 0 ..< imageInfo.tiles.len:
+      for i in 0 ..< imageInfo.tiles[level].len:
+        if imageInfo.tiles[level][i].kind == tkIndex:
+          let
+            oldIndex = imageInfo.tiles[level][i].index
+            x = oldIndex mod oldTileRun
+            y = oldIndex div oldTileRun
+            newIndex = x + y * newTileRun
+
+          imageInfo.tiles[level][i].index = newIndex
+          newTakenTiles[newIndex] = true
+
+  boxy.takenTiles = newTakenTiles
 
 proc takeFreeTile(boxy: Boxy): int =
   let (found, index) = boxy.takenTiles.firstFalse
@@ -429,7 +503,7 @@ proc takeFreeTile(boxy: Boxy): int =
   boxy.grow()
   boxy.takeFreeTile()
 
-proc addImage*(boxy: Boxy, key: string, image: Image) =
+proc addImage*(boxy: Boxy, key: string, image: Image, mipmaps: bool = true) =
   if key in boxy.entriesBuffered:
     raise newException(
       BoxyError,
@@ -440,7 +514,8 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
   boxy.removeImage(key)
   boxy.entriesBuffered.incl(key)
 
-  var imageInfo: ImageInfo
+  var imageInfo = ImageInfo()
+  boxy.entries[key] = imageInfo
   imageInfo.size = ivec2(image.width.int32, image.height.int32)
 
   if image.isOneColor():
@@ -475,14 +550,14 @@ proc addImage*(boxy: Boxy, key: string, image: Image) =
               (index div boxy.tileRun) * (boxy.tileSize + boxy.tileMargin),
               tileImage
             )
+      if not mipmaps:
+        break
 
       if img.width <= 1 or img.height <= 1:
         break
 
       img = img.minifyBy2()
       inc level
-
-  boxy.entries[key] = imageInfo
 
 proc getImageSize*(boxy: Boxy, key: string): IVec2 =
   ## Return the size of an inserted image.
