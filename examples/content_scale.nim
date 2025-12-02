@@ -14,6 +14,7 @@ bxy.addImage("bg", readImage("examples/data/bg.png"))
 bxy.addImage("ring1", readImage("examples/data/ring1.png"))
 bxy.addImage("ring2", readImage("examples/data/ring2.png"))
 bxy.addImage("ring3", readImage("examples/data/ring3.png"))
+bxy.addImage("crosshair", readImage("examples/data/crosshair.png"))
 
 var frame: int
 
@@ -39,6 +40,10 @@ window.onFrame = proc() =
   bxy.drawImage("ring1", center, angle = frame.float / 100)
   bxy.drawImage("ring2", center, angle = -frame.float / 190)
   bxy.drawImage("ring3", center, angle = frame.float / 170)
+
+  # Draw the stars at the mouse position.
+  let mousePos = window.mousePos.vec2 / window.contentScale
+  bxy.drawImage("crosshair", mousePos, angle = 0)
 
   # End this frame, flushing the draw commands.
   bxy.restoreTransform()
