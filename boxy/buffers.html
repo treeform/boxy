@@ -16,13 +16,16 @@
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4QQQEwksSS9ZWwAAAk1JREFUWMPtll2ITVEUx39nn/O7Y5qR8f05wtCUUr6ZIS++8pEnkZInPImneaCQ5METNdOkeFBKUhMPRIkHKfEuUZSUlGlKPN2TrgfncpvmnntnmlEyq1Z7t89/rf9a6+y99oZxGZf/XeIq61EdtgKXgdXA0xrYAvBjOIF1AI9zvjcC74BSpndrJPkBWDScTF8Aa4E3wDlgHbASaANmVqlcCnwHvgDvgVfAJ+AikAAvgfVZwLnSVZHZaOuKoQi3ZOMi4NkYkpe1p4J7A8BpYAD49hfIy/oqG0+hLomiKP2L5L+1ubn5115S+3OAn4EnwBlgMzCjyt6ZAnQCJ4A7wOs88iRJHvw50HoujuPBoCKwHWiosy8MdfZnAdcHk8dxXFJ3VQbQlCTJvRBCGdRbD4M6uc5glpY3eAihpN5S5w12diSEcCCEcKUO4ljdr15T76ur1FDDLIQQ3qv71EdDOe3Kxj3leRXyk+pxdWnFWod6Wt2bY3de3aSuUHcPBVimHs7mK9WrmeOF6lR1o9qnzskh2ar2qm1qizpfXaPeVGdlmGN5pb09qMxz1Xb1kLqgzn1RyH7JUXW52lr5e/Kqi9qpto7V1atuUzfnARrV7jEib1T76gG2qxdGmXyiekkt1GswPTtek0aBfJp6YySGBfWg2tPQ0FAYgf1stUfdmdcjarbYJEniKIq6gY/Aw+zWHAC+p2labGpqiorFYgGYCEzN7oQdQClN07O1/EfDyGgC0ALMBdYAi4FyK+4H3gLPsxfR1zRNi+NP7nH5J+QntnXe5B5mpfQAAAAASUVORK5CYII=">
 
 <!-- CSS -->
-<link rel="stylesheet" type="text/css" href="../nimdoc.out.css?v=2.2.6">
+<link rel="stylesheet" type="text/css" href="../nimdoc.out.css?v=2.2.10">
 
 <!-- JS -->
-<script type="text/javascript" src="../dochack.js?v=2.2.6"></script>
+<script type="text/javascript" src="../dochack.js?v=2.2.10"></script>
 </head>
 <body>
   <div class="document" id="documentId">
+    <input type="checkbox" id="nav-toggle" hidden>
+    <label for="nav-toggle" id="nav-burger">&#9776;</label>
+    <label for="nav-toggle" id="nav-overlay"></label>
     <div class="container">
       <h1 class="title">src/boxy/buffers</h1>
       <div class="row">
@@ -102,10 +105,10 @@
   <h1><a class="toc-backref" href="#7">Types</a></h1>
   <dl class="item">
     <div id="Buffer">
-  <dt><pre><a href="buffers.html#Buffer"><span class="Identifier">Buffer</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
+  <dt><pre><a href="#Buffer"><span class="Identifier">Buffer</span></a> <span class="Other">=</span> <span class="Keyword">ref</span> <span class="Keyword">object</span>
   <span class="Identifier">count</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">int</span>
   <span class="Identifier">target</span><span class="Operator">*</span><span class="Other">,</span> <span class="Identifier">componentType</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">GLenum</span>
-  <span class="Identifier">kind</span><span class="Operator">*</span><span class="Other">:</span> <a href="buffers.html#BufferKind"><span class="Identifier">BufferKind</span></a>
+  <span class="Identifier">kind</span><span class="Operator">*</span><span class="Other">:</span> <a href="#BufferKind"><span class="Identifier">BufferKind</span></a>
   <span class="Identifier">normalized</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">bool</span>
   <span class="Identifier">bufferId</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">GLuint</span></pre></dt>
   <dd>
@@ -117,7 +120,7 @@
   </dd>
 </div>
 <div id="BufferKind">
-  <dt><pre><a href="buffers.html#BufferKind"><span class="Identifier">BufferKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
+  <dt><pre><a href="#BufferKind"><span class="Identifier">BufferKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
   <span class="Identifier">bkSCALAR</span><span class="Other">,</span> <span class="Identifier">bkVEC2</span><span class="Other">,</span> <span class="Identifier">bkVEC3</span><span class="Other">,</span> <span class="Identifier">bkVEC4</span><span class="Other">,</span> <span class="Identifier">bkMAT2</span><span class="Other">,</span> <span class="Identifier">bkMAT3</span><span class="Other">,</span> <span class="Identifier">bkMAT4</span></pre></dt>
   <dd>
     
@@ -135,7 +138,7 @@
   <dl class="item">
     <div id="bindBufferData-procs-all">
   <div id="bindBufferData,Buffer,pointer">
-  <dt><pre><span class="Keyword">proc</span> <a href="#bindBufferData%2CBuffer%2Cpointer"><span class="Identifier">bindBufferData</span></a><span class="Other">(</span><span class="Identifier">buffer</span><span class="Other">:</span> <a href="buffers.html#Buffer"><span class="Identifier">Buffer</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">)</span> {.
+  <dt><pre><span class="Keyword">proc</span> <a href="#bindBufferData%2CBuffer%2Cpointer"><span class="Identifier">bindBufferData</span></a><span class="Other">(</span><span class="Identifier">buffer</span><span class="Other">:</span> <a href="#Buffer"><span class="Identifier">Buffer</span></a><span class="Other">;</span> <span class="Identifier">data</span><span class="Other">:</span> <span class="Identifier">pointer</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">GLerror</span><span class="Other">,</span> <span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -149,7 +152,7 @@
 </div>
 <div id="componentCount-procs-all">
   <div id="componentCount,BufferKind">
-  <dt><pre><span class="Keyword">func</span> <a href="#componentCount%2CBufferKind"><span class="Identifier">componentCount</span></a><span class="Other">(</span><span class="Identifier">bufferKind</span><span class="Other">:</span> <a href="buffers.html#BufferKind"><span class="Identifier">BufferKind</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Positive</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+  <dt><pre><span class="Keyword">func</span> <a href="#componentCount%2CBufferKind"><span class="Identifier">componentCount</span></a><span class="Other">(</span><span class="Identifier">bufferKind</span><span class="Other">:</span> <a href="#BufferKind"><span class="Identifier">BufferKind</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">Positive</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
     <span class="Identifier">forbids</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
   <dd>
     
@@ -185,7 +188,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2025-12-02 19:41:46 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-08-23 22:14:51 UTC</small>
       </div>
     </div>
   </div>
