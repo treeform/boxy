@@ -13,10 +13,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: treeform/setup-nim-action@v3
+    - uses: treeform/setup-nim-action@v6
     - uses: mymindstorm/setup-emsdk@v14
 
-    - run: nimby sync -g nimby.lock
+    # Nimby installs packages as siblings of the workspace root, so the
+    # workspace has to be the parent of this checkout: boxy then sits inside
+    # it next to its dependencies and nim finds nim.cfg by walking up.
+    - name: Create a Nimby workspace
+      shell: bash
+      run: |
+        cd ..
+        nimby create
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ..
+        nimby sync boxy/nimby.lock
 
     - run: nim c examples/animated_gif.nim
     - run: nim c examples/atlas_packing.nim
