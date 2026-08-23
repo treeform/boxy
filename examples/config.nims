@@ -7,16 +7,12 @@ when defined(emscripten):
   --os:linux
   --cpu:wasm32
   --cc:clang
-  when defined(windows):
-    --clang.exe:emcc.bat
-    --clang.linkerexe:emcc.bat
-    --clang.cpp.exe:emcc.bat
-    --clang.cpp.linkerexe:emcc.bat
-  else:
-    --clang.exe:emcc
-    --clang.linkerexe:emcc
-    --clang.cpp.exe:emcc
-    --clang.cpp.linkerexe:emcc
+  # Modern emsdk ships emcc.exe on Windows and no longer provides emcc.bat.
+  # CreateProcess appends .exe, so the bare name works on every platform.
+  --clang.exe:emcc
+  --clang.linkerexe:emcc
+  --clang.cpp.exe:emcc
+  --clang.cpp.linkerexe:emcc
   --listCmd
 
   --gc:arc
