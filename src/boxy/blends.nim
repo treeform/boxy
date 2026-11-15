@@ -182,7 +182,7 @@ proc atlasVert*(
   pos = vertexPos
   uv = vertexUv
   color = vertexColor
-  gl_Position = proj * vec4(vertexPos.x, vertexPos.y, 0.0, 1.0)
+  gl_Position = Mat4(proj) * vec4(vertexPos.x, vertexPos.y, 0.0, 1.0)
 
 proc atlasMain*(
   pos: Vec2,
